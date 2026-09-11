@@ -1,0 +1,27 @@
+{
+  "name": "lsat-prep",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Danielc1218/LSAT-prep.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Danielc1218/LSAT-prep/issues"
+  },
+  "homepage": "https://github.com/Danielc1218/LSAT-prep#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.116.0"
+  },
+  "devDependencies": {
+    "supabase": "^2.117.0"
+  }
+}
