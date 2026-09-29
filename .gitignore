@@ -4,3 +4,9 @@ node_modules/
 .env.local
 supabase/.branches
 supabase/.temp
+
+.venv/
+__pycache__/
+.pytest_cache/
+data/
+questions/
