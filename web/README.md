@@ -5,8 +5,7 @@ Next.js (App Router) on Supabase. Styles come straight from the design system:
 in, and runs automatically before `dev` and `build`.
 
 ```bash
-npx supabase start          # from the repo root: local database with the question bank
-cp .env.example .env.local  # local Supabase URL and publishable key
+cp .env.example .env.local  # hosted Supabase by default; local values are in the same file
 npm run dev                 # http://127.0.0.1:3000
 ```
 
