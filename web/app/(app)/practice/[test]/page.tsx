@@ -1,17 +1,20 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { startSection } from "@/lib/actions";
+import { allSections, allTests } from "@/lib/data";
 import { requireUser } from "@/lib/supabase";
 
 export default async function TestPage({ params }: PageProps<"/practice/[test]">) {
   const { test: testId } = await params;
   const { db } = await requireUser();
-  const [{ data: test }, { data: sections }, { data: sessions }] = await Promise.all([
-    db.from("tests").select("id, name, year").eq("id", testId).maybeSingle(),
-    db.from("test_sections").select("section_number, section_type, questions").eq("test_id", testId).order("section_number"),
+  const [tests, allSecs, { data: sessions }] = await Promise.all([
+    allTests(db),
+    allSections(db),
     db.from("test_sessions").select("id, section_number, started_at, finished_at").eq("test_id", testId).order("started_at", { ascending: false }),
   ]);
+  const test = tests.find((t) => t.id === testId);
   if (!test) notFound();
+  const sections = allSecs.filter((s) => s.test_id === testId);
   const open = (n: number) => (sessions ?? []).find((s) => s.section_number === n && !s.finished_at);
   const past = (sessions ?? []).filter((s) => s.finished_at);
   return (

@@ -13,14 +13,13 @@ export default async function SectionPage({ params }: PageProps<"/section/[id]">
 
   const [{ data: questions }, { data: attempts }] = await Promise.all([
     db.from("questions")
-      .select("id, question_number, section_type, stimulus, prompt, options, passage_id")
+      .select("id, question_number, section_type, stimulus, prompt, options, passage_id, passages(passage_text)")
       .eq("test_id", session.test_id).eq("section_number", session.section_number).order("question_number"),
     db.from("attempts").select("question_id, chosen").eq("session_id", id),
   ]);
   if (!questions?.length) notFound();
   const passageIds = [...new Set(questions.map((q) => q.passage_id).filter(Boolean))] as string[];
-  const { data: passages } = passageIds.length ? await db.from("passages").select("id, passage_text").in("id", passageIds) : { data: [] };
-  const text = (pid: string) => passages?.find((p) => p.id === pid)?.passage_text ?? "";
+  const text = (pid: string) => (questions.find((q) => q.passage_id === pid)?.passages as unknown as { passage_text: string } | null)?.passage_text ?? "";
 
   return (
     <SectionRunner

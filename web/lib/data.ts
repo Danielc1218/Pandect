@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 
 export const SECTIONS = { lr: "Logical Reasoning", rc: "Reading Comprehension" } as const;
 export type SectionKey = keyof typeof SECTIONS;
@@ -7,16 +8,33 @@ export const drillHref = (section: string, type: string) => `/drill?section=${se
 export const pct = (part: number, whole: number) => (whole ? Math.round((100 * part) / whole) : 0);
 export const testNumber = (id: string) => Number(id.replace(/\D/g, "")) || 0;
 
+/**
+ * The question bank changes only when practice tests are imported, and every signed-in user sees the same rows,
+ * so these reads are cached on the server for everyone. On a miss the query runs as the current user.
+ * Unstable_cache is the pre-Cache-Components API; move to "use cache" if cacheComponents is turned on.
+ */
+const DAY_S = 86_400;
+const shared = <T>(key: string, query: (db: SupabaseClient) => PromiseLike<{ data: T[] | null; error: unknown }>) => (db: SupabaseClient) =>
+  unstable_cache(async () => {
+    const { data, error } = await query(db);
+    if (error) throw error; // never cache a failed read
+    return data ?? [];
+  }, [key], { revalidate: DAY_S })();
+
+const typeCounts = shared<{ section_type: string; question_type: string; total: number }>("question_type_counts", (db) =>
+  db.from("question_type_counts").select("section_type, question_type, total"));
+export const allTests = shared<{ id: string; name: string; year: number | null }>("tests", (db) =>
+  db.from("tests").select("id, name, year").like("id", "PT%"));
+export const allSections = shared<{ test_id: string; section_number: number; section_type: string; questions: number }>("test_sections", (db) =>
+  db.from("test_sections").select("test_id, section_number, section_type, questions").order("section_number"));
+
 export type TypeStat = { section_type: string; question_type: string; total: number; answered: number; correct: number };
 
 /** Every question type with its size and the signed-in user's record on it, most common first. */
 export async function typeStats(db: SupabaseClient): Promise<TypeStat[]> {
-  const [{ data: totals }, { data: mine }] = await Promise.all([
-    db.from("question_type_counts").select("*"),
-    db.from("my_type_stats").select("*"),
-  ]);
+  const [totals, { data: mine }] = await Promise.all([typeCounts(db), db.from("my_type_stats").select("*")]);
   const record = new Map((mine ?? []).map((m) => [m.section_type + "|" + m.question_type, m]));
-  return (totals ?? [])
+  return totals
     .map((t) => {
       const m = record.get(t.section_type + "|" + t.question_type);
       return { ...t, answered: m?.answered ?? 0, correct: m?.correct ?? 0 };

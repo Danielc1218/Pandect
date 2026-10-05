@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 export const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
@@ -22,10 +23,14 @@ export async function supabase() {
   });
 }
 
-/** The client and user for a signed-in page; sends everyone else to log in. */
-export async function requireUser() {
+/**
+ * The client and user for a signed-in page; sends everyone else to log in.
+ * getClaims checks the session token's signature locally (the project signs with ES256), so this costs
+ * no round trip to Supabase Auth; cache() shares one result between a request's layout, page and actions.
+ */
+export const requireUser = cache(async () => {
   const db = await supabase();
-  const { data } = await db.auth.getUser();
-  if (!data.user) redirect("/login");
-  return { db, user: data.user };
-}
+  const { data } = await db.auth.getClaims();
+  if (!data?.claims) redirect("/login");
+  return { db, user: { id: data.claims.sub, email: data.claims.email } };
+});

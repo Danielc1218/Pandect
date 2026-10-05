@@ -17,8 +17,10 @@ export async function proxy(request: NextRequest) {
       },
     },
   });
-  const { data } = await db.auth.getUser();
-  if (!data.user && !OPEN.includes(request.nextUrl.pathname)) {
+  // getClaims refreshes an expired session like getUser did, but checks the token's signature locally
+  // instead of a round trip to Supabase Auth on every request.
+  const { data } = await db.auth.getClaims();
+  if (!data?.claims && !OPEN.includes(request.nextUrl.pathname)) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
   return response;
