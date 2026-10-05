@@ -41,6 +41,4 @@ yarn-error.log*
 next-env.d.ts
 
 !.env.example
-# copied from ../design by `npm run design`
-/app/design/
-/public/images/
+.vercel

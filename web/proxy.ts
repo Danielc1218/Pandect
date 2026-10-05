@@ -1,7 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-// Keeps the Supabase session cookie fresh on every request.
+// Keeps the Supabase session cookie fresh, and keeps the whole site private:
+// anyone who is not signed in only ever sees the log-in and sign-up pages.
+const OPEN = ["/login", "/signup"];
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
   const db = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
@@ -14,7 +17,10 @@ export async function proxy(request: NextRequest) {
       },
     },
   });
-  await db.auth.getUser();
+  const { data } = await db.auth.getUser();
+  if (!data.user && !OPEN.includes(request.nextUrl.pathname)) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
   return response;
 }
 

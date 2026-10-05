@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "design": "mkdir -p app/design public/images && cp ../design/mock/tokens.css ../design/mock/mock.css app/design/ && cp ../design/mock/images/*.jpg public/images/",
+    "design": "if [ -d ../design/mock ]; then mkdir -p app/design public/images && cp ../design/mock/tokens.css ../design/mock/mock.css app/design/ && cp ../design/mock/images/*.jpg public/images/; fi",
     "predev": "npm run design",
     "prebuild": "npm run design"
   },

@@ -2,7 +2,9 @@
 
 Next.js (App Router) on Supabase. Styles come straight from the design system:
 `npm run design` copies `../design/mock/tokens.css`, `mock.css` and the photos
-in, and runs automatically before `dev` and `build`.
+in, and runs automatically before `dev` and `build`. The copies in `app/design/` and
+`public/images/` are committed so the app also builds where `../design` is absent (Vercel);
+edit the originals, never the copies.
 
 ```bash
 cp .env.example .env.local  # hosted Supabase by default; local values are in the same file
