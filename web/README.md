@@ -22,5 +22,5 @@ npm run dev                 # http://127.0.0.1:3000
 | `/results/[id]` | Score, accuracy by type and questions to review |
 | `/progress`, `/settings` | Accuracy by type, past sections, profile and goal |
 
-Answers are graded by a database trigger (`supabase/migrations/*learner_progress.sql`),
+Answers are graded by a database trigger (`supabase/migrations/20261005213700_learner_progress.sql`),
 not by the browser. All pages under `(app)` and `(test)` require a signed-in user.
