@@ -16,8 +16,6 @@ export async function signUp(_: AuthState, form: FormData): Promise<AuthState> {
 
   const db = await supabase();
   const { data, error } = await db.auth.signUp({ email, password, options: { data: { display_name: name } } });
-  // The database refuses emails that are not on the invitation list (see the invite_only migration).
-  // Its message ("Sign-ups are by invitation only") is shown as is.
   if (error) return { error: error.message, email, name };
   if (!data.session) return { error: "Check your email to confirm your account, then log in.", email, name };
   await db.from("profiles").update({ target_score: target, test_date: testDate }).eq("id", data.user!.id);
