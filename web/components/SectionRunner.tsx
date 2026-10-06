@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { finishSection, saveAnswer } from "@/lib/actions";
+import { sectionMinutes } from "@/lib/timing";
 import { Choices } from "./Choices";
 
 export type SectionQuestion = { id: string; number: number; stimulus: string | null; prompt: string; options: Record<string, string>; passage: number | null };
-const LIMIT = 35 * 60;
 
 export function SectionRunner({
   sessionId, title, subtitle, startedAt, questions, passages, saved,
@@ -21,16 +21,25 @@ export function SectionRunner({
   const [left, setLeft] = useState<number | null>(null);
   const [pending, start] = useTransition();
   const q = questions[index];
+  const limit = sectionMinutes(questions.length) * 60;
   const finish = () => start(() => finishSection(sessionId));
 
   useEffect(() => {
     document.body.classList.add("test");
-    const tick = () => setLeft(Math.max(0, LIMIT - Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000)));
+    const tick = () => setLeft(limit - Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000)); // negative once over time
     tick();
     const timer = setInterval(tick, 1000);
     return () => { clearInterval(timer); document.body.classList.remove("test"); };
-  }, [startedAt]);
-  useEffect(() => { if (left === 0) finish(); }, [left]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [startedAt, limit]);
+  // When time runs out the learner is asked once: stop here, or keep going with the clock counting up.
+  // The choice is remembered for this section, so reloading or resuming does not ask again.
+  const timeUp = useRef<HTMLDialogElement>(null);
+  const overtimeKey = `overtime:${sessionId}`;
+  const expired = left !== null && left <= 0;
+  useEffect(() => {
+    if (expired && !timeUp.current?.open && localStorage.getItem(overtimeKey) === null) timeUp.current?.showModal();
+  }, [expired, overtimeKey]);
+  const keepGoing = () => { localStorage.setItem(overtimeKey, "1"); timeUp.current?.close(); };
 
   const select = (letter: string) => {
     setAnswers((a) => ({ ...a, [q.id]: letter }));
@@ -43,7 +52,8 @@ export function SectionRunner({
       return { ...e, [q.id]: list.includes(letter) ? list.filter((l) => l !== letter) : [...list, letter] };
     });
   const low = left !== null && left <= 300;
-  const clock = left === null ? "35:00" : `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+  const shown = Math.abs(left ?? limit);
+  const clock = `${expired ? "+" : ""}${Math.floor(shown / 60)}:${String(shown % 60).padStart(2, "0")}`;
 
   return (
     <>
@@ -51,7 +61,7 @@ export function SectionRunner({
         <h1 className="title">{title}</h1>
         <span className="muted">{subtitle}</span>
         <span className="spacer" />
-        <span className="muted">{low ? "Under 5 minutes left" : "Time left"}</span>
+        <span className="muted">{expired ? "Over time" : low ? "Under 5 minutes left" : "Time left"}</span>
         <span className={`timer${low ? " low" : ""}`} role="timer">{clock}</span>
         <Link className="btn" href="/practice">Pause and exit</Link>
       </header>
@@ -89,6 +99,15 @@ export function SectionRunner({
         <span className="spacer" />
         <button className="btn primary" disabled={pending} onClick={finish}>Finish section</button>
       </nav>
+      {/* Escape would dismiss it without a choice, so it is ignored. */}
+      <dialog ref={timeUp} className="modal" aria-labelledby="time-up-title" onCancel={(e) => e.preventDefault()}>
+        <h2 id="time-up-title">Time is up</h2>
+        <p>The {limit / 60} minutes for this section have run out. You can finish now, or keep going: the clock will count up and your results will show the total time.</p>
+        <div className="actions">
+          <button className="btn primary" disabled={pending} onClick={finish}>Finish section</button>
+          <button className="btn" disabled={pending} onClick={keepGoing}>Keep going</button>
+        </div>
+      </dialog>
     </>
   );
 }

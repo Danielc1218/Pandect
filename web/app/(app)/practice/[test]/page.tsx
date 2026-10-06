@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { sectionMinutes } from "@/lib/timing";
 import { notFound } from "next/navigation";
 import { startSection } from "@/lib/actions";
 import { allSections, allTests } from "@/lib/bank";
@@ -29,7 +30,7 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
               <>
                 <div className="grow">
                   <div className="title">Section {s.section_number}, {s.section_type}</div>
-                  <div className="muted">{s.questions} questions, 35 minutes</div>
+                  <div className="muted">{s.questions} questions, {sectionMinutes(s.questions)} minutes</div>
                 </div>
                 <span className="tag">{running ? "Resume" : "Start"}</span>
               </>

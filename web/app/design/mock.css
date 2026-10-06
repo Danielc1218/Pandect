@@ -237,6 +237,11 @@ input, select { accent-color: var(--color-primary); }
 body.test .theme-switch { bottom: auto; top: 72px; }
 .reader.single { grid-template-columns: minmax(0, 760px); justify-content: center; }
 .timer.low { border: 2px solid var(--color-danger); }
+/* modal: a question the page needs answered before it carries on */
+.modal { max-width: 440px; padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+         background: var(--color-surface); color: var(--color-text); box-shadow: var(--shadow-card); }
+.modal > * + * { margin-top: var(--space-4); }
+.modal::backdrop { background: color-mix(in srgb, var(--color-text) 45%, transparent); }
 
 /* sliding highlight: one indicator per nav, moved by mock.js to the active item */
 .nav-ind { position: absolute; left: 0; top: 0; pointer-events: none;

@@ -44,7 +44,7 @@ async function RandomSections() {
         <h1>Practice tests</h1>
         <form className="panel" action={startRandomSection}>
           <h3>Timed Logical Reasoning section</h3>
-          <p className="muted">25 questions drawn at random, ones you have not answered first. 35 minutes.</p>
+          <p className="muted">25 questions, 35 minutes</p>
           <div className="actions"><button className="btn primary">Start a section</button></div>
         </form>
       </section>

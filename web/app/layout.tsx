@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { TopNav } from "@/components/Nav";
+import { BANK_NAME } from "@/lib/bank";
 import { supabase } from "@/lib/supabase";
 import "./design/tokens.css";
 import "./design/mock.css";
@@ -8,7 +9,7 @@ import "./skeleton.css";
 
 export const metadata: Metadata = {
   title: { default: "LSAT Prep", template: "%s · LSAT Prep" },
-  description: "Practise on LSAT-style questions, sorted by type, with your accuracy tracked.",
+  description: `Practise on ${"LSAT-style"} questions, sorted by type, with your accuracy tracked.`,
 };
 
 // Only the nav's buttons depend on the session, so only they wait for it; the rest of the page prerenders.

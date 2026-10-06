@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { BANK_NAME } from "@/lib/bank";
+
 
 const WAYS = [
   { href: "/types", photo: "logic", tag: "Drill", title: "Drill one question type", text: "Flaw, Strengthen, Necessary Assumption and the rest, each in its own set." },
@@ -17,8 +19,8 @@ export default function Home() {
     <>
       <section className="hero">
         <div className="stack">
-          <span className="tag">Logical Reasoning</span>
-          <h1>Practise on LSAT-style questions until the patterns feel <mark>obvious</mark>.</h1>
+          <span className="tag">{"Logical Reasoning"}</span>
+          <h1>Practise on {"LSAT-style"} questions until the patterns feel <mark>obvious</mark>.</h1>
           <div className="actions">
             <Link className="btn primary" href="/signup">Start practising free</Link>
             <Link className="btn" href="/about">How it works</Link>

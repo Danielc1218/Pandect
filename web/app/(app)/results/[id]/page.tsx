@@ -4,6 +4,7 @@ import { Choices } from "@/components/Choices";
 import { pct } from "@/lib/data";
 import { SESSION_FIELDS, sessionAnswerKey, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
+import { sectionMinutes } from "@/lib/timing";
 
 export const metadata = { title: "Results" };
 
@@ -57,6 +58,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
   // The score the database stored when the section was finished: the user's history of this sitting.
   const right = session.score_correct ?? all.filter((q) => mine.get(q.id)?.correct).length;
   const seconds = Math.round((new Date(session.finished_at).getTime() - new Date(session.started_at).getTime()) / 1000);
+  const over = seconds - sectionMinutes(all.length) * 60;
   const byType = Object.entries(Object.groupBy(all, (q) => q.question_type))
     .map(([type, qs]) => ({ type, total: qs!.length, right: qs!.filter((q) => mine.get(q.id)?.correct).length }))
     .sort((a, b) => a.right / a.total - b.right / b.total);
@@ -73,7 +75,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
           <div className="stat"><div className="value">{right} of {all.length}</div><div className="label">questions correct</div></div>
           <div className="stat"><div className="value">{pct(right, all.length)}%</div><div className="label">accuracy</div></div>
           <div className="stat"><div className="value">{all.length - mine.size}</div><div className="label">left unanswered</div></div>
-          <div className="stat"><div className="value">{Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}</div><div className="label">time used</div></div>
+          <div className="stat"><div className="value">{Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}</div><div className="label">{over > 0 ? `time used, ${Math.floor(over / 60)}:${String(over % 60).padStart(2, "0")} over the limit` : "time used"}</div></div>
         </div>
       </section>
       <section>
