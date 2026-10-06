@@ -29,10 +29,12 @@ export async function startSection(form: FormData) {
   redirect(`/section/${data.id}`);
 }
 
-/** A timed section of 25 random Logical Reasoning questions from this deployment's bank, unanswered ones first. */
-export async function startRandomSection() {
+/** A timed random section from this deployment's bank, unanswered questions first: 25 Logical Reasoning
+ * questions, or four whole Reading Comprehension passages (the database builds those like a real section). */
+export async function startRandomSection(form: FormData) {
   const { db } = await requireUser();
-  const { data, error } = await db.rpc("start_random_section", { p_bank: BANK_NAME, p_section_type: "Logical Reasoning", p_size: 25 });
+  const section = form.get("section_type") === "Reading Comprehension" ? "Reading Comprehension" : "Logical Reasoning";
+  const { data, error } = await db.rpc("start_random_section", { p_bank: BANK_NAME, p_section_type: section, p_size: 25 });
   if (error) throw new Error(error.message);
   redirect(`/section/${data}`);
 }

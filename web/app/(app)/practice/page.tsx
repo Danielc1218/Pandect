@@ -47,6 +47,12 @@ async function RandomSections() {
           <p className="muted">25 questions, 35 minutes</p>
           <div className="actions"><button className="btn primary">Start a section</button></div>
         </form>
+        <form className="panel" action={startRandomSection}>
+          <input type="hidden" name="section_type" value="Reading Comprehension" />
+          <h3>Timed Reading Comprehension section</h3>
+          <p className="muted">4 passages, about 27 questions, 35 minutes</p>
+          <div className="actions"><button className="btn primary">Start a section</button></div>
+        </form>
       </section>
       {open.length > 0 && (
         <section>
