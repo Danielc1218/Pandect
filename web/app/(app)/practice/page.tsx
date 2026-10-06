@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Tabs } from "@/components/Tabs";
-import { allSections, allTests, testNumber } from "@/lib/data";
+import { allSections, allTests } from "@/lib/bank";
+import { testNumber } from "@/lib/data";
 import { requireUser } from "@/lib/supabase";
 
 export const metadata = { title: "Practice tests" };
@@ -28,8 +29,8 @@ function TestList({ tests }: { tests: Row[] }) {
 export default async function Practice() {
   const { db } = await requireUser();
   const [tests, sections, { data: sessions }] = await Promise.all([
-    allTests(db),
-    allSections(db),
+    allTests(),
+    allSections(),
     db.from("test_sessions").select("test_id, section_number, finished_at"),
   ]);
   const rows: Row[] = tests

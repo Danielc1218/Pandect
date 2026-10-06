@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { startSection } from "@/lib/actions";
-import { allSections, allTests } from "@/lib/data";
+import { allSections, allTests } from "@/lib/bank";
 import { requireUser } from "@/lib/supabase";
 
 export default async function TestPage({ params }: PageProps<"/practice/[test]">) {
   const { test: testId } = await params;
   const { db } = await requireUser();
   const [tests, allSecs, { data: sessions }] = await Promise.all([
-    allTests(db),
-    allSections(db),
+    allTests(),
+    allSections(),
     db.from("test_sessions").select("id, section_number, started_at, finished_at").eq("test_id", testId).order("started_at", { ascending: false }),
   ]);
   const test = tests.find((t) => t.id === testId);

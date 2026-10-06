@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { Suspense, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 
 type Item = { href: string; label: string; match?: string[] };
 
@@ -28,11 +28,24 @@ export function useSlide<T extends HTMLElement>(dep: unknown, underline = false)
   return { ref, style };
 }
 
+type NavProps = { items: Item[]; className: string; underline?: boolean; label: string };
+
 /**
  * A list of links with one highlight that slides to the current link.
  * `underline` draws it as a bar under the link (top bar); otherwise as a block behind it (rail).
+ * On routes with params (/results/[id]) the path is unknown while the static shell is prerendered, so the
+ * links render plain until it is known and the highlight then appears.
  */
-export function SlidingNav({ items, className, underline = false, label }: { items: Item[]; className: string; underline?: boolean; label: string }) {
+export function SlidingNav(props: NavProps) {
+  const plain = (
+    <nav className={props.className} aria-label={props.label}>
+      {props.items.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}
+    </nav>
+  );
+  return <Suspense fallback={plain}><ActiveNav {...props} /></Suspense>;
+}
+
+function ActiveNav({ items, className, underline = false, label }: NavProps) {
   const path = usePathname();
   const { ref, style } = useSlide<HTMLElement>(path, underline);
   const isActive = (item: Item) => [item.href, ...(item.match ?? [])].some((p) => (p === "/" ? path === "/" : path === p || path.startsWith(p + "/")));
@@ -54,13 +67,14 @@ const SITE: Item[] = [
   { href: "/learn", label: "Learning", match: ["/types", "/drill", "/practice", "/results", "/progress", "/settings"] },
 ];
 
-export function TopNav({ signedIn }: { signedIn: boolean }) {
+/** `signedIn` undefined means the session is still loading: the buttons are left out until it is known. */
+export function TopNav({ signedIn }: { signedIn?: boolean }) {
   return (
     <header className="top-nav">
       <Link className="brand" href="/">LSAT Prep</Link>
       <SlidingNav items={SITE} className="links" underline label="Site" />
       <span className="spacer" />
-      {signedIn ? (
+      {signedIn === undefined ? null : signedIn ? (
         <>
           <Link className="btn" href="/progress">Review mistakes</Link>
           <Link className="btn primary" href="/practice">Start a section</Link>

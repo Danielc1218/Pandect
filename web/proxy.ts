@@ -3,7 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 // Keeps the Supabase session cookie fresh, and keeps the whole site private:
 // anyone who is not signed in only ever sees the log-in and sign-up pages.
-const OPEN = ["/login", "/signup"];
+// /api/revalidate is called by the import script, which has no session; it checks its own secret.
+const OPEN = ["/login", "/signup", "/api/revalidate"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

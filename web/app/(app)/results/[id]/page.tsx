@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { answerKey } from "@/lib/bank";
 import { pct } from "@/lib/data";
 import { requireUser } from "@/lib/supabase";
 
@@ -12,12 +13,11 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
   if (!session) notFound();
   if (!session.finished_at) redirect(`/section/${id}`);
 
-  const [{ data: questions }, { data: attempts }] = await Promise.all([
-    db.from("questions").select("id, question_number, question_type, section_type, correct_answer")
-      .eq("test_id", session.test_id).eq("section_number", session.section_number).order("question_number"),
+  const [questions, { data: attempts }] = await Promise.all([
+    answerKey(session.test_id, session.section_number),
     db.from("attempts").select("question_id, chosen, correct").eq("session_id", id),
   ]);
-  const all = questions ?? [];
+  const all = questions;
   const mine = new Map((attempts ?? []).map((a) => [a.question_id, a]));
   const right = all.filter((q) => mine.get(q.id)?.correct).length;
   const seconds = Math.round((new Date(session.finished_at).getTime() - new Date(session.started_at).getTime()) / 1000);

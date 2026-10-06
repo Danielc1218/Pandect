@@ -19,7 +19,7 @@ export function Drill({ question, type, answered, total }: { question: DrillQues
     setSelected((s) => (s === letter ? null : s));
   };
   return (
-    <div className="question">
+    <div className="question" aria-busy={pending}>
       <div className="meta"><span className="tag">{type}</span><span className="muted">Question {answered + 1} of {total} · {question.source}</span></div>
       <div className="progress"><span style={{ width: `${Math.round((100 * (answered + (result ? 1 : 0))) / total)}%` }} /></div>
       {question.stimulus && <p>{question.stimulus}</p>}

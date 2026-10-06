@@ -1,8 +1,8 @@
 import { Rail, TopNav } from "@/components/Nav";
-import { requireUser } from "@/lib/supabase";
 
-export default async function AppLayout({ children }: LayoutProps<"/">) {
-  await requireUser();
+// No session read here: proxy.ts sends signed-out visitors to /login, and every page calls requireUser(),
+// so the shell (nav and rail) renders at once while the page streams in behind its loading.tsx.
+export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       <TopNav signedIn />

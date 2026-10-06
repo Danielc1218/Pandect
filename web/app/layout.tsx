@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./design/tokens.css";
 import "./design/mock.css";
+import "./skeleton.css";
 
 export const metadata: Metadata = {
   title: { default: "LSAT Prep", template: "%s · LSAT Prep" },

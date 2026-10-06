@@ -2,22 +2,27 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { allTests, BANK_NAME } from "./bank";
 import { requireUser } from "./supabase";
 
 /** Records a drill answer. The database grades it; the correct letter is only returned afterwards. */
 export async function answer(questionId: string, chosen: string) {
   const { db } = await requireUser();
+  // Only questions in the bank this deployment serves can be answered or have their answer revealed.
+  const { data: question } = await db.from("questions").select("correct_answer, tests!inner(bank)").eq("id", questionId).eq("tests.bank", BANK_NAME).maybeSingle();
+  if (!question) throw new Error("That question is not available.");
   const { data, error } = await db.from("attempts").insert({ question_id: questionId, chosen }).select("correct").single();
   if (error) throw new Error(error.message);
-  const { data: question } = await db.from("questions").select("correct_answer").eq("id", questionId).single();
-  return { correct: data.correct as boolean, correctAnswer: question!.correct_answer as string };
+  return { correct: data.correct as boolean, correctAnswer: question.correct_answer as string };
 }
 
 export async function startSection(form: FormData) {
   const { db } = await requireUser();
+  const testId = String(form.get("test_id"));
+  if (!(await allTests()).some((t) => t.id === testId)) throw new Error("That test is not available.");
   const { data, error } = await db
     .from("test_sessions")
-    .insert({ test_id: String(form.get("test_id")), section_number: Number(form.get("section_number")) })
+    .insert({ test_id: testId, section_number: Number(form.get("section_number")) })
     .select("id")
     .single();
   if (error) throw new Error(error.message);
