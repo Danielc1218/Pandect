@@ -26,7 +26,8 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
             <>
               <div className="field">
                 <label htmlFor="target">Target score</label>
-                <select id="target" name="target" defaultValue="165">{[150, 155, 160, 165, 170, 175].map((s) => <option key={s}>{s}</option>)}</select>
+                <input id="target" name="target" type="number" inputMode="numeric" min={120} max={180} step={1} defaultValue={state.target ?? 165} aria-describedby="target-hint" required />
+                <p className="hint" id="target-hint">Any score from 120 to 180.</p>
               </div>
               <div className="field">
                 <label htmlFor="test-date">Test date</label>
@@ -35,7 +36,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
               </div>
             </>
           )}
-          <button className="btn primary block" disabled={pending}>{signup ? "Create account" : "Log in"}</button>
+          <button className="btn primary block" disabled={pending}>{pending ? (signup ? "Creating account…" : "Logging in…") : signup ? "Create account" : "Log in"}</button>
         </form>
         <p className="muted">
           {signup ? <>Already have an account? <Link href="/login">Log in</Link></> : <>New here? <Link href="/signup">Create an account</Link></>}

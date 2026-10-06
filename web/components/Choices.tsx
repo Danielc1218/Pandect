@@ -2,16 +2,16 @@
 
 const LETTERS = ["A", "B", "C", "D", "E"];
 
-/** The five answer rows. Click selects; right-click or the Cross out button eliminates. */
+/** The five answer rows. Click selects; right-click or the Cross out button eliminates. With a result and no handlers it is a read-only review. */
 export function Choices({
-  options, selected, eliminated, result, onSelect, onEliminate,
+  options, selected, eliminated = [], result, onSelect, onEliminate,
 }: {
   options: Record<string, string>;
   selected: string | null;
-  eliminated: string[];
+  eliminated?: string[];
   result?: { correctAnswer: string } | null;
-  onSelect: (letter: string) => void;
-  onEliminate: (letter: string) => void;
+  onSelect?: (letter: string) => void;
+  onEliminate?: (letter: string) => void;
 }) {
   return (
     <div className="stack" role="radiogroup" aria-label="Answer choices">
@@ -26,9 +26,9 @@ export function Choices({
             role="radio"
             aria-checked={letter === selected}
             tabIndex={result ? -1 : 0}
-            onClick={() => !result && onSelect(letter)}
-            onKeyDown={(e) => { if (!result && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onSelect(letter); } }}
-            onContextMenu={(e) => { e.preventDefault(); if (!result) onEliminate(letter); }}
+            onClick={() => !result && onSelect?.(letter)}
+            onKeyDown={(e) => { if (!result && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onSelect?.(letter); } }}
+            onContextMenu={(e) => { e.preventDefault(); if (!result) onEliminate?.(letter); }}
           >
             <span className="letter">{letter}</span>
             <span>{options[letter]}</span>

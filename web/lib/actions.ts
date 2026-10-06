@@ -9,11 +9,11 @@ import { requireUser } from "./supabase";
 export async function answer(questionId: string, chosen: string) {
   const { db } = await requireUser();
   // Only questions in the bank this deployment serves can be answered or have their answer revealed.
-  const { data: question } = await db.from("questions").select("correct_answer, tests!inner(bank)").eq("id", questionId).eq("tests.bank", BANK_NAME).maybeSingle();
+  const { data: question } = await db.from("questions").select("correct_answer, explanation, tests!inner(bank)").eq("id", questionId).eq("tests.bank", BANK_NAME).maybeSingle();
   if (!question) throw new Error("That question is not available.");
   const { data, error } = await db.from("attempts").insert({ question_id: questionId, chosen }).select("correct").single();
   if (error) throw new Error(error.message);
-  return { correct: data.correct as boolean, correctAnswer: question.correct_answer as string };
+  return { correct: data.correct as boolean, correctAnswer: question.correct_answer as string, explanation: question.explanation as string | null };
 }
 
 export async function startSection(form: FormData) {
@@ -27,6 +27,14 @@ export async function startSection(form: FormData) {
     .single();
   if (error) throw new Error(error.message);
   redirect(`/section/${data.id}`);
+}
+
+/** A timed section of 25 random Logical Reasoning questions from this deployment's bank, unanswered ones first. */
+export async function startRandomSection() {
+  const { db } = await requireUser();
+  const { data, error } = await db.rpc("start_random_section", { p_bank: BANK_NAME, p_section_type: "Logical Reasoning", p_size: 25 });
+  if (error) throw new Error(error.message);
+  redirect(`/section/${data}`);
 }
 
 /** Saves or changes one answer in a timed section. */

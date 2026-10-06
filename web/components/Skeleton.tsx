@@ -58,3 +58,20 @@ export function SkQuestion() {
     </div>
   );
 }
+
+/** The log-in and sign-up panel: a heading, labelled fields and the submit button. */
+export function SkAuth({ fields = 2 }: { fields?: number }) {
+  return (
+    <Skeleton>
+      <section className="auth">
+        <div className="panel">
+          <SkTitle w="55%" />
+          <div className="stack">
+            {Array.from({ length: fields }, (_, i) => <div key={i} className="field"><Bar w="30%" h={14} /><Bar h={46} /></div>)}
+            <Bar h={38} />
+          </div>
+        </div>
+      </section>
+    </Skeleton>
+  );
+}

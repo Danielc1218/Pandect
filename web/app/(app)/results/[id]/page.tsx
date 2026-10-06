@@ -1,37 +1,74 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { answerKey } from "@/lib/bank";
+import { Choices } from "@/components/Choices";
 import { pct } from "@/lib/data";
+import { SESSION_FIELDS, sessionAnswerKey, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
 
 export const metadata = { title: "Results" };
 
+type Key = Awaited<ReturnType<typeof sessionAnswerKey>>[number];
+type Text = Awaited<ReturnType<typeof sessionQuestions>>["questions"][number];
+
+/** A missed question as a row that opens to the question itself, the marked answers and the reasoning. */
+function ReviewRow({ q, text, passages, chosen }: { q: Key; text?: Text; passages: string[]; chosen: string | null }) {
+  return (
+    <details className="review">
+      <summary className="row">
+        <div className="grow">
+          <div className="title">Question {q.number}</div>
+          <div className="muted">{chosen ? `You chose ${chosen}.` : "Not answered."} Correct answer {q.correct_answer}.</div>
+        </div>
+        <span className="tag">{q.question_type}</span>
+      </summary>
+      {text && (
+        <div className="body">
+          {text.passage !== null && (
+            <details><summary>Read the passage</summary>{passages[text.passage].split(/\n\s*\n/).map((p, i) => <p key={i}>{p}</p>)}</details>
+          )}
+          {text.stimulus && <p>{text.stimulus}</p>}
+          <h3>{text.prompt}</h3>
+          <Choices options={text.options} selected={chosen} result={{ correctAnswer: q.correct_answer }} />
+          <div className="explain">
+            <strong>Reasoning</strong>
+            <p>{q.explanation ?? "No written reasoning for this question yet."}</p>
+          </div>
+        </div>
+      )}
+    </details>
+  );
+}
+
 export default async function Results({ params }: PageProps<"/results/[id]">) {
   const { id } = await params;
   const { db } = await requireUser();
-  const { data: session } = await db.from("test_sessions").select("id, test_id, section_number, started_at, finished_at, tests(name)").eq("id", id).maybeSingle();
+  const { data } = await db.from("test_sessions").select(SESSION_FIELDS).eq("id", id).maybeSingle();
+  const session = data as unknown as Session | null;
   if (!session) notFound();
   if (!session.finished_at) redirect(`/section/${id}`);
 
-  const [questions, { data: attempts }] = await Promise.all([
-    answerKey(session.test_id, session.section_number),
+  const [all, section, { data: attempts }] = await Promise.all([
+    sessionAnswerKey(db, id),
+    sessionQuestions(db, id),
     db.from("attempts").select("question_id, chosen, correct").eq("session_id", id),
   ]);
-  const all = questions;
+  const text = new Map(section.questions.map((q) => [q.id, q]));
   const mine = new Map((attempts ?? []).map((a) => [a.question_id, a]));
-  const right = all.filter((q) => mine.get(q.id)?.correct).length;
+  // The score the database stored when the section was finished: the user's history of this sitting.
+  const right = session.score_correct ?? all.filter((q) => mine.get(q.id)?.correct).length;
   const seconds = Math.round((new Date(session.finished_at).getTime() - new Date(session.started_at).getTime()) / 1000);
   const byType = Object.entries(Object.groupBy(all, (q) => q.question_type))
     .map(([type, qs]) => ({ type, total: qs!.length, right: qs!.filter((q) => mine.get(q.id)?.correct).length }))
     .sort((a, b) => a.right / a.total - b.right / b.total);
   const missed = all.filter((q) => !mine.get(q.id)?.correct);
-  const name = (session.tests as unknown as { name: string }).name;
+  const label = sessionLabel(session);
+  const home = sessionHome(session);
 
   return (
     <>
       <section>
-        <p className="muted"><Link href={`/practice/${session.test_id}`}>{name}</Link> / Section {session.section_number}, {all[0]?.section_type}</p>
-        <h1>{name} results</h1>
+        <p className="muted"><Link href={home}>{label.title}</Link> / {label.subtitle}</p>
+        <h1>{label.title} results</h1>
         <div className="stats">
           <div className="stat"><div className="value">{right} of {all.length}</div><div className="label">questions correct</div></div>
           <div className="stat"><div className="value">{pct(right, all.length)}%</div><div className="label">accuracy</div></div>
@@ -56,20 +93,14 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
           <h2>Questions to review</h2>
           <div className="list">
             {missed.map((q) => (
-              <div key={q.id} className="row">
-                <div className="grow">
-                  <div className="title">Question {q.question_number}</div>
-                  <div className="muted">{mine.get(q.id) ? `You chose ${mine.get(q.id)!.chosen}.` : "Not answered."} Correct answer {q.correct_answer}.</div>
-                </div>
-                <span className="tag">{q.question_type}</span>
-              </div>
+              <ReviewRow key={q.id} q={q} text={text.get(q.id)} passages={section.passages} chosen={mine.get(q.id)?.chosen ?? null} />
             ))}
           </div>
         </section>
       )}
       <section>
         <div className="actions">
-          <Link className="btn primary" href={`/practice/${session.test_id}`}>Back to {name}</Link>
+          <Link className="btn primary" href={home}>{session.kind === "random" ? "Start another section" : `Back to ${label.title}`}</Link>
           <Link className="btn" href="/progress">See your progress</Link>
         </div>
       </section>

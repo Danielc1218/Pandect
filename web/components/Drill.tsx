@@ -12,7 +12,7 @@ export function Drill({ question, type, answered, total }: { question: DrillQues
   const router = useRouter();
   const [selected, setSelected] = useState<string | null>(null);
   const [eliminated, setEliminated] = useState<string[]>([]);
-  const [result, setResult] = useState<{ correct: boolean; correctAnswer: string } | null>(null);
+  const [result, setResult] = useState<{ correct: boolean; correctAnswer: string; explanation: string | null } | null>(null);
   const [pending, start] = useTransition();
   const toggle = (letter: string) => {
     setEliminated((list) => (list.includes(letter) ? list.filter((l) => l !== letter) : [...list, letter]));
@@ -29,7 +29,7 @@ export function Drill({ question, type, answered, total }: { question: DrillQues
         onSelect={(l) => { setSelected(l); setEliminated((list) => list.filter((x) => x !== l)); }}
         onEliminate={toggle}
       />
-      {result && <div className="explain" role="status"><strong>{result.correct ? "Correct." : `Not quite. The answer is ${result.correctAnswer}.`}</strong></div>}
+      {result && <div className="explain" role="status"><strong>{result.correct ? "Correct." : `Not quite. The answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{result.explanation}</p>}</div>}
       <div className="actions spread">
         <Link className="btn" href="/types">Back to question types</Link>
         {result ? (

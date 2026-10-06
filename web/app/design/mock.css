@@ -22,11 +22,22 @@ a { color: var(--color-primary); }
 .top-nav .links a.active { color: var(--color-text); font-weight: 600; border-bottom-color: var(--color-primary); }
 .top-nav .spacer { flex: 1; }
 
+/* the top bar (and the timed section's bar, with its clock) stays on screen while the page scrolls under it */
+.top-nav, .test-bar { position: sticky; top: 0; z-index: 5; }
+html { scroll-padding-top: 72px; }
+/* a timed section has its own bar with the clock, so the site bar steps aside */
+body:has(.test-bar) .top-nav { display: none; }
+
 /* button */
 .btn { display: inline-block; padding: var(--space-2) var(--space-4); border-radius: var(--radius-md);
        border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text);
        font-family: inherit; font-size: var(--font-size-sm); text-decoration: none; cursor: pointer; }
 .btn.primary { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); }
+/* a button answers the pointer: darker on hover, pressed down on click, faded while its action is running */
+.btn { transition: filter 100ms ease, transform 60ms ease; }
+.btn:hover { filter: brightness(0.94); }
+.btn:active { filter: brightness(0.86); transform: translateY(1px) scale(0.98); }
+.btn:disabled { opacity: 0.6; cursor: progress; filter: none; transform: none; }
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .actions.spread { justify-content: space-between; }
 
@@ -84,7 +95,7 @@ section.hero > *, section.stats > * { margin-top: 0; }
        background: var(--color-surface-muted); color: var(--color-text); font-size: var(--font-size-xs); }
 .tag.accent { background: var(--color-accent); color: var(--color-on-accent); }
 .progress { height: 8px; border-radius: var(--radius-sm); background: var(--color-surface-muted); overflow: hidden; }
-.progress > span { display: block; height: 100%; background: var(--color-primary); }
+.progress > span { display: block; height: 100%; background: var(--color-primary); transition: width 450ms ease; }
 
 /* list-row */
 .list { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg);
@@ -115,7 +126,11 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .choice .letter { flex: none; width: 28px; height: 28px; border-radius: var(--radius-sm); display: grid; place-items: center;
                   background: var(--color-surface-muted); font-size: var(--font-size-sm); font-weight: 600; }
 .choice .note { margin-left: auto; font-size: var(--font-size-sm); font-weight: 600; white-space: nowrap; }
-.choice { cursor: pointer; }
+.choice { cursor: pointer; transition: transform 120ms ease, background-color 120ms ease, border-color 120ms ease; }
+/* a very small press: held down while the pointer is, and one dip when a choice becomes the selected one */
+.choice[tabindex="0"]:active { transform: scale(0.99); }
+.choice.selected { animation: choice-push 220ms ease; }
+@keyframes choice-push { 50% { transform: scale(0.985); } }
 .choice:hover { background: var(--color-surface-muted); }
 .choice.selected { border-color: var(--color-primary); }
 .choice.selected .letter { background: var(--color-primary); color: var(--color-on-primary); }
@@ -124,6 +139,20 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .choice.incorrect .note { color: var(--color-danger); }
 .choice.eliminated { opacity: 0.5; text-decoration: line-through; }
 .explain { background: var(--color-surface-muted); border-radius: var(--radius-md); padding: var(--space-4); }
+.explain p { margin-top: var(--space-2); white-space: pre-line; }
+/* a missed question in a results list: the row opens to show the question, the answers and the reasoning */
+.review > summary { list-style: none; cursor: pointer; }
+.review > summary::-webkit-details-marker { display: none; }
+.review > summary::after { content: ""; flex: none; width: 8px; height: 8px; margin-left: var(--space-2); border: solid var(--color-text-muted);
+                           border-width: 0 2px 2px 0; transform: rotate(45deg); transition: transform 200ms ease; }
+.review[open] > summary::after { transform: rotate(-135deg); }
+.review > .body { padding: var(--space-4) var(--space-4) var(--space-6); border-bottom: 1px solid var(--color-border); animation: review-open 200ms ease; }
+.review > .body > * + * { margin-top: var(--space-4); }
+.review:last-child > .body, .review:last-child:not([open]) > summary { border-bottom: 0; }
+@keyframes review-open { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) {
+  .choice, .choice.selected, .progress > span, .review > .body, .review > summary::after { animation: none; transition: none; }
+}
 
 .menu-btn { display: none; }
 @media (max-width: 767px) {

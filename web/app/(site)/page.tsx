@@ -3,11 +3,11 @@ import Link from "next/link";
 
 const WAYS = [
   { href: "/types", photo: "logic", tag: "Drill", title: "Drill one question type", text: "Flaw, Strengthen, Necessary Assumption and the rest, each in its own set." },
-  { href: "/practice", photo: "columns", tag: "Practice test", title: "Sit a timed section", text: "Logical Reasoning or Reading Comprehension, 35 minutes, like test day." },
+  { href: "/practice", photo: "columns", tag: "Practice test", title: "Sit a timed section", text: "A Logical Reasoning section against a 35-minute clock, like test day." },
   { href: "/progress", photo: "desk", tag: "Review", title: "Review what you missed", text: "See your accuracy by question type and redo the ones you got wrong." },
 ];
 const STEPS = [
-  ["Pick a question type", "Start with the common ones: Flaw, Necessary Assumption, Inference."],
+  ["Pick a question type", "Start with the common ones: Flaw, Necessary Assumption, Strengthen."],
   ["Drill it", "Each set stays on one kind of reasoning, so the pattern sinks in."],
   ["Test under the clock", "Timed sections tell you whether the practice is holding up."],
 ];
@@ -17,21 +17,14 @@ export default function Home() {
     <>
       <section className="hero">
         <div className="stack">
-          <span className="tag">Logical Reasoning and Reading Comprehension</span>
+          <span className="tag">Logical Reasoning</span>
           <h1>Practise on LSAT-style questions until the patterns feel <mark>obvious</mark>.</h1>
-          <p className="lead">Every question sorted by type, with your accuracy tracked for each one.</p>
           <div className="actions">
             <Link className="btn primary" href="/signup">Start practising free</Link>
             <Link className="btn" href="/about">How it works</Link>
           </div>
         </div>
         <Image src="/images/hero.jpg" alt="" width={960} height={640} priority />
-      </section>
-      <section className="stats">
-        <div className="stat"><div className="value">2</div><div className="label">sections</div></div>
-        <div className="stat"><div className="value">7,146</div><div className="label">questions</div></div>
-        <div className="stat"><div className="value">28</div><div className="label">question types</div></div>
-        <div className="stat"><div className="value">35 min</div><div className="label">timed sections, like test day</div></div>
       </section>
       <section>
         <h2>Three ways to study</h2>

@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { BANK_NAME } from "@/lib/bank";
 import { activity, drillHref, pct, typeStats } from "@/lib/data";
+import { SESSION_FIELDS, sessionLabel, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
 
 export const metadata = { title: "Progress" };
@@ -9,7 +11,7 @@ export default async function Progress() {
   const [stats, types, { data: sessions }] = await Promise.all([
     activity(db),
     typeStats(db),
-    db.from("test_sessions").select("id, section_number, finished_at, tests(name), attempts(correct)").not("finished_at", "is", null).order("finished_at", { ascending: false }).limit(10),
+    db.from("test_sessions").select(SESSION_FIELDS).eq("bank", BANK_NAME).not("finished_at", "is", null).order("finished_at", { ascending: false }).limit(10),
   ]);
   const tried = types.filter((t) => t.answered > 0).sort((a, b) => a.correct / a.answered - b.correct / b.answered);
   return (
@@ -43,16 +45,16 @@ export default async function Progress() {
         <section>
           <h2>Timed sections</h2>
           <table className="plain">
-            <thead><tr><th>Test</th><th>Section</th><th>Date</th><th>Correct</th></tr></thead>
+            <thead><tr><th>Test</th><th>Section</th><th>Date</th><th>Score</th></tr></thead>
             <tbody>
-              {sessions.map((s) => {
-                const marks = (s.attempts ?? []) as { correct: boolean }[];
+              {(sessions as unknown as Session[]).map((s) => {
+                const label = sessionLabel(s);
                 return (
                   <tr key={s.id}>
-                    <td><Link href={`/results/${s.id}`}>{(s.tests as unknown as { name: string }).name}</Link></td>
-                    <td>{s.section_number}</td>
+                    <td><Link href={`/results/${s.id}`}>{label.title}</Link></td>
+                    <td>{label.subtitle}</td>
                     <td>{new Date(s.finished_at!).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</td>
-                    <td>{marks.filter((m) => m.correct).length} of {marks.length} answered</td>
+                    <td>{s.score_correct} of {s.score_total} ({pct(s.score_correct ?? 0, s.score_total ?? 0)}%)</td>
                   </tr>
                 );
               })}

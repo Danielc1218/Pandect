@@ -10,8 +10,8 @@ import { SUPABASE_URL } from "./supabase";
  * after an import, which expires the tag; the "days" lifetime is only a backstop for edits made by hand.
  *
  * Reads go through the secret key, which bypasses row-level security (a cached function can't read the
- * user's cookies), so this module is server-only and selects explicit columns: a question is never sent
- * with its correct_answer, which only answerKey() reads.
+ * user's cookies), so this module is server-only, selects explicit columns, and never reads correct_answer.
+ * Timed sections are per-user and are read through the user's own client in lib/sessions.ts.
  */
 export const BANK = "question-bank";
 
@@ -76,33 +76,4 @@ async function drillQuestionIn(bank: BankName, id: string) {
     id: q.id as string, stimulus: q.stimulus as string | null, prompt: q.prompt as string, options: q.options as Record<string, string>,
     source: `${test.name}, section ${q.section_number}, question ${q.question_number}`, passage: passage?.passage_text ?? null,
   };
-}
-
-/** A timed section's questions in order, and its passages, which each question points at by index. */
-export const sectionQuestions = (testId: string, sectionNumber: number) => sectionQuestionsIn(BANK_NAME, testId, sectionNumber);
-async function sectionQuestionsIn(bank: BankName, testId: string, sectionNumber: number) {
-  "use cache: remote";
-  shared();
-  const list = await rows(db().from("questions")
-    .select("id, question_number, section_type, stimulus, prompt, options, passage_id, passages(passage_text), tests!inner(bank)")
-    .eq("tests.bank", bank).eq("test_id", testId).eq("section_number", sectionNumber).order("question_number"));
-  const passageIds = [...new Set(list.map((q) => q.passage_id).filter(Boolean))] as string[];
-  return {
-    sectionType: (list[0]?.section_type ?? "") as string,
-    passages: passageIds.map((pid) => (list.find((q) => q.passage_id === pid)?.passages as unknown as { passage_text: string } | null)?.passage_text ?? ""),
-    questions: list.map((q) => ({
-      id: q.id as string, number: q.question_number as number, stimulus: q.stimulus as string | null, prompt: q.prompt as string,
-      options: q.options as Record<string, string>, passage: q.passage_id ? passageIds.indexOf(q.passage_id) : null,
-    })),
-  };
-}
-
-/** A section's answers, for marking it once it is finished. */
-export const answerKey = (testId: string, sectionNumber: number) => answerKeyIn(BANK_NAME, testId, sectionNumber);
-async function answerKeyIn(bank: BankName, testId: string, sectionNumber: number) {
-  "use cache: remote";
-  shared();
-  return rows<{ id: string; question_number: number; question_type: string; section_type: string; correct_answer: string }>(
-    db().from("questions").select("id, question_number, question_type, section_type, correct_answer, tests!inner(bank)")
-      .eq("tests.bank", bank).eq("test_id", testId).eq("section_number", sectionNumber).order("question_number"));
 }

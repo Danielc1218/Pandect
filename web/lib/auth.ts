@@ -3,21 +3,22 @@
 import { redirect } from "next/navigation";
 import { supabase } from "./supabase";
 
-export type AuthState = { error?: string; email?: string; name?: string };
+export type AuthState = { error?: string; email?: string; name?: string; target?: number };
 
 export async function signUp(_: AuthState, form: FormData): Promise<AuthState> {
   const name = String(form.get("name") ?? "").trim();
   const email = String(form.get("email") ?? "").trim();
   const password = String(form.get("password") ?? "");
-  const target = Number(form.get("target")) || null;
+  const target = Number(form.get("target"));
   const testDate = String(form.get("test_date") ?? "") || null;
-  if (!name) return { error: "Enter your name.", email, name };
-  if (password.length < 12) return { error: "Use a password of at least 12 characters.", email, name };
+  if (!Number.isInteger(target) || target < 120 || target > 180) return { error: "Enter a target score from 120 to 180.", email, name };
+  if (!name) return { error: "Enter your name.", email, name, target };
+  if (password.length < 12) return { error: "Use a password of at least 12 characters.", email, name, target };
 
   const db = await supabase();
   const { data, error } = await db.auth.signUp({ email, password, options: { data: { display_name: name } } });
-  if (error) return { error: error.message, email, name };
-  if (!data.session) return { error: "Check your email to confirm your account, then log in.", email, name };
+  if (error) return { error: error.message, email, name, target };
+  if (!data.session) return { error: "Check your email to confirm your account, then log in.", email, name, target };
   await db.from("profiles").update({ target_score: target, test_date: testDate }).eq("id", data.user!.id);
   redirect("/learn");
 }

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Tabs } from "@/components/Tabs";
-import { allSections, allTests } from "@/lib/bank";
-import { testNumber } from "@/lib/data";
+import { startRandomSection } from "@/lib/actions";
+import { allSections, allTests, BANK_NAME } from "@/lib/bank";
+import { pct, testNumber } from "@/lib/data";
+import { SESSION_FIELDS, sessionLabel, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
 
 export const metadata = { title: "Practice tests" };
@@ -26,7 +28,61 @@ function TestList({ tests }: { tests: Row[] }) {
   );
 }
 
+const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+
+/** The generated bank has no fixed tests: each sitting is a fresh random set, and past sittings are history. */
+async function RandomSections() {
+  const { db } = await requireUser();
+  const { data } = await db.from("test_sessions").select(SESSION_FIELDS).eq("bank", BANK_NAME)
+    .order("started_at", { ascending: false }).limit(50);
+  const sessions = (data ?? []) as unknown as Session[];
+  const open = sessions.filter((s) => !s.finished_at);
+  const done = sessions.filter((s) => s.finished_at);
+  return (
+    <>
+      <section>
+        <h1>Practice tests</h1>
+        <form className="panel" action={startRandomSection}>
+          <h3>Timed Logical Reasoning section</h3>
+          <p className="muted">25 questions drawn at random, ones you have not answered first. 35 minutes.</p>
+          <div className="actions"><button className="btn primary">Start a section</button></div>
+        </form>
+      </section>
+      {open.length > 0 && (
+        <section>
+          <h2>In progress</h2>
+          <div className="list">
+            {open.map((s) => (
+              <Link key={s.id} className="row" href={`/section/${s.id}`}>
+                <div className="grow"><div className="title">{sessionLabel(s).subtitle}</div><div className="muted">Started {day(s.started_at)}</div></div>
+                <span className="tag">Resume</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+      <section>
+        <h2>Completed</h2>
+        {done.length ? (
+          <div className="list">
+            {done.map((s) => (
+              <Link key={s.id} className="row" href={`/results/${s.id}`}>
+                <div className="grow"><div className="title">{sessionLabel(s).subtitle}</div><div className="muted">Finished {day(s.finished_at!)}</div></div>
+                <span className="tag">{s.score_correct} of {s.score_total}</span>
+                <div className="figure">{pct(s.score_correct ?? 0, s.score_total ?? 0)}%</div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="panel"><p>Your finished sections and their scores will be listed here.</p></div>
+        )}
+      </section>
+    </>
+  );
+}
+
 export default async function Practice() {
+  if (BANK_NAME === "generated") return <RandomSections />;
   const { db } = await requireUser();
   const [tests, sections, { data: sessions }] = await Promise.all([
     allTests(),
