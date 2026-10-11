@@ -1,0 +1,89 @@
+/* Display preferences (lib/prefs.ts sets the variables and data attributes on <html>).
+   Web-only on purpose: tokens.css and dark.css are generated from design/tokens.json. Selectors start with
+   html:root so they outrank dark.css's :root[data-theme=dark], which redefines every token. */
+
+/* Text size: every font size token times --text-scale. The px values are tokens.json's (tests/test_prefs_css.py). */
+html:root[data-theme] {
+  --font-size-xs: calc(12px * var(--text-scale, 1));
+  --font-size-sm: calc(14px * var(--text-scale, 1));
+  --font-size-md: calc(16px * var(--text-scale, 1));
+  --font-size-lg: calc(20px * var(--text-scale, 1));
+  --font-size-xl: calc(24px * var(--text-scale, 1));
+  --font-size-2xl: calc(32px * var(--text-scale, 1));
+}
+body { line-height: var(--line-height, 1.5); letter-spacing: var(--letter-spacing, normal); word-spacing: var(--word-spacing, normal); }
+/* mock.css fixes passages at 1.75 and headings at 1.25; they keep that offset from body text but follow the slider */
+.passage { line-height: calc(var(--line-height, 1.5) + 0.25); }
+h1, h2, h3 { line-height: calc(var(--line-height, 1.5) - 0.25); }
+
+/* Fonts */
+html:root[data-font="atkinson"] { --font-family-body: "Atkinson Hyperlegible", system-ui, sans-serif; --font-family-heading: "Atkinson Hyperlegible", system-ui, sans-serif; }
+html:root[data-font="lexend"] { --font-family-body: Lexend, system-ui, sans-serif; --font-family-heading: Lexend, system-ui, sans-serif; }
+html:root[data-passage-font="serif"] { --font-family-passage: Georgia, "Times New Roman", serif; }
+html:root[data-passage-font="atkinson"] { --font-family-passage: "Atkinson Hyperlegible", system-ui, sans-serif; }
+.passage, .passage-sample { font-family: var(--font-family-passage, inherit); }
+
+/* High contrast: pure black and white, darker or brighter accents, no graph-paper grid. */
+html:root[data-theme="light"][data-contrast="high"] {
+  --color-background: #ffffff; --color-surface: #ffffff; --color-surface-muted: #ebebeb; --color-border: #000000;
+  --color-text: #000000; --color-text-muted: #1a1a1a; --color-primary: #00502a; --color-on-primary: #ffffff;
+  --color-accent: #ffd400; --color-on-accent: #000000; --color-success: #006b2e; --color-danger: #a30000;
+}
+html:root[data-theme="dark"][data-contrast="high"] {
+  --color-background: #000000; --color-surface: #000000; --color-surface-muted: #1f1f1f; --color-border: #ffffff;
+  --color-text: #ffffff; --color-text-muted: #e6e6e6; --color-primary: #7dffb2; --color-on-primary: #000000;
+  --color-accent: #ffd400; --color-on-accent: #000000; --color-success: #7dffb2; --color-danger: #ffa3a3;
+}
+html[data-contrast="high"] body { background-image: none; }
+html[data-contrast="high"] :is(.panel, .passage, .question, .choice, .row, .stat) { border-width: 2px; }
+
+/* Reading tints (light theme only; high contrast keeps white) */
+html:root[data-theme="light"][data-tint="cream"]:not([data-contrast]) { --color-background: #f8f1df; --color-surface: #fffaee; --color-surface-muted: #efe6cc; }
+html:root[data-theme="light"][data-tint="sepia"]:not([data-contrast]) { --color-background: #eadbbd; --color-surface: #f6ecd6; --color-surface-muted: #e2d0aa; --color-text: #3a2e1c; --color-text-muted: #5e4d33; }
+html:root[data-theme="light"][data-tint="cool"]:not([data-contrast]) { --color-background: #e9eef4; --color-surface: #f6f8fb; --color-surface-muted: #dde5ee; }
+
+/* Colourblind-safe right/wrong: blue and orange (Okabe-Ito) instead of green and red, plus a tick or cross. */
+html:root[data-theme="light"][data-markers="colorblind"] { --color-success: #0072b2; --color-danger: #c85200; }
+html:root[data-theme="dark"][data-markers="colorblind"] { --color-success: #56b4e9; --color-danger: #f0a030; }
+html[data-markers="colorblind"] .choice.correct .note::before { content: "✓ "; }
+html[data-markers="colorblind"] .choice.incorrect .note::before { content: "✗ "; }
+
+/* Motion */
+html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after {
+  animation: none !important; transition: none !important; scroll-behavior: auto !important;
+}
+
+/* Focus and links */
+html[data-focus="strong"] :focus-visible {
+  outline: 3px solid var(--color-text) !important; outline-offset: 3px !important;
+  box-shadow: 0 0 0 7px var(--color-accent) !important;
+}
+html[data-links="underline"] :is(p, li, td, .muted) a { text-decoration: underline; text-underline-offset: 0.15em; }
+
+/* Passage above the questions instead of beside them */
+html[data-layout="stacked"] .reader:not(.single) { grid-template-columns: minmax(0, 760px); justify-content: center; }
+html[data-layout="stacked"] body.test .reader .passage { max-height: none; }
+
+/* The settings page */
+.prefs-group { display: grid; gap: var(--space-4); }
+.range-field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--space-2) var(--space-4); }
+.range-field label { font-size: var(--font-size-sm); font-weight: 600; }
+.range-field input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--color-primary); }
+.range-field output { font-variant-numeric: tabular-nums; font-size: var(--font-size-sm); color: var(--color-text-muted); }
+.segmented { display: flex; flex-wrap: wrap; gap: var(--space-2); border: 0; padding: 0; margin: 0; }
+.segmented legend { font-size: var(--font-size-sm); font-weight: 600; margin-bottom: var(--space-2); padding: 0; }
+.segmented label { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3);
+                   border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface);
+                   font-size: var(--font-size-sm); cursor: pointer; }
+.segmented label:has(input:checked) { border-color: var(--color-primary); box-shadow: inset 0 0 0 1px var(--color-primary); font-weight: 600; }
+.segmented label:has(input:focus-visible) { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.segmented input { accent-color: var(--color-primary); }
+.swatch { inline-size: 1em; block-size: 1em; border-radius: var(--radius-sm); border: 1px solid var(--color-border); }
+.accent-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.accent-row input[type="color"] { inline-size: 48px; block-size: 36px; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: none; }
+.settings-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 380px); gap: var(--space-6); align-items: start; }
+.settings-layout .preview { position: sticky; top: 88px; }
+@media (max-width: 960px) { .settings-layout { grid-template-columns: minmax(0, 1fr); } .settings-layout .preview { position: static; } }
+
+/* At large text sizes the "Correct answer" / "Your answer" note would push a choice past a phone's edge. */
+.choice .note { white-space: normal; text-align: right; }

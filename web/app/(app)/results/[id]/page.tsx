@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Choices } from "@/components/Choices";
 import { pct } from "@/lib/data";
+import { sanitize } from "@/lib/prefs";
 import { SESSION_FIELDS, sessionAnswerKey, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
 import { sectionMinutes } from "@/lib/timing";
@@ -42,23 +43,25 @@ function ReviewRow({ q, text, passages, chosen }: { q: Key; text?: Text; passage
 
 export default async function Results({ params }: PageProps<"/results/[id]">) {
   const { id } = await params;
-  const { db } = await requireUser();
+  const { db, user } = await requireUser();
   const { data } = await db.from("test_sessions").select(SESSION_FIELDS).eq("id", id).maybeSingle();
   const session = data as unknown as Session | null;
   if (!session) notFound();
   if (!session.finished_at) redirect(`/section/${id}`);
 
-  const [all, section, { data: attempts }] = await Promise.all([
+  const [all, section, { data: attempts }, { data: profile }] = await Promise.all([
     sessionAnswerKey(db, id),
     sessionQuestions(db, id),
     db.from("attempts").select("question_id, chosen, correct").eq("session_id", id),
+    db.from("profiles").select("preferences").eq("id", user.id).maybeSingle(),
   ]);
   const text = new Map(section.questions.map((q) => [q.id, q]));
   const mine = new Map((attempts ?? []).map((a) => [a.question_id, a]));
   // The score the database stored when the section was finished: the user's history of this sitting.
   const right = session.score_correct ?? all.filter((q) => mine.get(q.id)?.correct).length;
   const seconds = Math.round((new Date(session.finished_at).getTime() - new Date(session.started_at).getTime()) / 1000);
-  const over = seconds - sectionMinutes(all.length) * 60;
+  // Today's extended-time setting, not the one in force during the sitting; store it on test_sessions if that matters
+  const over = seconds - Math.round(sectionMinutes(all.length) * sanitize(profile?.preferences).extraTime * 60);
   const byType = Object.entries(Object.groupBy(all, (q) => q.question_type))
     .map(([type, qs]) => ({ type, total: qs!.length, right: qs!.filter((q) => mine.get(q.id)?.correct).length }))
     .sort((a, b) => a.right / a.total - b.right / b.total);

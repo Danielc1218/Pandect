@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { allTests, BANK_NAME } from "./bank";
+import { changed, sanitize } from "./prefs";
 import { requireUser } from "./supabase";
 
 /** Records a drill answer. The database grades it; the correct letter is only returned afterwards. */
@@ -72,4 +73,11 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
   if (error) return { error: "Scores must be between 120 and 180." };
   revalidatePath("/", "layout");
   return { saved: true };
+}
+
+/** Saves display preferences to the account; they are already applied on this device (lib/prefs.ts). */
+export async function savePreferences(prefs: unknown) {
+  const { db, user } = await requireUser();
+  const { error } = await db.from("profiles").update({ preferences: changed(sanitize(prefs)) }).eq("id", user.id);
+  if (error) throw new Error(error.message);
 }

@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { finishSection, saveAnswer } from "@/lib/actions";
 import { sectionMinutes } from "@/lib/timing";
 import { Choices } from "./Choices";
+import { usePrefs } from "./Prefs";
 
 export type SectionQuestion = { id: string; number: number; stimulus: string | null; prompt: string; options: Record<string, string>; passage: number | null };
 
@@ -21,7 +22,8 @@ export function SectionRunner({
   const [left, setLeft] = useState<number | null>(null);
   const [pending, start] = useTransition();
   const q = questions[index];
-  const limit = sectionMinutes(questions.length) * 60;
+  const prefs = usePrefs(); // extended time and a hidden timer, from the settings page
+  const limit = Math.round(sectionMinutes(questions.length) * prefs.extraTime * 60);
   const finish = () => start(() => finishSection(sessionId));
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export function SectionRunner({
     });
   const low = left !== null && left <= 300;
   const shown = Math.abs(left ?? limit);
-  const clock = `${expired ? "+" : ""}${Math.floor(shown / 60)}:${String(shown % 60).padStart(2, "0")}`;
+  const clock = prefs.hideTimer && !low ? "Hidden" : `${expired ? "+" : ""}${Math.floor(shown / 60)}:${String(shown % 60).padStart(2, "0")}`;
 
   return (
     <>

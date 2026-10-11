@@ -25,8 +25,9 @@ a { color: var(--color-primary); }
 /* the top bar (and the timed section's bar, with its clock) stays on screen while the page scrolls under it */
 .top-nav, .test-bar { position: sticky; top: 0; z-index: 5; }
 html { scroll-padding-top: 72px; }
-/* a timed section has its own bar with the clock, so the site bar steps aside */
-body:has(.test-bar) .top-nav { display: none; }
+/* a timed section has its own bar with the clock, so the site bar steps aside. After leaving the section, React
+   keeps it mounted but hidden (inline display: none) for the back button, so a hidden test bar doesn't count. */
+body:has(.test-bar:not([style*="display: none"])) .top-nav { display: none; }
 
 /* button */
 .btn { display: inline-block; padding: var(--space-2) var(--space-4); border-radius: var(--radius-md);
