@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { logIn, signUp, type AuthState } from "@/lib/auth";
 
 export function AuthForm({ mode }: { mode: "signup" | "login" }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(mode === "signup" ? signUp : logIn, {});
   const signup = mode === "signup";
+  const [reveal, setReveal] = useState(false);
   return (
     <section className="auth">
       <div className="panel">
@@ -19,7 +20,10 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
           <div className="field"><label htmlFor="email">Email</label><input id="email" name="email" type="email" autoComplete="email" defaultValue={state.email} required /></div>
           <div className="field">
             <label htmlFor="password">Password</label>
-            <input id="password" name="password" type="password" autoComplete={signup ? "new-password" : "current-password"} minLength={signup ? 12 : undefined} aria-describedby={signup ? "password-hint" : undefined} required />
+            <div className="with-button">
+              <input id="password" name="password" type={reveal ? "text" : "password"} autoComplete={signup ? "new-password" : "current-password"} minLength={signup ? 12 : undefined} aria-describedby={signup ? "password-hint" : undefined} required />
+              <button type="button" className="btn" aria-pressed={reveal} aria-controls="password" onClick={() => setReveal(!reveal)}>{reveal ? "Hide" : "Show"}</button>
+            </div>
             {signup && <p className="hint" id="password-hint">At least 12 characters.</p>}
           </div>
           {signup && (
