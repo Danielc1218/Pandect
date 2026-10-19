@@ -15,6 +15,8 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
 }) {
   const router = useRouter();
   const list = useRef<HTMLDialogElement>(null);
+  const explain = useRef<HTMLDivElement>(null);
+  const next = useRef<HTMLAnchorElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [eliminated, setEliminated] = useState<string[]>([]);
   const [result, setResult] = useState<{ correct: boolean; correctAnswer: string; explanation: string | null } | null>(null);
@@ -28,6 +30,12 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
     if (letter && !result && question.options[letter]) { e.preventDefault(); pick(letter); }
     else if (e.key === "Enter") { e.preventDefault(); if (result) router.push(nextHref ?? listHref); else submit(); }
   });
+  // Once answered, bring the explanation into view and put focus on the way forward.
+  useEffect(() => {
+    if (!result) return;
+    explain.current?.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    next.current?.focus({ preventScroll: true });
+  }, [result]);
   useEffect(() => {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -48,11 +56,11 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
         onEliminate={toggle}
       />
       <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> choose · <kbd>Enter</kbd> {result ? "next question" : "submit"} · <kbd>✕</kbd> or right-click crosses a choice out</p>
-      {result && <div className="explain" role="status"><strong>{result.correct ? "Correct." : `Not quite. The answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{typeset(result.explanation)}</p>}</div>}
+      {result && <div ref={explain} className="explain" role="status"><strong>{result.correct ? "Correct." : `Not quite. The answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{typeset(result.explanation)}</p>}</div>}
       <div className="actions spread">
         <button className="btn" onClick={() => list.current?.showModal()}>Question list</button>
         {result ? (
-          <Link className="btn primary" href={nextHref ?? listHref}>{nextHref ? "Next question" : "Back to question list"}</Link>
+          <Link ref={next} className="btn primary" href={nextHref ?? listHref}>{nextHref ? "Next question" : "Back to question list"}</Link>
         ) : (
           // The refresh re-reads this question's status, so the list, the bar and the next link count the new answer.
           <button className="btn primary" disabled={!selected || pending} onClick={submit}>Submit answer</button>
