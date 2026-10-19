@@ -135,6 +135,7 @@ section.hero > *, section.stats > * { margin-top: 0; }
 .row .progress { flex: 1; }
 .row .figure { min-width: 64px; text-align: right; font-weight: 600; }
 /* a question's last result, on its row: a coloured edge and tag */
+.row[aria-current="true"] { background: var(--color-surface-muted); }
 .row[data-status="solved"] { box-shadow: inset 4px 0 var(--color-success); }
 .row[data-status="missed"] { box-shadow: inset 4px 0 var(--color-danger); }
 .tag.solved { background: color-mix(in srgb, var(--color-success) 18%, var(--color-surface)); }
