@@ -29,6 +29,12 @@ export function SectionRunner({
   const prefs = usePrefs(); // extended time and a hidden timer, from the settings page
   const limit = Math.round(sectionMinutes(questions.length) * prefs.extraTime * 60);
   const finish = () => start(() => finishSection(sessionId));
+  // Finishing with questions left blank or flagged asks first, and offers the first of them.
+  const check = useRef<HTMLDialogElement>(null);
+  const blank = questions.filter((x) => !answers[x.id]);
+  const unsure = questions.filter((x) => flagged.includes(x.id));
+  const askFinish = () => (blank.length || unsure.length ? check.current?.showModal() : finish());
+  const goTo = (id: string) => { setIndex(questions.findIndex((x) => x.id === id)); check.current?.close(); };
 
   useEffect(() => {
     document.body.classList.add("test");
@@ -111,7 +117,7 @@ export function SectionRunner({
               {index < questions.length - 1 ? (
                 <button className="btn primary" onClick={() => setIndex(index + 1)} aria-keyshortcuts="ArrowRight">Next question</button>
               ) : (
-                <button className="btn primary" disabled={pending} onClick={finish}>Finish section</button>
+                <button className="btn primary" disabled={pending} onClick={askFinish}>Finish section</button>
               )}
             </div>
           </div>
@@ -124,8 +130,21 @@ export function SectionRunner({
           return <a key={item.id} href="#" className={state || undefined} aria-label={label} aria-current={i === index ? "true" : undefined} onClick={(e) => { e.preventDefault(); setIndex(i); }}>{i + 1}</a>;
         })}
         <span className="spacer" />
-        <button className="btn primary" disabled={pending} onClick={finish}>Finish section</button>
+        <button className="btn primary" disabled={pending} onClick={askFinish}>Finish section</button>
       </nav>
+      <dialog ref={check} className="modal" aria-labelledby="finish-check-title">
+        <h2 id="finish-check-title">Finish this section?</h2>
+        <p>
+          {[blank.length && `${blank.length} ${blank.length === 1 ? "question is" : "questions are"} unanswered`,
+            unsure.length && `${unsure.length} flagged for review`].filter(Boolean).join(" and ")}.
+          Unanswered questions count as wrong.
+        </p>
+        <div className="actions">
+          <button className="btn primary" disabled={pending} onClick={finish}>Finish anyway</button>
+          {blank.length > 0 && <button className="btn" onClick={() => goTo(blank[0].id)}>Go to question {questions.indexOf(blank[0]) + 1}</button>}
+          {unsure.length > 0 && <button className="btn" onClick={() => goTo(unsure[0].id)}>Go to flagged question {questions.indexOf(unsure[0]) + 1}</button>}
+        </div>
+      </dialog>
       {/* Escape would dismiss it without a choice, so it is ignored. */}
       <dialog ref={timeUp} className="modal" aria-labelledby="time-up-title" onCancel={(e) => e.preventDefault()}>
         <h2 id="time-up-title">Time is up</h2>
