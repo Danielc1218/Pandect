@@ -29,7 +29,16 @@ export function Choices({
             aria-checked={letter === selected}
             tabIndex={result ? -1 : 0}
             onClick={() => !result && onSelect?.(letter)}
-            onKeyDown={(e) => { if (!result && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onSelect?.(letter); } }}
+            onKeyDown={(e) => {
+              if (!result && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); e.stopPropagation(); onSelect?.(letter); }
+              // Arrow keys step between the choices, as in any group of radio buttons.
+              const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+              if (step) {
+                e.preventDefault();
+                const all = [...e.currentTarget.parentElement!.querySelectorAll<HTMLElement>(".choice")];
+                all[(all.indexOf(e.currentTarget) + step + all.length) % all.length].focus();
+              }
+            }}
             onContextMenu={(e) => { e.preventDefault(); if (!result) onEliminate?.(letter); }}
           >
             <span className="letter">{letter}</span>
