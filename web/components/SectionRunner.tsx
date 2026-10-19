@@ -140,6 +140,7 @@ export function SectionRunner({
           );
         })}
         <span className="spacer" />
+        <span className="muted" aria-live="polite">{questions.length - blank.length} of {questions.length} answered{unsure.length ? `, ${unsure.length} flagged` : ""}</span>
         <button className="btn primary" disabled={pending} onClick={askFinish}>Finish section</button>
       </nav>
       <dialog ref={check} className="modal" aria-labelledby="finish-check-title">
