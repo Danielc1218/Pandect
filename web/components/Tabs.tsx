@@ -12,7 +12,17 @@ export function Tabs({ labels, children, label }: { labels: string[]; children: 
       <div ref={ref} className={`tabs${style ? " has-ind" : ""}`} role="tablist" aria-label={label}>
         {style && <span className="nav-ind" style={style} />}
         {labels.map((text, i) => (
-          <button key={text} type="button" role="tab" aria-selected={i === current} className={i === current ? "active" : undefined} onClick={() => setCurrent(i)}>
+          <button key={text} type="button" role="tab" aria-selected={i === current} tabIndex={i === current ? 0 : -1}
+            className={i === current ? "active" : undefined} onClick={() => setCurrent(i)}
+            onKeyDown={(e) => {
+              // Arrow keys, Home and End move between tabs, as in any tab list; focus follows.
+              const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: labels.length - 1 }[e.key];
+              if (to === undefined) return;
+              e.preventDefault();
+              const next = (to + labels.length) % labels.length;
+              setCurrent(next);
+              (e.currentTarget.parentElement!.querySelectorAll<HTMLElement>("[role=tab]")[next]).focus();
+            }}>
             {text}
           </button>
         ))}
