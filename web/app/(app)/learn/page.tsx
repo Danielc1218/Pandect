@@ -98,7 +98,7 @@ export default async function Learn() {
         {weakest.length ? (
           <div className="list">
             {weakest.map((t) => (
-              <Link key={t.section_type + t.question_type} className="row" href={drillHref(t.section_type, t.question_type)}>
+              <Link key={t.section_type + t.question_type} className="row" href={drillHref(t.section_type, t.question_type) + "&show=missed"} title="Review the ones you missed">
                 <div className="grow">
                   <div className="title">{t.question_type}</div>
                   <div className="muted">{t.wrong} of {t.answered} wrong</div>
