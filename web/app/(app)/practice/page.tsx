@@ -87,8 +87,9 @@ async function RandomSections() {
   );
 }
 
-export default async function Practice() {
+export default async function Practice({ searchParams }: PageProps<"/practice">) {
   if (BANK_NAME === "generated") return <RandomSections />;
+  const find = String((await searchParams).q ?? "").trim();
   const { db } = await requireUser();
   const [tests, sections, { data: sessions }] = await Promise.all([
     allTests(),
@@ -105,11 +106,18 @@ export default async function Practice() {
         started: mine.length > 0,
       };
     })
-    .sort((a, b) => testNumber(b.id) - testNumber(a.id));
+    .sort((a, b) => testNumber(b.id) - testNumber(a.id))
+    // "90" finds test 90, "2019" that year's tests, and words match the name.
+    .filter((t) => !find || find.split(/\s+/).every((w) => `${t.name} ${t.year ?? ""} ${testNumber(t.id)}`.toLowerCase().split(/\s+/).includes(w.toLowerCase()) || t.name.toLowerCase().includes(w.toLowerCase())));
   const started = rows.filter((t) => t.started && t.done < t.sections);
   return (
     <section>
       <h1>Practice tests</h1>
+      <form className="field" role="search">
+        <label htmlFor="find-test">Find a test</label>
+        <input id="find-test" name="q" type="search" defaultValue={find} placeholder="A number like 72, or a year like 2015" />
+      </form>
+      {find && <p className="muted">{rows.length} {rows.length === 1 ? "test matches" : "tests match"} “{find}”. <Link href="/practice">Show all</Link></p>}
       <Tabs labels={["All", "In progress", "Completed"]} label="Filter practice tests">
         <TestList tests={rows} />
         <TestList tests={started} />
