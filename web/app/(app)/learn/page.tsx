@@ -82,8 +82,8 @@ export default async function Learn() {
           <div className="panel">
             <h3>This week</h3>
             <p className="muted">Goal: {goal} questions</p>
-            <div className="progress"><span style={{ width: `${Math.min(100, pct(stats.week, goal))}%` }} /></div>
-            <p className="muted">{stats.week} answered{stats.week < goal ? `, ${goal - stats.week} to go` : ", goal met"}</p>
+            <div className={`progress${stats.week >= goal ? " good" : ""}`}><span style={{ width: `${Math.min(100, pct(stats.week, goal))}%` }} /></div>
+            <p className="muted">{stats.week} answered{stats.week < goal ? `, ${goal - stats.week} to go` : <>, <strong className="score good">goal met</strong></>}</p>
           </div>
         </div>
       </section>
