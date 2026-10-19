@@ -112,6 +112,7 @@ export function SectionRunner({
           {q.stimulus && <p>{typeset(q.stimulus)}</p>}
           <h3>{typeset(q.prompt)}</h3>
           <Choices options={q.options} selected={answers[q.id] ?? null} eliminated={eliminated[q.id] ?? []} onSelect={select} onEliminate={eliminate} />
+          <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> answer · <kbd>←</kbd> <kbd>→</kbd> previous and next · <kbd>F</kbd> flag · <kbd>✕</kbd> crosses a choice out</p>
           <div className="actions spread">
             <button className="btn" onClick={flag}>
               {flagged.includes(q.id) ? "Remove flag" : "Flag for review"}
