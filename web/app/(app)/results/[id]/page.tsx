@@ -5,6 +5,7 @@ import { pct } from "@/lib/data";
 import { sanitize } from "@/lib/prefs";
 import { SESSION_FIELDS, sessionAnswerKey, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
+import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
 
 export const metadata = { title: "Results" };
@@ -26,14 +27,14 @@ function ReviewRow({ q, text, passages, chosen }: { q: Key; text?: Text; passage
       {text && (
         <div className="body">
           {text.passage !== null && (
-            <details><summary>Read the passage</summary>{passages[text.passage].split(/\n\s*\n/).map((p, i) => <p key={i}>{p}</p>)}</details>
+            <details><summary>Read the passage</summary>{passages[text.passage].split(/\n\s*\n/).map((p, i) => <p key={i}>{typeset(p)}</p>)}</details>
           )}
-          {text.stimulus && <p>{text.stimulus}</p>}
-          <h3>{text.prompt}</h3>
+          {text.stimulus && <p>{typeset(text.stimulus)}</p>}
+          <h3>{typeset(text.prompt)}</h3>
           <Choices options={text.options} selected={chosen} result={{ correctAnswer: q.correct_answer }} />
           <div className="explain">
             <strong>Reasoning</strong>
-            <p>{q.explanation ?? "No written reasoning for this question yet."}</p>
+            <p>{q.explanation ? typeset(q.explanation) : "No written reasoning for this question yet."}</p>
           </div>
         </div>
       )}

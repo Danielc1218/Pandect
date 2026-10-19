@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { finishSection, saveAnswer } from "@/lib/actions";
+import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
 import { Choices } from "./Choices";
 import { ThemeToggle } from "./Nav";
@@ -73,14 +74,14 @@ export function SectionRunner({
         {q.passage !== null && (
           <article className="passage">
             <div><span className="tag">Passage {q.passage + 1} of {passages.length}</span></div>
-            {passages[q.passage].split(/\n\s*\n/).map((p, i) => <p key={i}>{p}</p>)}
+            {passages[q.passage].split(/\n\s*\n/).map((p, i) => <p key={i}>{typeset(p)}</p>)}
           </article>
         )}
         <div className="question">
           <div className="meta"><span className="muted">Question {index + 1} of {questions.length}</span></div>
           <div className="progress"><span style={{ width: `${Math.round((100 * Object.keys(answers).length) / questions.length)}%` }} /></div>
-          {q.stimulus && <p>{q.stimulus}</p>}
-          <h3>{q.prompt}</h3>
+          {q.stimulus && <p>{typeset(q.stimulus)}</p>}
+          <h3>{typeset(q.prompt)}</h3>
           <Choices options={q.options} selected={answers[q.id] ?? null} eliminated={eliminated[q.id] ?? []} onSelect={select} onEliminate={eliminate} />
           <div className="actions spread">
             <button className="btn" onClick={() => setFlagged((f) => (f.includes(q.id) ? f.filter((x) => x !== q.id) : [...f, q.id]))}>

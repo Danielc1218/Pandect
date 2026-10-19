@@ -6,6 +6,7 @@ import { drillQuestion, typeQuestions } from "@/lib/bank";
 import { drillHref, SECTIONS, type SectionKey } from "@/lib/data";
 import { latestStatus, nextUnanswered } from "@/lib/questions";
 import { requireUser } from "@/lib/supabase";
+import { typeset } from "@/lib/text";
 
 export const metadata = { title: "Drill" };
 
@@ -53,7 +54,7 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
   return (
     <section>
       <h1>{type}</h1>
-      {question.passage && <article className="passage">{question.passage.split(/\n\s*\n/).map((p, i) => <p key={i}>{p}</p>)}</article>}
+      {question.passage && <article className="passage">{question.passage.split(/\n\s*\n/).map((p, i) => <p key={i}>{typeset(p)}</p>)}</article>}
       {/* key remounts the question so selections reset when another one loads */}
       <Drill key={question.id} question={question} type={type} number={row.n} answered={answered} total={rows.length} listHref={base} nextHref={next && `${base}&q=${next}`}>
         {list}

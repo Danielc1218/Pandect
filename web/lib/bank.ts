@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
 import { snippet, type QuestionRow } from "./questions";
 import { SUPABASE_URL } from "./supabase";
+import { typeset } from "./text";
 
 /**
  * The question bank: tests, sections, passages and questions. Every signed-in user sees the same rows and
@@ -82,7 +83,7 @@ async function typeQuestionsIn(bank: BankName, section: string, type: string): P
     for (const q of page) {
       const passage = (q.passages as unknown as { passage_text: string } | null)?.passage_text;
       // Reading Comprehension prompts repeat ("…the main point of the passage?"), so those rows also carry how the passage opens.
-      all.push({ id: q.id as string, n: all.length + 1, source: sourceOf(q), snippet: snippet((q.stimulus ?? q.prompt) as string), ...(passage && { passage: snippet(passage, 90) }) });
+      all.push({ id: q.id as string, n: all.length + 1, source: sourceOf(q), snippet: snippet(typeset((q.stimulus ?? q.prompt) as string)), ...(passage && { passage: snippet(typeset(passage), 90) }) });
     }
     if (page.length < 1000) return all;
   }

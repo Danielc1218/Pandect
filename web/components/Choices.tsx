@@ -1,5 +1,7 @@
 "use client";
 
+import { typeset } from "@/lib/text";
+
 const LETTERS = ["A", "B", "C", "D", "E"];
 
 /** The five answer rows. Click selects; right-click or the Cross out button eliminates. With a result and no handlers it is a read-only review. */
@@ -31,7 +33,7 @@ export function Choices({
             onContextMenu={(e) => { e.preventDefault(); if (!result) onEliminate?.(letter); }}
           >
             <span className="letter">{letter}</span>
-            <span>{options[letter]}</span>
+            <span>{typeset(options[letter])}</span>
             {result && letter === result.correctAnswer && <span className="note">Correct answer</span>}
             {result && letter === selected && letter !== result.correctAnswer && <span className="note">Your answer</span>}
           </div>
