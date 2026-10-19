@@ -64,6 +64,7 @@ export default async function Learn() {
                 <h3>{sessionLabel(session).title}</h3>
                 <p className="muted">{sessionLabel(session).subtitle}</p>
                 <p className="muted">{session.finished_at ? `Finished ${day(session.finished_at)}` : `Started ${day(session.started_at)}`}</p>
+                <span className="btn primary">{session.finished_at ? "Next section" : "Resume section"} →</span>
               </div>
             </Link>
           ) : drill && (
@@ -74,6 +75,7 @@ export default async function Learn() {
                 <h3>{drill.question_type}</h3>
                 <p className="muted">{drill.answered} of {drill.total} answered</p>
                 <div className="progress"><span style={{ width: `${pct(drill.answered, drill.total)}%` }} /></div>
+                <span className="btn primary">{stats.latest ? "Continue drilling" : "Start drilling"} →</span>
               </div>
             </Link>
           )}
