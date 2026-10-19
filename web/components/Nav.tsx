@@ -103,7 +103,14 @@ export function ThemeToggle() {
 export function TopNav({ signedIn }: { signedIn?: boolean }) {
   return (
     <header className="top-nav">
-      <Link className="brand" href="/">LSAT Prep</Link>
+      <Link className="brand" href="/">
+        {/* the mark: a ticked answer bubble in the primary colour */}
+        <svg className="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
+          <rect width="24" height="24" rx="6" fill="currentColor" />
+          <path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="var(--color-on-primary)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        LSAT Prep
+      </Link>
       <SlidingNav items={SITE} className="links" underline label="Site" />
       <span className="spacer" />
       <ThemeToggle />
