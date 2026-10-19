@@ -322,6 +322,13 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-1); border
 /* the highlighter's marks (components/Highlighter.tsx) */
 ::highlight(user-mark) { background-color: var(--color-accent); color: var(--color-on-accent); }
 .btn[aria-pressed="true"] { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-on-accent); }
+/* paragraph numbers in the margin, for questions that say "the third paragraph"; each half of a pair counts from 1 */
+.passage { counter-reset: para; }
+.passage p { position: relative; counter-increment: para; }
+.passage p::before { content: counter(para); position: absolute; left: calc(-1 * var(--space-6)); top: 0.2em;
+                     font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+.passage .passage-label { counter-reset: para; }
+@media (max-width: 767px) { .passage { padding-left: var(--space-8); } .passage p::before { left: calc(-1 * var(--space-4) - 4px); } }
 /* the heading over each half of a comparative pair */
 .passage-label { margin: var(--space-6) 0 0; font-size: var(--font-size-sm); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-muted); }
 .passage-label:first-child { margin-top: 0; }
