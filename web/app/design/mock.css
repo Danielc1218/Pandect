@@ -259,6 +259,9 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-1); border
            box-shadow: var(--shadow-card); padding: var(--space-8); line-height: 1.75; }
 .passage > * + * { margin-top: var(--space-4); }
 .passage mark { background: var(--color-accent); color: var(--color-on-accent); }
+/* the highlighter's marks (components/Highlighter.tsx) */
+::highlight(user-mark) { background-color: var(--color-accent); color: var(--color-on-accent); }
+.btn[aria-pressed="true"] { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-on-accent); }
 /* the heading over each half of a comparative pair */
 .passage-label { margin: var(--space-6) 0 0; font-size: var(--font-size-sm); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-muted); }
 .passage-label:first-child { margin-top: 0; }

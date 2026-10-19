@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Drill } from "@/components/Drill";
+import { Highlighter } from "@/components/Highlighter";
 import { PassageText } from "@/components/PassageText";
 import { QuestionList } from "@/components/QuestionList";
 import { drillQuestion, typeQuestions } from "@/lib/bank";
@@ -65,6 +66,7 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
       <div className="actions spread" style={{ alignItems: "center" }}>
         <h1>{type}</h1>
         <nav className="actions" aria-label="Neighbouring questions">
+          <Highlighter key={question.id} />
           {prev ? <Link className="btn" href={`${base}&q=${prev}`}>← Previous</Link> : <span className="btn" aria-disabled="true">← Previous</span>}
           {after ? <Link className="btn" href={`${base}&q=${after}`}>Skip →</Link> : <span className="btn" aria-disabled="true">Skip →</span>}
         </nav>

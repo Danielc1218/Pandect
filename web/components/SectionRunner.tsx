@@ -6,6 +6,7 @@ import { finishSection, saveAnswer } from "@/lib/actions";
 import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
 import { Choices } from "./Choices";
+import { Highlighter } from "./Highlighter";
 import { PassageText } from "./PassageText";
 import { ThemeToggle } from "./Nav";
 import { usePrefs } from "./Prefs";
@@ -68,6 +69,7 @@ export function SectionRunner({
         <span className="spacer" />
         <span className="muted">{expired ? "Over time" : low ? "Under 5 minutes left" : "Time left"}</span>
         <span className={`timer${low ? " low" : ""}`} role="timer">{clock}</span>
+        <Highlighter />
         <ThemeToggle />
         <Link className="btn" href="/practice">Pause and exit</Link>
       </header>
