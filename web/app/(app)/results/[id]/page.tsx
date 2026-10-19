@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Choices } from "@/components/Choices";
 import { PassageText } from "@/components/PassageText";
+import { Tabs } from "@/components/Tabs";
 import { drillHref, grade, pct } from "@/lib/data";
 import { sanitize } from "@/lib/prefs";
 import { SESSION_FIELDS, sessionAnswerKey, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
@@ -96,16 +97,19 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
           ))}
         </div>
       </section>
-      {missed.length > 0 && (
-        <section>
-          <h2>Questions to review</h2>
-          <div className="list">
-            {missed.map((q) => (
-              <ReviewRow key={q.id} q={q} text={text.get(q.id)} passages={section.passages} chosen={mine.get(q.id)?.chosen ?? null} />
-            ))}
-          </div>
-        </section>
-      )}
+      <section>
+        <h2>Review</h2>
+        {/* the missed ones first; every question is one tab away */}
+        <Tabs labels={[`Missed (${missed.length})`, `All questions (${all.length})`]} label="Questions to review">
+          {[missed, all].map((list, i) => list.length ? (
+            <div key={i} className="list">
+              {list.map((q) => (
+                <ReviewRow key={q.id} q={q} text={text.get(q.id)} passages={section.passages} chosen={mine.get(q.id)?.chosen ?? null} />
+              ))}
+            </div>
+          ) : <div key={i} className="panel"><p>Nothing missed. Every question was right.</p></div>)}
+        </Tabs>
+      </section>
       <section>
         <div className="actions">
           <Link className="btn primary" href={home}>{session.kind === "random" ? "Start another section" : `Back to ${label.title}`}</Link>
