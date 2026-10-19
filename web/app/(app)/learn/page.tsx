@@ -44,7 +44,8 @@ export default async function Learn() {
   const inSection = session && (!stats.latestAt || sessionAt! > stats.latestAt);
   const drill = types.find((t) => t.question_type === stats.latest?.question_type && t.section_type === stats.latest?.section_type) ?? types[0];
   // Weakest types: the highest share of wrong answers first, the larger number of misses breaking ties.
-  const weakest = types.filter((t) => t.answered > t.correct)
+  // A type needs a few answers first, so one slip does not read as "100% wrong".
+  const weakest = types.filter((t) => t.answered >= 3 && t.answered > t.correct)
     .map((t) => ({ ...t, wrong: t.answered - t.correct }))
     .sort((x, y) => y.wrong / y.answered - x.wrong / x.answered || y.wrong - x.wrong).slice(0, 5);
   const photo = (section?: string | null) => `/images/${section === SECTIONS.rc ? "reading" : "logic"}.jpg`;
@@ -106,7 +107,7 @@ export default async function Learn() {
             ))}
           </div>
         ) : (
-          <div className="panel"><p>{stats.answered ? "No wrong answers yet." : "Answer some questions and the types you miss most will show here."}</p></div>
+          <div className="panel"><p>{stats.answered ? "Answer at least three questions of a type and, if you miss any, it will show here." : "Answer some questions and the types you miss most will show here."}</p></div>
         )}
       </section>
       <section>
