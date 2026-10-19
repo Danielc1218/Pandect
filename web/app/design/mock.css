@@ -152,6 +152,7 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-raised); }
 .row[aria-current="true"] { background: var(--color-surface-muted); }
 .row[data-status="solved"] { box-shadow: inset 4px 0 var(--color-success); }
 .row[data-status="missed"] { box-shadow: inset 4px 0 var(--color-danger); }
+.row[data-status="blank"] { box-shadow: inset 4px 0 var(--color-text-muted); }
 .tag.solved { background: color-mix(in srgb, var(--color-success) 18%, var(--color-surface)); }
 .tag.missed { background: color-mix(in srgb, var(--color-danger) 15%, var(--color-surface)); }
 

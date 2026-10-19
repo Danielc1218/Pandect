@@ -19,7 +19,7 @@ type Text = Awaited<ReturnType<typeof sessionQuestions>>["questions"][number];
 function ReviewRow({ q, text, passages, chosen }: { q: Key; text?: Text; passages: string[]; chosen: string | null }) {
   return (
     <details className="review">
-      <summary className="row" data-status={chosen === q.correct_answer ? "solved" : "missed"}>
+      <summary className="row" data-status={!chosen ? "blank" : chosen === q.correct_answer ? "solved" : "missed"}>
         <div className="grow">
           <div className="title">Question {q.number}</div>
           <div className="muted">{chosen === q.correct_answer ? `Right: you chose ${chosen}.` : `${chosen ? `You chose ${chosen}.` : "Not answered."} Correct answer ${q.correct_answer}.`}</div>
