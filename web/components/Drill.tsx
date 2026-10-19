@@ -7,6 +7,7 @@ import { answer } from "@/lib/actions";
 import { typeset } from "@/lib/text";
 import { Choices } from "./Choices";
 import { usePrefs } from "./Prefs";
+import { ShortcutsHelp } from "./ShortcutsHelp";
 
 /** `sourceHref` is the practice test the question comes from, when the bank has fixed tests. */
 export type DrillQuestion = { id: string; stimulus: string | null; prompt: string; options: Record<string, string>; source: string; sourceHref?: string };
@@ -41,7 +42,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
   };
   // Keys: A–E or 1–5 choose, Enter submits and then moves on. Ignored while typing or with the question list open.
   const onKey = useEffectEvent((e: KeyboardEvent) => {
-    if (e.metaKey || e.ctrlKey || e.altKey || list.current?.open || (e.target as HTMLElement).closest("input, select, textarea, button, a")) return;
+    if (e.metaKey || e.ctrlKey || e.altKey || document.querySelector("dialog[open]") || (e.target as HTMLElement).closest("input, select, textarea, button, a")) return;
     const letter = "ABCDE"[Number(e.key) - 1] ?? (/^[a-e]$/i.test(e.key) ? e.key.toUpperCase() : null);
     if (letter && !result && question.options[letter]) { e.preventDefault(); if (e.shiftKey) toggle(letter); else pick(letter); }
     else if (e.key === "Enter") { e.preventDefault(); if (result) router.push(nextHref ?? listHref); else submit(); }
@@ -69,7 +70,8 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
         onSelect={pick}
         onEliminate={toggle}
       />
-      <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> choose · <kbd>Enter</kbd> {result ? "next question" : "submit"} · <kbd>Shift</kbd>+letter, <kbd>✕</kbd> or right-click crosses a choice out</p>
+      <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> choose · <kbd>Enter</kbd> {result ? "next question" : "submit"} · <kbd>Shift</kbd>+letter, <kbd>✕</kbd> or right-click crosses a choice out · <kbd>?</kbd> all shortcuts</p>
+      <ShortcutsHelp keys={[["A–E or 1–5", "Choose an answer"], ["Shift+A–E", "Cross out a choice, or bring it back"], ["Enter", "Submit, then go to the next question"], ["↑ ↓", "Move between the choices"], ["/", "Search the question list"]]} />
       {result && <div ref={explain} className={`explain ${result.correct ? "right" : "wrong"}`} role="status"><strong>{result.correct ? `Correct: ${result.correctAnswer}.` : `Not quite. You chose ${selected}; the answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{typeset(result.explanation)}</p>}</div>}
       <div className="actions spread">
         <button className="btn" onClick={() => {
