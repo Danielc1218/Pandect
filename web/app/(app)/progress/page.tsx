@@ -57,8 +57,8 @@ export default async function Progress() {
         {tried.length ? (
           <div className="list">
             {tried.map((t) => (
-              <Link key={t.section_type + t.question_type} className="row" href={drillHref(t.section_type, t.question_type)}>
-                <div className="grow"><div className="title">{t.question_type}</div><div className="muted">{t.answered} answered, {t.section_type}</div></div>
+              <Link key={t.section_type + t.question_type} className="row" href={drillHref(t.section_type, t.question_type) + (t.answered > t.correct ? "&show=missed" : "")}>
+                <div className="grow"><div className="title">{t.question_type}</div><div className="muted">{t.answered} answered, {t.section_type}{t.answered > t.correct ? ` · ${t.answered - t.correct} to review` : ""}</div></div>
                 <div className={`progress ${grade(pct(t.correct, t.answered))}`}><span style={{ width: `${pct(t.correct, t.answered)}%` }} /></div>
                 <div className="figure">{pct(t.correct, t.answered)}%</div>
               </Link>

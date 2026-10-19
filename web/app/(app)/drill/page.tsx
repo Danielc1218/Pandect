@@ -37,7 +37,9 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
   const base = drillHref(section, type);
   const q = params.q ? String(params.q) : undefined;
   const next = nextUnanswered(ids, status, q);
-  const list = <QuestionList rows={rows} status={status} base={base} current={q} />;
+  // ?show=missed (or new, solved) opens the list with that filter, as the Progress page's links do
+  const initialShow = (["new", "missed", "solved"] as const).find((s) => s === params.show);
+  const list = <QuestionList rows={rows} status={status} base={base} current={q} initialShow={initialShow} />;
 
   if (!q) {
     return (

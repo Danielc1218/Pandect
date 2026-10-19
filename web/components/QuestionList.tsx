@@ -17,7 +17,9 @@ function Marked({ text, query }: { text: string; query: string }) {
 const SHOWS: [Show, string][] = [["all", "All"], ["new", "Not started"], ["missed", "Missed"], ["solved", "Solved"]];
 
 /** Every question of one drill type, with a search box and a status filter. `base` is the type's drill link. */
-export function QuestionList({ rows, status, base, current }: { rows: QuestionRow[]; status: Record<string, Status>; base: string; current?: string }) {
+export function QuestionList({ rows, status, base, current, initialShow = "all" }: {
+  rows: QuestionRow[]; status: Record<string, Status>; base: string; current?: string; initialShow?: Show;
+}) {
   const id = useId();
   const router = useRouter();
   const fresh = rows.filter((r) => !status[r.id] && r.id !== current);
@@ -34,7 +36,7 @@ export function QuestionList({ rows, status, base, current }: { rows: QuestionRo
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  const [show, setShow] = useState<Show>("all");
+  const [show, setShow] = useState<Show>(initialShow);
   const matches = filterRows(rows, status, query, show);
   // A page of rows at a time; enough to reach the current question, so the popup can show it.
   const reach = Math.ceil((matches.findIndex((r) => r.id === current) + 1) / PAGE) * PAGE;
