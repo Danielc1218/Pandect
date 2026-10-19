@@ -51,9 +51,18 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
   const question = row && (await drillQuestion(q));
   if (!question) notFound();
 
+  // Neighbours in list order, answered or not, for stepping through the list without answering.
+  const at = ids.indexOf(q);
+  const prev = ids[at - 1], after = ids[at + 1];
   return (
     <section>
-      <h1>{type}</h1>
+      <div className="actions spread" style={{ alignItems: "center" }}>
+        <h1>{type}</h1>
+        <nav className="actions" aria-label="Neighbouring questions">
+          {prev ? <Link className="btn" href={`${base}&q=${prev}`}>← Previous</Link> : <span className="btn" aria-disabled="true">← Previous</span>}
+          {after ? <Link className="btn" href={`${base}&q=${after}`}>Skip →</Link> : <span className="btn" aria-disabled="true">Skip →</span>}
+        </nav>
+      </div>
       {/* A Reading Comprehension question sits beside its passage, which scrolls on its own */}
       <div className={question.passage ? "drill-reader" : undefined}>
         {question.passage && <article className="passage"><PassageText text={question.passage} /></article>}

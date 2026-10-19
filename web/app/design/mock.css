@@ -56,6 +56,7 @@ body:has(.test-bar:not([style*="display: none"])) .top-nav { display: none; }
 .btn:hover { filter: brightness(0.94); }
 .btn:active { filter: brightness(0.86); transform: translateY(1px) scale(0.98); }
 .btn:disabled { opacity: 0.6; cursor: progress; filter: none; transform: none; }
+.btn[aria-disabled="true"] { opacity: 0.45; cursor: default; filter: none; transform: none; }
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .actions.spread { justify-content: space-between; }
 
