@@ -35,11 +35,15 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
   const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
   const submit = () => selected && !pending && start(async () => { setResult(await answer(question.id, selected)); router.refresh(); });
   const pick = (l: string) => { setSelected(l); setEliminated((list) => list.filter((x) => x !== l)); };
+  const toggle = (letter: string) => {
+    setEliminated((list) => (list.includes(letter) ? list.filter((l) => l !== letter) : [...list, letter]));
+    setSelected((s) => (s === letter ? null : s));
+  };
   // Keys: A–E or 1–5 choose, Enter submits and then moves on. Ignored while typing or with the question list open.
   const onKey = useEffectEvent((e: KeyboardEvent) => {
     if (e.metaKey || e.ctrlKey || e.altKey || list.current?.open || (e.target as HTMLElement).closest("input, select, textarea, button, a")) return;
     const letter = "ABCDE"[Number(e.key) - 1] ?? (/^[a-e]$/i.test(e.key) ? e.key.toUpperCase() : null);
-    if (letter && !result && question.options[letter]) { e.preventDefault(); pick(letter); }
+    if (letter && !result && question.options[letter]) { e.preventDefault(); if (e.shiftKey) toggle(letter); else pick(letter); }
     else if (e.key === "Enter") { e.preventDefault(); if (result) router.push(nextHref ?? listHref); else submit(); }
   });
   // Once answered, bring the explanation into view and put focus on the way forward.
@@ -52,10 +56,6 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  const toggle = (letter: string) => {
-    setEliminated((list) => (list.includes(letter) ? list.filter((l) => l !== letter) : [...list, letter]));
-    setSelected((s) => (s === letter ? null : s));
-  };
   return (
     <div className="question" aria-busy={pending}>
       <div className="meta"><span className="tag">{type}</span><span className="muted">Question {number} of {total} · {question.sourceHref ? <Link href={question.sourceHref}>{question.source}</Link> : question.source}</span>
@@ -69,7 +69,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
         onSelect={pick}
         onEliminate={toggle}
       />
-      <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> choose · <kbd>Enter</kbd> {result ? "next question" : "submit"} · <kbd>✕</kbd> or right-click crosses a choice out</p>
+      <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> choose · <kbd>Enter</kbd> {result ? "next question" : "submit"} · <kbd>Shift</kbd>+letter, <kbd>✕</kbd> or right-click crosses a choice out</p>
       {result && <div ref={explain} className={`explain ${result.correct ? "right" : "wrong"}`} role="status"><strong>{result.correct ? "Correct." : `Not quite. The answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{typeset(result.explanation)}</p>}</div>}
       <div className="actions spread">
         <button className="btn" onClick={() => {

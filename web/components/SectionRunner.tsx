@@ -74,7 +74,7 @@ export function SectionRunner({
   const onKey = useEffectEvent((e: KeyboardEvent) => {
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || document.querySelector("dialog[open]") || (e.target as HTMLElement).closest("input, select, textarea")) return;
     const letter = "ABCDE"[Number(e.key) - 1] ?? (/^[a-e]$/i.test(e.key) ? e.key.toUpperCase() : null);
-    if (letter && q.options[letter]) select(letter);
+    if (letter && q.options[letter]) (e.shiftKey ? eliminate : select)(letter);
     else if (e.key === "ArrowRight" && index < questions.length - 1) setIndex(index + 1);
     else if (e.key === "ArrowLeft" && index > 0) setIndex(index - 1);
     else if (e.key === "f" || e.key === "F") flag();
@@ -119,7 +119,7 @@ export function SectionRunner({
           {q.stimulus && <p>{typeset(q.stimulus)}</p>}
           <h3>{typeset(q.prompt)}</h3>
           <Choices options={q.options} selected={answers[q.id] ?? null} eliminated={eliminated[q.id] ?? []} onSelect={select} onEliminate={eliminate} />
-          <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> answer · <kbd>←</kbd> <kbd>→</kbd> previous and next · <kbd>F</kbd> flag · <kbd>✕</kbd> crosses a choice out</p>
+          <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> answer · <kbd>←</kbd> <kbd>→</kbd> previous and next · <kbd>F</kbd> flag · <kbd>Shift</kbd>+letter or <kbd>✕</kbd> crosses a choice out</p>
           <div className="actions spread">
             <button className="btn" onClick={flag}>
               {flagged.includes(q.id) ? "Remove flag" : "Flag for review"}
