@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { filterRows, type QuestionRow, type Show, type Status } from "@/lib/questions";
 
 const LABEL: Record<Status, string> = { solved: "Solved", missed: "Missed" };
@@ -12,6 +12,17 @@ const SHOWS: [Show, string][] = [["all", "All"], ["new", "Not started"], ["misse
 export function QuestionList({ rows, status, base, current }: { rows: QuestionRow[]; status: Record<string, Status>; base: string; current?: string }) {
   const id = useId();
   const [query, setQuery] = useState("");
+  const search = useRef<HTMLInputElement>(null);
+  // "/" jumps to the search box, as on most sites with one; only when this list is on screen and nothing is being typed.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "/" || (e.target as HTMLElement).closest("input, select, textarea") || !search.current?.checkVisibility()) return;
+      e.preventDefault();
+      search.current.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const [show, setShow] = useState<Show>("all");
   const matches = filterRows(rows, status, query, show);
   // A page of rows at a time; enough to reach the current question, so the popup can show it.
@@ -24,7 +35,7 @@ export function QuestionList({ rows, status, base, current }: { rows: QuestionRo
       <div className="actions">
         <div className="field" style={{ flex: 1, minWidth: 200 }}>
           <label htmlFor={id + "q"}>Search</label>
-          <input id={id + "q"} type="search" placeholder="Words from the question, or its source" value={query} onChange={(e) => filter(() => setQuery(e.target.value))} />
+          <input ref={search} id={id + "q"} type="search" placeholder="Words from the question, or its source  ( / )" value={query} onChange={(e) => filter(() => setQuery(e.target.value))} />
         </div>
       </div>
       <div className="chips" role="group" aria-label="Show questions">
