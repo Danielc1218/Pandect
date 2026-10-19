@@ -98,6 +98,8 @@ section.hero > *, section.stats > * { margin-top: 0; }
         box-shadow: var(--shadow-card); padding: var(--space-4); }
 .stat .value { font-family: var(--font-family-heading); font-size: var(--font-size-xl); font-weight: 600; line-height: 1.25; }
 .stat .label { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.stat .value.good { color: var(--color-success); }
+.stat .value.poor { color: var(--color-danger); }
 
 /* card and card-grid */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--space-6); }

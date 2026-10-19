@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Tabs } from "@/components/Tabs";
 import { BANK_NAME } from "@/lib/bank";
-import { activity, daysUntil, drillHref, pct, SECTIONS, typeStats, type TypeStat } from "@/lib/data";
+import { activity, daysUntil, drillHref, grade, pct, SECTIONS, typeStats, type TypeStat } from "@/lib/data";
 import { SESSION_FIELDS, sessionHome, sessionLabel, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
 
@@ -87,7 +87,7 @@ export default async function Learn() {
       </section>
       <section className="stats">
         <div className="stat"><div className="value">{stats.answered.toLocaleString()}</div><div className="label">questions answered</div></div>
-        <div className="stat"><div className="value">{stats.answered ? `${stats.accuracy}%` : "–"}</div><div className="label">accuracy, last 100</div></div>
+        <div className="stat"><div className={`value ${stats.answered ? grade(stats.accuracy) : ""}`}>{stats.answered ? `${stats.accuracy}%` : "–"}</div><div className="label">accuracy, last 100</div></div>
         <div className="stat"><div className="value">{stats.streak} {stats.streak === 1 ? "day" : "days"}</div><div className="label">current streak</div></div>
         <div className="stat"><div className="value">{daysLeft === null ? "–" : Math.max(0, daysLeft)}</div><div className="label">{daysLeft === null ? <Link href="/profile">Set your test date</Link> : "days to test day"}</div></div>
       </section>

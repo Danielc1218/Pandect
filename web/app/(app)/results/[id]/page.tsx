@@ -80,7 +80,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
         <h1>{label.title} results</h1>
         <div className="stats">
           <div className="stat"><div className="value">{right} of {all.length}</div><div className="label">questions correct</div></div>
-          <div className="stat"><div className="value">{pct(right, all.length)}%</div><div className="label">accuracy</div></div>
+          <div className="stat"><div className={`value ${grade(pct(right, all.length))}`}>{pct(right, all.length)}%</div><div className="label">accuracy</div></div>
           <div className="stat"><div className="value">{all.length - mine.size}</div><div className="label">left unanswered</div></div>
           <div className="stat"><div className="value">{Math.floor(perQuestion / 60)}:{String(perQuestion % 60).padStart(2, "0")}</div><div className="label">a question on average</div></div>
           <div className="stat"><div className="value">{Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}</div><div className="label">{over > 0 ? `time used, ${Math.floor(over / 60)}:${String(over % 60).padStart(2, "0")} over the limit` : "time used"}</div></div>
