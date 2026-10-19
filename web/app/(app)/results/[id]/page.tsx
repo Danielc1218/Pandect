@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Choices } from "@/components/Choices";
+import { ExpandAll } from "@/components/ExpandAll";
 import { PassageText } from "@/components/PassageText";
 import { Tabs } from "@/components/Tabs";
 import { drillHref, grade, pct } from "@/lib/data";
@@ -100,7 +101,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
         </div>
       </section>
       <section>
-        <h2>Review</h2>
+        <div className="actions spread" style={{ alignItems: "center" }}><h2>Review</h2><ExpandAll /></div>
         {/* the missed ones first; every question is one tab away */}
         <Tabs labels={[`Missed (${missed.length})`, `All questions (${all.length})`]} label="Questions to review">
           {[missed, all].map((list, i) => list.length ? (
