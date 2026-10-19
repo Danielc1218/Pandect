@@ -275,6 +275,9 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-1); border
 .qnav a.flagged { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); }
 .qnav a.current { outline: 2px solid var(--color-primary); outline-offset: 1px; font-weight: 600; }
 .qnav .spacer { flex: 1; }
+/* a Reading Comprehension passage's questions are grouped behind its label */
+.qnav .qnav-group { margin-left: var(--space-3); font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text-muted); }
+.qnav .qnav-group:first-child { margin-left: 0; }
 @media (max-width: 767px) { .reader { grid-template-columns: 1fr; padding: var(--space-4); } }
 /* a drilled Reading Comprehension question: passage on the left, kept in view and scrolling on its own */
 section:has(> .drill-reader) { max-width: 1280px; }

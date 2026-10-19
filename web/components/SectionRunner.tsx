@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useEffectEvent, useRef, useState, useTransition } from "react";
+import { Fragment, useEffect, useEffectEvent, useRef, useState, useTransition } from "react";
 import { finishSection, saveAnswer } from "@/lib/actions";
 import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
@@ -127,7 +127,14 @@ export function SectionRunner({
         {questions.map((item, i) => {
           const state = [i === index && "current", flagged.includes(item.id) && "flagged", answers[item.id] && "done"].filter(Boolean).join(" ");
           const label = `Question ${i + 1}${answers[item.id] ? ", answered" : ""}${flagged.includes(item.id) ? ", flagged" : ""}`;
-          return <a key={item.id} href="#" className={state || undefined} aria-label={label} aria-current={i === index ? "true" : undefined} onClick={(e) => { e.preventDefault(); setIndex(i); }}>{i + 1}</a>;
+          // In Reading Comprehension each passage's questions form a group, labelled P1, P2 and so on.
+          const opens = item.passage !== null && item.passage !== questions[i - 1]?.passage;
+          return (
+            <Fragment key={item.id}>
+              {opens && <span className="qnav-group" aria-hidden="true">P{item.passage! + 1}</span>}
+              <a href="#" className={state || undefined} aria-label={label} aria-current={i === index ? "true" : undefined} onClick={(e) => { e.preventDefault(); setIndex(i); }}>{i + 1}</a>
+            </Fragment>
+          );
         })}
         <span className="spacer" />
         <button className="btn primary" disabled={pending} onClick={askFinish}>Finish section</button>
