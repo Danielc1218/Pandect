@@ -177,6 +177,14 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .choice.incorrect { border: 2px solid var(--color-danger); }
 .choice.incorrect .note { color: var(--color-danger); }
 .choice.eliminated { opacity: 0.5; text-decoration: line-through; }
+/* the cross-out button at a choice's end: shown on hover or focus, always on touch screens */
+.choice .cross { flex: none; margin-left: auto; display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
+                 border: 1px solid transparent; border-radius: var(--radius-sm); background: none; color: var(--color-text-muted);
+                 cursor: pointer; opacity: 0; transition: opacity 120ms ease; }
+.choice .cross svg { width: 14px; height: 14px; }
+.choice:hover .cross, .choice:focus-within .cross, .choice .cross[aria-pressed="true"] { opacity: 1; }
+.choice .cross:hover { border-color: var(--color-border); background: var(--color-surface); color: var(--color-text); }
+@media (hover: none) { .choice .cross { opacity: 1; } }
 /* keyboard keys, as in the shortcut line under a drill's choices; no keyboard, no line */
 kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-1); border: 1px solid var(--color-border); border-bottom-width: 2px;
       border-radius: var(--radius-sm); background: var(--color-surface); font-family: inherit; font-size: var(--font-size-xs); text-align: center; }
