@@ -5,7 +5,7 @@ import { Highlighter } from "@/components/Highlighter";
 import { PassageText } from "@/components/PassageText";
 import { QuestionList } from "@/components/QuestionList";
 import { BANK_NAME, drillQuestion, typeQuestions } from "@/lib/bank";
-import { drillHref, SECTIONS, type SectionKey } from "@/lib/data";
+import { drillHref, pct, SECTIONS, type SectionKey } from "@/lib/data";
 import { latestStatus, nextUnanswered } from "@/lib/questions";
 import { requireUser } from "@/lib/supabase";
 import { describeType } from "@/lib/types";
@@ -34,6 +34,7 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
   const status = latestStatus(attempts ?? []);
   const ids = rows.map((r) => r.id);
   const answered = ids.filter((id) => status[id]).length;
+  const solved = ids.filter((id) => status[id] === "solved").length;
   const base = drillHref(section, type);
   const q = params.q ? String(params.q) : undefined;
   const next = nextUnanswered(ids, status, q);
@@ -47,7 +48,10 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
         <p className="muted crumbs"><Link href="/types">Question types</Link> / {section}</p>
         <h1>{type}</h1>
         {describeType(section, type) && <p>{describeType(section, type)}</p>}
-        <p className="muted">{answered} of {rows.length} answered, {ids.filter((id) => status[id] === "solved").length} solved</p>
+        <p className="muted">
+          {answered} of {rows.length} answered, {solved} solved{answered > 0 && ` (${pct(solved, answered)}% of those answered)`}
+        </p>
+        <div className="progress" style={{ maxWidth: 480 }}><span style={{ width: `${pct(answered, rows.length)}%` }} /></div>
         <div className="actions">
           {next && <Link className="btn primary" href={`${base}&q=${next}`}>{answered ? "Continue" : "Start"}</Link>}
           <Link className="btn" href="/types">Back to question types</Link>
