@@ -17,10 +17,10 @@ function AnsweredBars({ types }: { types: TypeStat[] }) {
   return (
     <div className="bars">
       {[...types].sort((a, b) => b.answered - a.answered || a.question_type.localeCompare(b.question_type)).map((t) => (
-        <Link key={t.question_type} href={drillHref(t.section_type, t.question_type)} title={`${t.question_type}: ${t.answered} of ${t.total} answered`}>
+        <Link key={t.question_type} className={t.answered ? undefined : "zero"} href={drillHref(t.section_type, t.question_type)} title={`${t.question_type}: ${t.answered} of ${t.total} answered`}>
           <span className="name">{t.question_type}</span>
           <span className="bar"><span style={{ width: `${(100 * t.answered) / most}%` }} /></span>
-          <span className="count">{t.answered}</span>
+          <span className="count">{t.answered}<span className="of"> / {t.total}</span></span>
         </Link>
       ))}
     </div>
