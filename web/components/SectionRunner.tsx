@@ -81,7 +81,10 @@ export function SectionRunner({
   }, []);
   const low = left !== null && left <= 300;
   const shown = Math.abs(left ?? limit);
-  const clock = prefs.hideTimer && !low ? "Hidden" : `${expired ? "+" : ""}${Math.floor(shown / 60)}:${String(shown % 60).padStart(2, "0")}`;
+  // Hours appear once a clock passes an hour (a section left open over days counts up a long way).
+  const hms = [Math.floor(shown / 3600), Math.floor(shown / 60) % 60, shown % 60];
+  const time = hms[0] ? `${hms[0]}:${String(hms[1]).padStart(2, "0")}:${String(hms[2]).padStart(2, "0")}` : `${hms[1]}:${String(hms[2]).padStart(2, "0")}`;
+  const clock = prefs.hideTimer && !low ? "Hidden" : `${expired ? "+" : ""}${time}`;
 
   return (
     <>
