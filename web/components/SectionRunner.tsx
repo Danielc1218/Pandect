@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useTransition } from "react";
 import { finishSection, saveAnswer } from "@/lib/actions";
 import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
@@ -57,6 +57,22 @@ export function SectionRunner({
       const list = e[q.id] ?? [];
       return { ...e, [q.id]: list.includes(letter) ? list.filter((l) => l !== letter) : [...list, letter] };
     });
+  const flag = () => setFlagged((f) => (f.includes(q.id) ? f.filter((x) => x !== q.id) : [...f, q.id]));
+  // Keys: A–E or 1–5 answer, ← and → move between questions, F flags. Not while a dialog is open or a key was handled.
+  const onKey = useEffectEvent((e: KeyboardEvent) => {
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || document.querySelector("dialog[open]") || (e.target as HTMLElement).closest("input, select, textarea")) return;
+    const letter = "ABCDE"[Number(e.key) - 1] ?? (/^[a-e]$/i.test(e.key) ? e.key.toUpperCase() : null);
+    if (letter && q.options[letter]) select(letter);
+    else if (e.key === "ArrowRight" && index < questions.length - 1) setIndex(index + 1);
+    else if (e.key === "ArrowLeft" && index > 0) setIndex(index - 1);
+    else if (e.key === "f" || e.key === "F") flag();
+    else return;
+    e.preventDefault();
+  });
+  useEffect(() => {
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const low = left !== null && left <= 300;
   const shown = Math.abs(left ?? limit);
   const clock = prefs.hideTimer && !low ? "Hidden" : `${expired ? "+" : ""}${Math.floor(shown / 60)}:${String(shown % 60).padStart(2, "0")}`;
@@ -87,7 +103,7 @@ export function SectionRunner({
           <h3>{typeset(q.prompt)}</h3>
           <Choices options={q.options} selected={answers[q.id] ?? null} eliminated={eliminated[q.id] ?? []} onSelect={select} onEliminate={eliminate} />
           <div className="actions spread">
-            <button className="btn" onClick={() => setFlagged((f) => (f.includes(q.id) ? f.filter((x) => x !== q.id) : [...f, q.id]))}>
+            <button className="btn" onClick={flag}>
               {flagged.includes(q.id) ? "Remove flag" : "Flag for review"}
             </button>
             {index < questions.length - 1 ? (
