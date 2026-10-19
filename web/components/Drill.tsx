@@ -8,7 +8,8 @@ import { typeset } from "@/lib/text";
 import { Choices } from "./Choices";
 import { usePrefs } from "./Prefs";
 
-export type DrillQuestion = { id: string; stimulus: string | null; prompt: string; options: Record<string, string>; source: string };
+/** `sourceHref` is the practice test the question comes from, when the bank has fixed tests. */
+export type DrillQuestion = { id: string; stimulus: string | null; prompt: string; options: Record<string, string>; source: string; sourceHref?: string };
 
 /** One drill question. `children` is the type's question list, shown in a popup; `nextHref` is the next unanswered question, if any. */
 export function Drill({ question, type, number, answered, total, listHref, nextHref, children }: {
@@ -57,7 +58,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
   };
   return (
     <div className="question" aria-busy={pending}>
-      <div className="meta"><span className="tag">{type}</span><span className="muted">Question {number} of {total} · {question.source}</span>
+      <div className="meta"><span className="tag">{type}</span><span className="muted">Question {number} of {total} · {question.sourceHref ? <Link href={question.sourceHref}>{question.source}</Link> : question.source}</span>
         {!hideTimer && <span className="stopwatch" role="timer" aria-label={`Time on this question ${clock}`} title={result ? "Time you took" : "Time on this question"}>{clock}</span>}
       </div>
       <div className="progress"><span style={{ width: `${Math.round((100 * answered) / total)}%` }} /></div>

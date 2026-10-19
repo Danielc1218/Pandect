@@ -95,11 +95,11 @@ async function drillQuestionIn(bank: BankName, id: string) {
   "use cache: remote";
   shared();
   const [q] = await rows(db().from("questions")
-    .select("id, stimulus, prompt, options, section_number, question_number, tests!inner(name), passages(passage_text)").eq("id", id).eq("tests.bank", bank));
+    .select("id, test_id, stimulus, prompt, options, section_number, question_number, tests!inner(name), passages(passage_text)").eq("id", id).eq("tests.bank", bank));
   if (!q) return null;
   const passage = q.passages as unknown as { passage_text: string } | null;
   return {
     id: q.id as string, stimulus: q.stimulus as string | null, prompt: q.prompt as string, options: q.options as Record<string, string>,
-    source: sourceOf(q), passage: passage?.passage_text ?? null,
+    source: sourceOf(q), testId: q.test_id as string, passage: passage?.passage_text ?? null,
   };
 }
