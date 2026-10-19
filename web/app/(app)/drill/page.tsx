@@ -8,7 +8,11 @@ import { drillHref, SECTIONS, type SectionKey } from "@/lib/data";
 import { latestStatus, nextUnanswered } from "@/lib/questions";
 import { requireUser } from "@/lib/supabase";
 
-export const metadata = { title: "Drill" };
+/** The tab says which type is being drilled, and whether it is the list or a question. */
+export async function generateMetadata({ searchParams }: PageProps<"/drill">) {
+  const { type, q } = await searchParams;
+  return { title: type ? `${type}${q ? " question" : " questions"}` : "Drill" };
+}
 
 /** Without `q` this is the type's question list; with `q` it is that question, with the list in a popup. */
 export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
