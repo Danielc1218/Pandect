@@ -63,6 +63,12 @@ export function SectionRunner({
       const list = e[q.id] ?? [];
       return { ...e, [q.id]: list.includes(letter) ? list.filter((l) => l !== letter) : [...list, letter] };
     });
+  // On a phone the question buttons are one sideways-scrolling row: keep the current one in view.
+  const items = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const row = items.current, el = row?.querySelector<HTMLElement>("[aria-current]");
+    if (row && el && row.scrollWidth > row.clientWidth) row.scrollLeft = el.offsetLeft - row.offsetLeft - (row.clientWidth - el.offsetWidth) / 2;
+  }, [index]);
   const flag = () => setFlagged((f) => (f.includes(q.id) ? f.filter((x) => x !== q.id) : [...f, q.id]));
   // Keys: A–E or 1–5 answer, ← and → move between questions, F flags. Not while a dialog is open or a key was handled.
   const onKey = useEffectEvent((e: KeyboardEvent) => {
@@ -130,18 +136,20 @@ export function SectionRunner({
         </div>
       </div>
       <nav className="qnav" aria-label="Questions in this section">
-        {questions.map((item, i) => {
-          const state = [i === index && "current", flagged.includes(item.id) && "flagged", answers[item.id] && "done"].filter(Boolean).join(" ");
-          const label = `Question ${i + 1}${answers[item.id] ? ", answered" : ""}${flagged.includes(item.id) ? ", flagged" : ""}`;
-          // In Reading Comprehension each passage's questions form a group, labelled P1, P2 and so on.
-          const opens = item.passage !== null && item.passage !== questions[i - 1]?.passage;
-          return (
-            <Fragment key={item.id}>
-              {opens && <span className="qnav-group" aria-hidden="true">P{item.passage! + 1}</span>}
-              <a href="#" className={state || undefined} aria-label={label} aria-current={i === index ? "true" : undefined} onClick={(e) => { e.preventDefault(); setIndex(i); }}>{i + 1}</a>
-            </Fragment>
-          );
-        })}
+        <div className="qnav-items" ref={items}>
+          {questions.map((item, i) => {
+            const state = [i === index && "current", flagged.includes(item.id) && "flagged", answers[item.id] && "done"].filter(Boolean).join(" ");
+            const label = `Question ${i + 1}${answers[item.id] ? ", answered" : ""}${flagged.includes(item.id) ? ", flagged" : ""}`;
+            // In Reading Comprehension each passage's questions form a group, labelled P1, P2 and so on.
+            const opens = item.passage !== null && item.passage !== questions[i - 1]?.passage;
+            return (
+              <Fragment key={item.id}>
+                {opens && <span className="qnav-group" aria-hidden="true">P{item.passage! + 1}</span>}
+                <a href="#" className={state || undefined} aria-label={label} aria-current={i === index ? "true" : undefined} onClick={(e) => { e.preventDefault(); setIndex(i); }}>{i + 1}</a>
+              </Fragment>
+            );
+          })}
+        </div>
         <span className="spacer" />
         <span className="muted" aria-live="polite">{questions.length - blank.length} of {questions.length} answered{unsure.length ? `, ${unsure.length} flagged` : ""}</span>
         <button className="btn primary" disabled={pending} onClick={askFinish}>Finish section</button>

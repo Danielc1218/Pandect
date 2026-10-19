@@ -325,6 +325,16 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-1); border
 .qnav a.flagged { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); }
 .qnav a.current { outline: 2px solid var(--color-primary); outline-offset: 1px; font-weight: 600; }
 .qnav .spacer { flex: 1; }
+/* the question buttons wrap among themselves, so the count and Finish stay at the right; on a phone they are one
+   row of their own that scrolls sideways */
+.qnav { flex-wrap: nowrap; }
+.qnav .spacer { display: none; } /* the buttons' area already takes the free space */
+.qnav-items { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); flex: 1; min-width: 0; }
+@media (max-width: 767px) {
+  .qnav { flex-wrap: wrap; }
+  .qnav-items { flex-wrap: nowrap; flex: 1 0 100%; overflow-x: auto; scrollbar-width: none; padding: var(--space-1); }
+  .qnav-items > * { flex: none; }
+}
 /* a Reading Comprehension passage's questions are grouped behind its label */
 .qnav .qnav-group { margin-left: var(--space-3); font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text-muted); }
 .qnav .qnav-group:first-child { margin-left: 0; }
