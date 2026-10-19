@@ -215,6 +215,8 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
             border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-8); }
 .question > * + * { margin-top: var(--space-4); }
 .question .meta { display: flex; align-items: center; gap: var(--space-3); }
+/* on a narrow screen the source wraps under the tag, and the stopwatch keeps to the right */
+.question .meta { flex-wrap: wrap; row-gap: var(--space-1); }
 /* the question stem after an argument: a rule above it, so the task stands apart from the stimulus */
 .question p + h3 { padding-top: var(--space-4); border-top: 1px dashed var(--color-border); }
 .question .meta .stopwatch { margin-left: auto; color: var(--color-text-muted); font-size: var(--font-size-sm); font-variant-numeric: tabular-nums; }
