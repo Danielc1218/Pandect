@@ -6,7 +6,6 @@ import { requireUser } from "@/lib/supabase";
 export const metadata = { title: "Question types" };
 
 function TypeList({ types }: { types: TypeStat[] }) {
-  const top = types[0]?.total ?? 1;
   return (
     <div className="list">
       {types.map((t) => (
@@ -15,8 +14,9 @@ function TypeList({ types }: { types: TypeStat[] }) {
             <div className="title">{t.question_type}</div>
             <div className="muted">{t.answered ? `${t.answered} answered, ${pct(t.correct, t.answered)}% correct` : "Not started"}</div>
           </div>
-          <div className="progress"><span style={{ width: `${pct(t.total, top)}%` }} /></div>
-          <div className="figure">{t.total}</div>
+          {/* the bar is how much of the type you have done; the figure is how many questions it has */}
+          <div className="progress" title={`${t.answered} of ${t.total} answered`}><span style={{ width: `${pct(t.answered, t.total)}%` }} /></div>
+          <div className="figure">{t.total.toLocaleString()}</div>
         </Link>
       ))}
     </div>
