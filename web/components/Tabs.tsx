@@ -1,11 +1,19 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useSlide } from "./Nav";
 
 /** Tabs with one highlight that slides to the chosen tab. `children[i]` is the panel for `labels[i]`. */
 export function Tabs({ labels, children, label }: { labels: string[]; children: ReactNode[]; label: string }) {
-  const [current, setCurrent] = useState(0);
+  const [current, setTab] = useState(0);
+  // The chosen tab is remembered for this browser tab, per page and tab list, so coming back keeps it.
+  const key = `tab:${label}`;
+  const setCurrent = (i: number) => { setTab(i); try { sessionStorage.setItem(key + location.pathname, String(i)); } catch {} };
+  useEffect(() => {
+    let saved = 0;
+    try { saved = Number(sessionStorage.getItem(key + location.pathname)) || 0; } catch {}
+    if (saved > 0 && saved < labels.length) setTab(saved); // eslint-disable-line react-hooks/set-state-in-effect -- storage is read only in the browser
+  }, [key, labels.length]);
   const { ref, style } = useSlide<HTMLDivElement>(current);
   return (
     <>
