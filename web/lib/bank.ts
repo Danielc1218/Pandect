@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
+import { snippet, type QuestionRow } from "./questions";
 import { SUPABASE_URL } from "./supabase";
 
 /**
@@ -62,6 +63,31 @@ async function allSectionsIn(bank: BankName) {
     db().from("bank_test_sections").select("test_id, section_number, section_type, questions").eq("bank", bank).order("section_number"));
 }
 
+const sourceOf = (q: { tests: unknown; section_number: unknown; question_number: unknown }) =>
+  `${(q.tests as { name: string }).name}, section ${q.section_number}, question ${q.question_number}`;
+
+/** Every question of one type for the drill list, in the order drills step through them. */
+export const typeQuestions = (section: string, type: string) => typeQuestionsIn(BANK_NAME, section, type);
+async function typeQuestionsIn(bank: BankName, section: string, type: string): Promise<QuestionRow[]> {
+  "use cache: remote";
+  shared();
+  const all: QuestionRow[] = [];
+  // Supabase returns at most 1,000 rows a request, so read in pages until one comes back short.
+  // Reads whole passages to keep their opening words; give passages a short title column if this read gets slow.
+  for (let from = 0; ; from += 1000) {
+    const page = await rows(db().from("questions")
+      .select("id, stimulus, prompt, section_number, question_number, tests!inner(name), passages(passage_text)")
+      .eq("section_type", section).eq("question_type", type).eq("tests.bank", bank)
+      .order("test_id").order("section_number").order("question_number").range(from, from + 999));
+    for (const q of page) {
+      const passage = (q.passages as unknown as { passage_text: string } | null)?.passage_text;
+      // Reading Comprehension prompts repeat ("…the main point of the passage?"), so those rows also carry how the passage opens.
+      all.push({ id: q.id as string, n: all.length + 1, source: sourceOf(q), snippet: snippet((q.stimulus ?? q.prompt) as string), ...(passage && { passage: snippet(passage, 90) }) });
+    }
+    if (page.length < 1000) return all;
+  }
+}
+
 /** One question to drill, with its passage and where it comes from. */
 export const drillQuestion = (id: string) => drillQuestionIn(BANK_NAME, id);
 async function drillQuestionIn(bank: BankName, id: string) {
@@ -70,10 +96,9 @@ async function drillQuestionIn(bank: BankName, id: string) {
   const [q] = await rows(db().from("questions")
     .select("id, stimulus, prompt, options, section_number, question_number, tests!inner(name), passages(passage_text)").eq("id", id).eq("tests.bank", bank));
   if (!q) return null;
-  const test = q.tests as unknown as { name: string };
   const passage = q.passages as unknown as { passage_text: string } | null;
   return {
     id: q.id as string, stimulus: q.stimulus as string | null, prompt: q.prompt as string, options: q.options as Record<string, string>,
-    source: `${test.name}, section ${q.section_number}, question ${q.question_number}`, passage: passage?.passage_text ?? null,
+    source: sourceOf(q), passage: passage?.passage_text ?? null,
   };
 }

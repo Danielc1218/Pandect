@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition, type ReactNode } from "react";
 import { answer } from "@/lib/actions";
 import { Choices } from "./Choices";
 
 export type DrillQuestion = { id: string; stimulus: string | null; prompt: string; options: Record<string, string>; source: string };
 
-export function Drill({ question, type, answered, total }: { question: DrillQuestion; type: string; answered: number; total: number }) {
+/** One drill question. `children` is the type's question list, shown in a popup; `nextHref` is the next unanswered question, if any. */
+export function Drill({ question, type, number, answered, total, listHref, nextHref, children }: {
+  question: DrillQuestion; type: string; number: number; answered: number; total: number; listHref: string; nextHref?: string; children: ReactNode;
+}) {
   const router = useRouter();
+  const list = useRef<HTMLDialogElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [eliminated, setEliminated] = useState<string[]>([]);
   const [result, setResult] = useState<{ correct: boolean; correctAnswer: string; explanation: string | null } | null>(null);
@@ -20,8 +24,8 @@ export function Drill({ question, type, answered, total }: { question: DrillQues
   };
   return (
     <div className="question" aria-busy={pending}>
-      <div className="meta"><span className="tag">{type}</span><span className="muted">Question {answered + 1} of {total} · {question.source}</span></div>
-      <div className="progress"><span style={{ width: `${Math.round((100 * (answered + (result ? 1 : 0))) / total)}%` }} /></div>
+      <div className="meta"><span className="tag">{type}</span><span className="muted">Question {number} of {total} · {question.source}</span></div>
+      <div className="progress"><span style={{ width: `${Math.round((100 * answered) / total)}%` }} /></div>
       {question.stimulus && <p>{question.stimulus}</p>}
       <h3>{question.prompt}</h3>
       <Choices
@@ -31,13 +35,21 @@ export function Drill({ question, type, answered, total }: { question: DrillQues
       />
       {result && <div className="explain" role="status"><strong>{result.correct ? "Correct." : `Not quite. The answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{result.explanation}</p>}</div>}
       <div className="actions spread">
-        <Link className="btn" href="/types">Back to question types</Link>
+        <button className="btn" onClick={() => list.current?.showModal()}>Question list</button>
         {result ? (
-          <button className="btn primary" disabled={pending} onClick={() => start(() => router.refresh())}>Next question</button>
+          <Link className="btn primary" href={nextHref ?? listHref}>{nextHref ? "Next question" : "Back to question list"}</Link>
         ) : (
-          <button className="btn primary" disabled={!selected || pending} onClick={() => start(async () => setResult(await answer(question.id, selected!)))}>Submit answer</button>
+          // The refresh re-reads this question's status, so the list, the bar and the next link count the new answer.
+          <button className="btn primary" disabled={!selected || pending} onClick={() => start(async () => { setResult(await answer(question.id, selected!)); router.refresh(); })}>Submit answer</button>
         )}
       </div>
+      <dialog ref={list} className="modal" style={{ width: "100%", maxWidth: 760 }} aria-labelledby="question-list-title">
+        <div className="actions spread">
+          <h2 id="question-list-title">{type}</h2>
+          <form method="dialog"><button className="btn">Close</button></form>
+        </div>
+        {children}
+      </dialog>
     </div>
   );
 }
