@@ -63,6 +63,8 @@ html[data-links="underline"] :is(p, li, td, .muted) a { text-decoration: underli
 /* Passage above the questions instead of beside them */
 html[data-layout="stacked"] .reader:not(.single) { grid-template-columns: minmax(0, 760px); justify-content: center; }
 html[data-layout="stacked"] body.test .reader .passage { max-height: none; }
+html[data-layout="stacked"] .drill-reader { grid-template-columns: minmax(0, 760px); justify-content: center; }
+html[data-layout="stacked"] .drill-reader > .passage { position: static; max-height: none; }
 
 /* The settings page */
 .prefs-group { display: grid; gap: var(--space-4); }

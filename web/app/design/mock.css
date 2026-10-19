@@ -241,6 +241,12 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .qnav a.current { outline: 2px solid var(--color-primary); outline-offset: 1px; font-weight: 600; }
 .qnav .spacer { flex: 1; }
 @media (max-width: 767px) { .reader { grid-template-columns: 1fr; padding: var(--space-4); } }
+/* a drilled Reading Comprehension question: passage on the left, kept in view and scrolling on its own */
+section:has(> .drill-reader) { max-width: 1280px; }
+.drill-reader { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-6); align-items: start; }
+.drill-reader > .passage { position: sticky; top: calc(64px + var(--space-6)); max-height: calc(100vh - 64px - var(--space-12)); overflow: auto; }
+.drill-reader > .question { max-width: none; }
+@media (max-width: 1023px) { .drill-reader { grid-template-columns: minmax(0, 1fr); } .drill-reader > .passage { position: static; max-height: none; } }
 
 /* focus and hover, shared */
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {

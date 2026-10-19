@@ -54,11 +54,14 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
   return (
     <section>
       <h1>{type}</h1>
-      {question.passage && <article className="passage"><PassageText text={question.passage} /></article>}
-      {/* key remounts the question so selections reset when another one loads */}
-      <Drill key={question.id} question={question} type={type} number={row.n} answered={answered} total={rows.length} listHref={base} nextHref={next && `${base}&q=${next}`}>
-        {list}
-      </Drill>
+      {/* A Reading Comprehension question sits beside its passage, which scrolls on its own */}
+      <div className={question.passage ? "drill-reader" : undefined}>
+        {question.passage && <article className="passage"><PassageText text={question.passage} /></article>}
+        {/* key remounts the question so selections reset when another one loads */}
+        <Drill key={question.id} question={question} type={type} number={row.n} answered={answered} total={rows.length} listHref={base} nextHref={next && `${base}&q=${next}`}>
+          {list}
+        </Drill>
+      </div>
     </section>
   );
 }
