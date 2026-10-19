@@ -56,7 +56,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
         onEliminate={toggle}
       />
       <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> choose · <kbd>Enter</kbd> {result ? "next question" : "submit"} · <kbd>✕</kbd> or right-click crosses a choice out</p>
-      {result && <div ref={explain} className="explain" role="status"><strong>{result.correct ? "Correct." : `Not quite. The answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{typeset(result.explanation)}</p>}</div>}
+      {result && <div ref={explain} className={`explain ${result.correct ? "right" : "wrong"}`} role="status"><strong>{result.correct ? "Correct." : `Not quite. The answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{typeset(result.explanation)}</p>}</div>}
       <div className="actions spread">
         <button className="btn" onClick={() => list.current?.showModal()}>Question list</button>
         {result ? (

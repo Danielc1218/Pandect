@@ -191,6 +191,11 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-1); border
 @media (hover: none) { .keys-hint { display: none; } }
 .explain { background: var(--color-surface-muted); border-radius: var(--radius-md); padding: var(--space-4); }
 .explain p { margin-top: var(--space-2); white-space: pre-line; }
+/* a drill's verdict: the edge says right or wrong before the words are read */
+.explain.right, .explain.wrong { border-left: 4px solid var(--color-success); }
+.explain.wrong { border-left-color: var(--color-danger); }
+.explain.right > strong { color: var(--color-success); }
+.explain.wrong > strong { color: var(--color-danger); }
 /* a missed question in a results list: the row opens to show the question, the answers and the reasoning */
 .review > summary { list-style: none; cursor: pointer; }
 .review > summary::-webkit-details-marker { display: none; }
