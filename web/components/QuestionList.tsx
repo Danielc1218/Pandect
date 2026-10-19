@@ -6,6 +6,13 @@ import { filterRows, type QuestionRow, type Show, type Status } from "@/lib/ques
 
 const LABEL: Record<Status, string> = { solved: "Solved", missed: "Missed" };
 const PAGE = 50;
+/** `text` with each searched word marked. */
+function Marked({ text, query }: { text: string; query: string }) {
+  const words = query.trim().split(/\s+/).filter(Boolean).map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  if (!words.length) return text;
+  return text.split(new RegExp(`(${words.join("|")})`, "gi")).map((part, i) => (i % 2 ? <mark key={i}>{part}</mark> : part));
+}
+
 const SHOWS: [Show, string][] = [["all", "All"], ["new", "Not started"], ["missed", "Missed"], ["solved", "Solved"]];
 
 /** Every question of one drill type, with a search box and a status filter. `base` is the type's drill link. */
@@ -53,9 +60,9 @@ export function QuestionList({ rows, status, base, current }: { rows: QuestionRo
             <Link key={r.id} className="row" data-status={status[r.id]} href={`${base}&q=${r.id}`} prefetch={false} aria-current={r.id === current ? "true" : undefined}>
               <span className="muted" style={{ minWidth: "4ch", textAlign: "right" }}>{r.n}</span>
               <div className="grow">
-                <div className="title">{r.snippet}</div>
-                {r.passage && <div className="muted">Passage: {r.passage}</div>}
-                <div className="muted">{r.source}</div>
+                <div className="title"><Marked text={r.snippet} query={query} /></div>
+                {r.passage && <div className="muted">Passage: <Marked text={r.passage} query={query} /></div>}
+                <div className="muted"><Marked text={r.source} query={query} /></div>
               </div>
               {/* stacked, so two tags do not squeeze the text on a phone */}
               <div style={{ display: "grid", gap: 4, justifyItems: "end" }}>
