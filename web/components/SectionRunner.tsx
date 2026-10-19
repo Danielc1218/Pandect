@@ -96,7 +96,8 @@ export function SectionRunner({
         <span className={`timer${low ? " low" : ""}`} role="timer">{clock}</span>
         <Highlighter />
         <ThemeToggle />
-        <Link className="btn" href="/practice">Pause and exit</Link>
+        {/* the clock runs from when the section started, so leaving does not stop it; the button says so */}
+        <Link className="btn" href="/practice" title="Your answers are saved. The clock keeps running while you are away.">Save and exit</Link>
       </header>
       <div className={`reader${q.passage === null ? " single" : ""}`}>
         {q.passage !== null && (
