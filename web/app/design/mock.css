@@ -22,6 +22,9 @@ body { background-image: linear-gradient(to right, color-mix(in srgb, var(--colo
 :root[data-theme="dark"] .theme-toggle .sun { color: var(--color-text-muted); }
 @media (prefers-reduced-motion: reduce) { .theme-toggle::before, .theme-toggle svg { transition: none; } }
 h1, h2, h3 { font-family: var(--font-family-heading); font-weight: 600; margin: 0; line-height: 1.25; }
+/* headings break into even lines; paragraphs avoid a lone last word */
+h1, h2, h3, h4 { text-wrap: balance; }
+p { text-wrap: pretty; }
 h1 { font-size: var(--font-size-xl); }
 h2 { font-size: var(--font-size-md); }
 h3 { font-size: var(--font-size-md); }
