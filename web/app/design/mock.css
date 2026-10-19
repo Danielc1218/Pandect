@@ -321,6 +321,10 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-1); border
 .passage mark { background: var(--color-accent); color: var(--color-on-accent); }
 /* the highlighter's marks (components/Highlighter.tsx) */
 ::highlight(user-mark) { background-color: var(--color-accent); color: var(--color-on-accent); }
+.btn.highlighter { display: inline-flex; align-items: center; gap: var(--space-2); }
+.btn.highlighter svg { width: 16px; height: 16px; flex: none; }
+/* on a touch screen, the Highlight button that appears just under a selection */
+.mark-button { position: fixed; z-index: 30; transform: translateX(-50%); box-shadow: var(--shadow-raised); }
 .btn[aria-pressed="true"] { border-color: var(--color-accent); background: var(--color-accent); color: var(--color-on-accent); }
 /* paragraph numbers in the margin, for questions that say "the third paragraph"; each half of a pair counts from 1 */
 .passage { counter-reset: para; }
@@ -360,9 +364,10 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-1); border
 @media (max-width: 767px) {
   .reader { grid-template-columns: 1fr; padding: var(--space-4); }
   /* the section bar on a phone: the title takes the free space, cut short if need be; the theme switch (also in
-     Settings) and the highlighter (text selection on a phone opens its own menu) step aside */
+     Settings) steps aside, and the highlighter and its Clear shrink to icon size */
   .test-bar { gap: var(--space-2); }
-  .test-bar .spacer, .test-bar .theme-toggle, .test-bar .btn[aria-pressed] { display: none; }
+  .test-bar .spacer, .test-bar .theme-toggle, .test-bar .clear-marks { display: none; }
+  .test-bar .highlighter .label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .test-bar .title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-sm); }
   .test-bar .btn { padding: var(--space-2) var(--space-3); white-space: nowrap; }
 }
