@@ -39,7 +39,7 @@ export function QuestionList({ rows, status, base, current }: { rows: QuestionRo
         <div className="list">
           {shown.map((r) => (
             // No prefetch: a type can have hundreds of rows on screen.
-            <Link key={r.id} className="row" href={`${base}&q=${r.id}`} prefetch={false} aria-current={r.id === current ? "true" : undefined}>
+            <Link key={r.id} className="row" data-status={status[r.id]} href={`${base}&q=${r.id}`} prefetch={false} aria-current={r.id === current ? "true" : undefined}>
               <span className="muted" style={{ minWidth: "4ch", textAlign: "right" }}>{r.n}</span>
               <div className="grow">
                 <div className="title">{r.snippet}</div>
@@ -49,7 +49,7 @@ export function QuestionList({ rows, status, base, current }: { rows: QuestionRo
               {/* stacked, so two tags do not squeeze the text on a phone */}
               <div style={{ display: "grid", gap: 4, justifyItems: "end" }}>
                 {r.id === current && <span className="tag accent">Current</span>}
-                {status[r.id] && <span className="tag">{LABEL[status[r.id]]}</span>}
+                {status[r.id] && <span className={`tag ${status[r.id]}`}>{LABEL[status[r.id]]}</span>}
               </div>
             </Link>
           ))}

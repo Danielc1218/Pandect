@@ -134,6 +134,11 @@ section.hero > *, section.stats > * { margin-top: 0; }
 .row .title { font-weight: 600; }
 .row .progress { flex: 1; }
 .row .figure { min-width: 64px; text-align: right; font-weight: 600; }
+/* a question's last result, on its row: a coloured edge and tag */
+.row[data-status="solved"] { box-shadow: inset 4px 0 var(--color-success); }
+.row[data-status="missed"] { box-shadow: inset 4px 0 var(--color-danger); }
+.tag.solved { background: color-mix(in srgb, var(--color-success) 18%, var(--color-surface)); }
+.tag.missed { background: color-mix(in srgb, var(--color-danger) 15%, var(--color-surface)); }
 
 /* table and faq, used on the about page */
 table.plain { width: 100%; border-collapse: collapse; background: var(--color-surface); border: 1px solid var(--color-border); }
