@@ -328,7 +328,15 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-1); border
 /* a Reading Comprehension passage's questions are grouped behind its label */
 .qnav .qnav-group { margin-left: var(--space-3); font-size: var(--font-size-xs); font-weight: 600; color: var(--color-text-muted); }
 .qnav .qnav-group:first-child { margin-left: 0; }
-@media (max-width: 767px) { .reader { grid-template-columns: 1fr; padding: var(--space-4); } }
+@media (max-width: 767px) {
+  .reader { grid-template-columns: 1fr; padding: var(--space-4); }
+  /* the section bar on a phone: the title takes the free space, cut short if need be; the theme switch (also in
+     Settings) and the highlighter (text selection on a phone opens its own menu) step aside */
+  .test-bar { gap: var(--space-2); }
+  .test-bar .spacer, .test-bar .theme-toggle, .test-bar .btn[aria-pressed] { display: none; }
+  .test-bar .title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-sm); }
+  .test-bar .btn { padding: var(--space-2) var(--space-3); white-space: nowrap; }
+}
 /* a drilled Reading Comprehension question: passage on the left, kept in view and scrolling on its own */
 section:has(> .drill-reader) { max-width: 1280px; }
 .drill-reader { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-6); align-items: start; }
