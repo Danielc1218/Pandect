@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Tabs } from "@/components/Tabs";
 import { drillHref, pct, SECTIONS, typeStats, type TypeStat } from "@/lib/data";
 import { requireUser } from "@/lib/supabase";
+import { describeType } from "@/lib/types";
 
 export const metadata = { title: "Question types" };
 
@@ -12,6 +13,7 @@ function TypeList({ types }: { types: TypeStat[] }) {
         <Link key={t.question_type} className="row" href={drillHref(t.section_type, t.question_type)}>
           <div className="grow">
             <div className="title">{t.question_type}</div>
+            <div className="muted">{describeType(t.section_type, t.question_type)}</div>
             <div className="muted">{t.answered ? `${t.answered} answered, ${pct(t.correct, t.answered)}% correct` : "Not started"}</div>
           </div>
           {/* the bar is how much of the type you have done; the figure is how many questions it has */}

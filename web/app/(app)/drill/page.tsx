@@ -8,6 +8,7 @@ import { drillQuestion, typeQuestions } from "@/lib/bank";
 import { drillHref, SECTIONS, type SectionKey } from "@/lib/data";
 import { latestStatus, nextUnanswered } from "@/lib/questions";
 import { requireUser } from "@/lib/supabase";
+import { describeType } from "@/lib/types";
 
 /** The tab says which type is being drilled, and whether it is the list or a question. */
 export async function generateMetadata({ searchParams }: PageProps<"/drill">) {
@@ -43,6 +44,7 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
       <section className="stack">
         <p className="muted crumbs"><Link href="/types">Question types</Link> / {section}</p>
         <h1>{type}</h1>
+        {describeType(section, type) && <p>{describeType(section, type)}</p>}
         <p className="muted">{answered} of {rows.length} answered, {ids.filter((id) => status[id] === "solved").length} solved</p>
         <div className="actions">
           {next && <Link className="btn primary" href={`${base}&q=${next}`}>{answered ? "Continue" : "Start"}</Link>}
