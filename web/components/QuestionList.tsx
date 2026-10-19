@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { filterRows, type QuestionRow, type Show, type Status } from "@/lib/questions";
 
@@ -18,6 +19,9 @@ const SHOWS: [Show, string][] = [["all", "All"], ["new", "Not started"], ["misse
 /** Every question of one drill type, with a search box and a status filter. `base` is the type's drill link. */
 export function QuestionList({ rows, status, base, current }: { rows: QuestionRow[]; status: Record<string, Status>; base: string; current?: string }) {
   const id = useId();
+  const router = useRouter();
+  const fresh = rows.filter((r) => !status[r.id] && r.id !== current);
+  const random = () => router.push(`${base}&q=${fresh[Math.floor(Math.random() * fresh.length)].id}`);
   const [query, setQuery] = useState("");
   const search = useRef<HTMLInputElement>(null);
   // "/" jumps to the search box, as on most sites with one; only when this list is on screen and nothing is being typed.
@@ -45,12 +49,15 @@ export function QuestionList({ rows, status, base, current }: { rows: QuestionRo
           <input ref={search} id={id + "q"} type="search" placeholder="Words from the question, or its source  ( / )" value={query} onChange={(e) => filter(() => setQuery(e.target.value))} />
         </div>
       </div>
-      <div className="chips" role="group" aria-label="Show questions">
-        {SHOWS.map(([value, text]) => (
-          <button key={value} type="button" aria-pressed={show === value} onClick={() => filter(() => setShow(value))}>
-            {text} <span className="count">{value === "all" ? rows.length : rows.filter((r) => (status[r.id] ?? "new") === value).length}</span>
-          </button>
-        ))}
+      <div className="actions spread">
+        <div className="chips" role="group" aria-label="Show questions">
+          {SHOWS.map(([value, text]) => (
+            <button key={value} type="button" aria-pressed={show === value} onClick={() => filter(() => setShow(value))}>
+              {text} <span className="count">{value === "all" ? rows.length : rows.filter((r) => (status[r.id] ?? "new") === value).length}</span>
+            </button>
+          ))}
+        </div>
+        {fresh.length > 0 && <button type="button" className="btn" onClick={random}>Random unanswered question</button>}
       </div>
       <p className="muted" role="status">{matches.length === rows.length ? `${rows.length} questions` : `${matches.length} of ${rows.length} questions`}</p>
       {!shown.length && (
