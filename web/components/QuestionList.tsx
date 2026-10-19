@@ -53,6 +53,14 @@ export function QuestionList({ rows, status, base, current }: { rows: QuestionRo
         ))}
       </div>
       <p className="muted" role="status">{matches.length === rows.length ? `${rows.length} questions` : `${matches.length} of ${rows.length} questions`}</p>
+      {!shown.length && (
+        <div className="panel tinted">
+          <p>No questions match{query.trim() ? ` “${query.trim()}”` : ""}{show !== "all" ? ` among ${SHOWS.find(([v]) => v === show)![1].toLowerCase()} questions` : ""}.</p>
+          <div className="actions" style={{ justifyContent: "center" }}>
+            <button type="button" className="btn" onClick={() => filter(() => { setQuery(""); setShow("all"); })}>Clear search and filter</button>
+          </div>
+        </div>
+      )}
       {shown.length > 0 && (
         <div className="list">
           {shown.map((r) => (
