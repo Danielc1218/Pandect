@@ -53,6 +53,11 @@ export function SlidingNav(props: NavProps) {
 function ActiveNav({ items, className, underline = false, label, children }: NavProps) {
   const path = usePathname();
   const { ref, style } = useSlide<HTMLElement>(path, underline);
+  // On a phone the rail is one sideways-scrolling row: keep the current link in view (no page scroll).
+  useEffect(() => {
+    const nav = ref.current, el = nav?.querySelector<HTMLElement>(".active");
+    if (nav && el && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = el.offsetLeft - (nav.clientWidth - el.offsetWidth) / 2;
+  }, [path, ref]);
   const isActive = (item: Item) => [item.href, ...(item.match ?? [])].some((p) => (p === "/" ? path === "/" : path === p || path.startsWith(p + "/")));
   return (
     <nav ref={ref} className={`${className}${style ? " has-ind" : ""}`} aria-label={label}>
