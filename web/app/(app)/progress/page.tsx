@@ -84,7 +84,7 @@ export default async function Progress() {
                     <td><Link href={`/results/${s.id}`}>{label.title}</Link></td>
                     <td>{label.subtitle}</td>
                     <td>{new Date(s.finished_at!).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</td>
-                    <td>{s.score_correct} of {s.score_total} ({pct(s.score_correct ?? 0, s.score_total ?? 0)}%)</td>
+                    <td><span className={`score ${grade(pct(s.score_correct ?? 0, s.score_total ?? 0))}`}>{s.score_correct} of {s.score_total} ({pct(s.score_correct ?? 0, s.score_total ?? 0)}%)</span></td>
                   </tr>
                 );
               })}

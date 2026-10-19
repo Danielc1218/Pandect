@@ -109,7 +109,9 @@ section.hero > *, section.stats > * { margin-top: 0; }
         box-shadow: var(--shadow-card); padding: var(--space-4); }
 .stat .value { font-family: var(--font-family-heading); font-size: var(--font-size-xl); font-weight: 600; line-height: 1.25; }
 .stat .label { color: var(--color-text-muted); font-size: var(--font-size-sm); }
-.stat .value.good { color: var(--color-success); }
+.stat .value.good, .score.good { color: var(--color-success); }
+.score.poor { color: var(--color-danger); }
+.score { font-weight: 600; }
 .stat .value.poor { color: var(--color-danger); }
 
 /* card and card-grid */
