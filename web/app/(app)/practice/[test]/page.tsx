@@ -11,13 +11,14 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
   const [tests, allSecs, { data: sessions }] = await Promise.all([
     allTests(),
     allSections(),
-    db.from("test_sessions").select("id, section_number, started_at, finished_at").eq("test_id", testId).order("started_at", { ascending: false }),
+    db.from("test_sessions").select("id, section_number, started_at, finished_at, score_correct, score_total").eq("test_id", testId).order("started_at", { ascending: false }),
   ]);
   const test = tests.find((t) => t.id === testId);
   if (!test) notFound();
   const sections = allSecs.filter((s) => s.test_id === testId);
   const open = (n: number) => (sessions ?? []).find((s) => s.section_number === n && !s.finished_at);
   const past = (sessions ?? []).filter((s) => s.finished_at);
+  const last = (n: number) => past.find((s) => s.section_number === n); // newest first
   return (
     <>
       <section>
@@ -26,13 +27,17 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
         <div className="list">
           {(sections ?? []).map((s) => {
             const running = open(s.section_number);
+            const done = last(s.section_number);
             const info = (
               <>
                 <div className="grow">
                   <div className="title">Section {s.section_number}, {s.section_type}</div>
-                  <div className="muted">{s.questions} questions, {sectionMinutes(s.questions)} minutes</div>
+                  <div className="muted">
+                    {s.questions} questions, {sectionMinutes(s.questions)} minutes
+                    {done && `, last score ${done.score_correct} of ${done.score_total}`}
+                  </div>
                 </div>
-                <span className="tag">{running ? "Resume" : "Start"}</span>
+                <span className={`btn${running || !done ? " primary" : ""}`}>{running ? "Resume" : done ? "Sit again" : "Start"}</span>
               </>
             );
             return running ? (
