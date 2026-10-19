@@ -25,6 +25,7 @@ export function SectionRunner({
   const [flagged, setFlagged] = useState<string[]>([]);
   const [left, setLeft] = useState<number | null>(null);
   const [pending, start] = useTransition();
+  const [saving, startSave] = useTransition(); // an answer on its way to the database
   const q = questions[index];
   const prefs = usePrefs(); // extended time and a hidden timer, from the settings page
   const limit = Math.round(sectionMinutes(questions.length) * prefs.extraTime * 60);
@@ -56,7 +57,7 @@ export function SectionRunner({
   const select = (letter: string) => {
     setAnswers((a) => ({ ...a, [q.id]: letter }));
     setEliminated((e) => ({ ...e, [q.id]: (e[q.id] ?? []).filter((l) => l !== letter) }));
-    start(() => saveAnswer(sessionId, q.id, letter));
+    startSave(() => saveAnswer(sessionId, q.id, letter));
   };
   const eliminate = (letter: string) =>
     setEliminated((e) => {
@@ -129,7 +130,7 @@ export function SectionRunner({
               {index < questions.length - 1 ? (
                 <button className="btn primary" onClick={() => setIndex(index + 1)} aria-keyshortcuts="ArrowRight">Next question</button>
               ) : (
-                <button className="btn primary" disabled={pending} onClick={askFinish}>Finish section</button>
+                <button className="btn primary" disabled={pending || saving} onClick={askFinish}>Finish section</button>
               )}
             </div>
           </div>
@@ -151,8 +152,11 @@ export function SectionRunner({
           })}
         </div>
         <span className="spacer" />
-        <span className="muted" aria-live="polite">{questions.length - blank.length} of {questions.length} answered{unsure.length ? `, ${unsure.length} flagged` : ""}</span>
-        <button className="btn primary" disabled={pending} onClick={askFinish}>Finish section</button>
+        <span className="muted" aria-live="polite">
+          {questions.length - blank.length} of {questions.length} answered{unsure.length ? `, ${unsure.length} flagged` : ""}
+          {Object.keys(answers).length > 0 && (saving ? " · Saving…" : " · Answers saved")}
+        </span>
+        <button className="btn primary" disabled={pending || saving} onClick={askFinish}>Finish section</button>
       </nav>
       <dialog ref={check} className="modal" aria-labelledby="finish-check-title">
         <h2 id="finish-check-title">Finish this section?</h2>
@@ -162,7 +166,7 @@ export function SectionRunner({
           Unanswered questions count as wrong.
         </p>
         <div className="actions">
-          <button className="btn primary" disabled={pending} onClick={finish}>Finish anyway</button>
+          <button className="btn primary" disabled={pending || saving} onClick={finish}>Finish anyway</button>
           {blank.length > 0 && <button className="btn" onClick={() => goTo(blank[0].id)}>Go to question {questions.indexOf(blank[0]) + 1}</button>}
           {unsure.length > 0 && <button className="btn" onClick={() => goTo(unsure[0].id)}>Go to flagged question {questions.indexOf(unsure[0]) + 1}</button>}
         </div>
@@ -172,8 +176,8 @@ export function SectionRunner({
         <h2 id="time-up-title">Time is up</h2>
         <p>The {limit / 60} minutes for this section have run out. You can finish now, or keep going: the clock will count up and your results will show the total time.</p>
         <div className="actions">
-          <button className="btn primary" disabled={pending} onClick={finish}>Finish section</button>
-          <button className="btn" disabled={pending} onClick={keepGoing}>Keep going</button>
+          <button className="btn primary" disabled={pending || saving} onClick={finish}>Finish section</button>
+          <button className="btn" disabled={pending || saving} onClick={keepGoing}>Keep going</button>
         </div>
       </dialog>
     </>
