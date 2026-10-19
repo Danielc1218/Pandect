@@ -238,8 +238,8 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .choice.correct .note { color: var(--color-success); }
 .choice.incorrect .note { color: var(--color-danger); }
 /* a tick or a cross too, so right and wrong never rest on colour alone */
-.choice.correct .note::before { content: "✓ "; }
-.choice.incorrect .note::before { content: "✗ "; }
+.choice.correct .note::before { content: "✓\00a0"; } /* a no-break space keeps the mark with its first word */
+.choice.incorrect .note::before { content: "✗\00a0"; }
 .choice.eliminated { opacity: 0.5; text-decoration: line-through; }
 /* the cross-out button at a choice's end: shown on hover or focus, always on touch screens */
 .choice .cross { flex: none; margin-left: auto; display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
