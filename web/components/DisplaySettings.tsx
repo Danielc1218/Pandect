@@ -2,24 +2,22 @@
 
 import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { savePreferences } from "@/lib/actions";
-import { applyPrefs, contrast, DEFAULT_PREFS, RANGES, storePrefs, type Prefs } from "@/lib/prefs";
+import { applyPrefs, DEFAULT_PREFS, RANGES, storePrefs, type Prefs } from "@/lib/prefs";
 import { markEdited, usePrefs } from "./Prefs";
 
 type Theme = "system" | "light" | "dark";
 
-// The theme and page colour live on <html>, outside React (the top bar's switch changes them too), so they are
-// read from there and re-read whenever its attributes change.
+// The theme lives on <html> and in storage, outside React (the top bar's switch changes it too), so it is read
+// from there and re-read whenever <html>'s attributes change.
 const watchHtml = (onChange: () => void) => {
   const observer = new MutationObserver(onChange);
   observer.observe(document.documentElement, { attributes: true });
   return () => observer.disconnect();
 };
-const readHtml = () => {
+const readTheme = (): Theme => {
   let saved: string | null = null;
   try { saved = localStorage.getItem("theme"); } catch {}
-  const html = document.documentElement;
-  const background = getComputedStyle(html).getPropertyValue("--color-background").trim() || "#ffffff";
-  return `${saved === "light" || saved === "dark" ? saved : "system"}|${html.dataset.theme === "dark"}|${background}`;
+  return saved === "light" || saved === "dark" ? saved : "system";
 };
 
 function Range({ id, label, value, step, format, onChange }: {
@@ -36,8 +34,8 @@ function Range({ id, label, value, step, format, onChange }: {
   );
 }
 
-function Choice<T extends string | number>({ legend, name, value, options, onChange, hint }: {
-  legend: string; name: string; value: T; options: [T, ReactNode][]; onChange: (v: T) => void; hint?: string;
+function Choice<T extends string | number>({ legend, name, value, options, onChange }: {
+  legend: string; name: string; value: T; options: [T, ReactNode][]; onChange: (v: T) => void;
 }) {
   return (
     <fieldset className="segmented">
@@ -48,16 +46,15 @@ function Choice<T extends string | number>({ legend, name, value, options, onCha
           {label}
         </label>
       ))}
-      {hint && <p className="muted" style={{ flexBasis: "100%", margin: 0 }}>{hint}</p>}
     </fieldset>
   );
 }
 
-function Check({ label, checked, onChange, hint }: { label: string; checked: boolean; onChange: (v: boolean) => void; hint?: string }) {
+function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <label className="check">
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span>{label}{hint && <span className="muted" style={{ display: "block" }}>{hint}</span>}</span>
+      <span>{label}</span>
     </label>
   );
 }
@@ -70,8 +67,7 @@ export function DisplaySettings() {
   const prefs = usePrefs();
   const [status, setStatus] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const [theme, darkFlag, background] = useSyncExternalStore(watchHtml, readHtml, () => "system|false|#ffffff").split("|") as [Theme, string, string];
-  const dark = darkFlag === "true";
+  const theme = useSyncExternalStore<Theme>(watchHtml, readTheme, () => "system");
 
   const update = (patch: Partial<Prefs>) => {
     const next = { ...prefs, ...patch };
@@ -91,8 +87,6 @@ export function DisplaySettings() {
     document.documentElement.dataset.theme = resolved; // the observer above picks up the change
   };
 
-  const accentRatio = prefs.accent && /^#[0-9a-f]{6}$/i.test(background) ? contrast(prefs.accent, background) : null;
-
   return (
     <div className="settings-layout">
       <div className="stack">
@@ -103,8 +97,7 @@ export function DisplaySettings() {
           <Range id="letterSpacing" label="Letter spacing" value={prefs.letterSpacing} step={0.005} format={em} onChange={(v) => update({ letterSpacing: v })} />
           <Range id="wordSpacing" label="Word spacing" value={prefs.wordSpacing} step={0.01} format={em} onChange={(v) => update({ wordSpacing: v })} />
           <Choice legend="Font" name="font" value={prefs.font} onChange={(v) => update({ font: v })}
-                  options={[["inter", "Inter"], ["atkinson", "Atkinson Hyperlegible"], ["lexend", "Lexend"]]}
-                  hint="Atkinson Hyperlegible and Lexend were designed to be easier to read, including with dyslexia or low vision." />
+                  options={[["inter", "Inter"], ["atkinson", "Atkinson Hyperlegible"], ["lexend", "Lexend"]]} />
           <Choice legend="Passage font" name="passage-font" value={prefs.passageFont} onChange={(v) => update({ passageFont: v })}
                   options={[["same", "Same as the rest"], ["serif", <span key="s" style={{ fontFamily: "Georgia, serif" }}>Serif, like a printed test</span>], ["atkinson", "Atkinson Hyperlegible"]]} />
         </section>
@@ -112,10 +105,8 @@ export function DisplaySettings() {
         <section className="panel prefs-group" aria-labelledby="colours">
           <h2 id="colours">Colours</h2>
           <Choice legend="Theme" name="theme" value={theme} onChange={chooseTheme}
-                  options={[["system", "Match this device"], ["light", "Light"], ["dark", "Dark"]]}
-                  hint="Kept on this device, like the switch in the top bar." />
-          <Check label="High contrast" checked={prefs.contrast === "high"} onChange={(v) => update({ contrast: v ? "high" : "normal" })}
-                 hint="Black and white with stronger borders, in light and dark." />
+                  options={[["system", "Match this device"], ["light", "Light"], ["dark", "Dark"]]} />
+          <Check label="High contrast" checked={prefs.contrast === "high"} onChange={(v) => update({ contrast: v ? "high" : "normal" })} />
           <div className="field">
             <label htmlFor="accent">Accent colour</label>
             <div className="accent-row">
@@ -123,15 +114,9 @@ export function DisplaySettings() {
                      onChange={(e) => update({ accent: e.target.value })} />
               <button type="button" className="btn" disabled={!prefs.accent} onClick={() => update({ accent: "" })}>Use the theme&apos;s colour</button>
             </div>
-            <p className="hint" aria-live="polite">
-              {prefs.contrast === "high" ? "High contrast uses its own colours."
-                : accentRatio === null ? "Buttons, links and highlights use this colour."
-                : `Contrast with the page: ${accentRatio.toFixed(1)}:1. ${accentRatio >= 4.5 ? "Easy to read." : accentRatio >= 3 ? "Fine for buttons, faint for links." : "Too faint to read; pick a darker or brighter colour."}`}
-            </p>
           </div>
           <Choice legend="Background tint" name="tint" value={prefs.tint} onChange={(v) => update({ tint: v })}
-                  options={(["none", "cream", "sepia", "cool"] as const).map((t) => [t, t === "none" ? "None" : t[0].toUpperCase() + t.slice(1)])}
-                  hint={dark || prefs.contrast === "high" ? "Tints apply in the light theme without high contrast." : "A softer page colour can make long passages easier on the eyes."} />
+                  options={(["none", "cream", "sepia", "cool"] as const).map((t) => [t, t === "none" ? "None" : t[0].toUpperCase() + t.slice(1)])} />
           <Choice legend="Right and wrong answers" name="markers" value={prefs.markers} onChange={(v) => update({ markers: v })}
                   options={[["standard", "Green and red"], ["colorblind", "Blue and orange, with ✓ and ✗"]]} />
         </section>
@@ -140,16 +125,14 @@ export function DisplaySettings() {
           <h2 id="motion">Motion and focus</h2>
           <Choice legend="Animation" name="motion" value={prefs.motion} onChange={(v) => update({ motion: v })}
                   options={[["system", "Match this device"], ["reduce", "Reduce motion"]]} />
-          <Check label="Stronger focus outline" checked={prefs.focus === "strong"} onChange={(v) => update({ focus: v ? "strong" : "standard" })}
-                 hint="A thick ring around whatever the keyboard is on." />
+          <Check label="Stronger focus outline" checked={prefs.focus === "strong"} onChange={(v) => update({ focus: v ? "strong" : "standard" })} />
           <Check label="Always underline links" checked={prefs.underlineLinks} onChange={(v) => update({ underlineLinks: v })} />
         </section>
 
         <section className="panel prefs-group" aria-labelledby="tests">
           <h2 id="tests">Timed sections</h2>
           <Choice legend="Time allowed" name="extra-time" value={prefs.extraTime} onChange={(v) => update({ extraTime: v })}
-                  options={[[1, "Standard (35 minutes)"], [1.5, "Time and a half"], [2, "Double time"]]}
-                  hint="Like the testing accommodations LSAC grants." />
+                  options={[[1, "Standard (35 minutes)"], [1.5, "Time and a half"], [2, "Double time"]]} />
           <Check label="Hide the timer until 5 minutes are left" checked={prefs.hideTimer} onChange={(v) => update({ hideTimer: v })} />
           <Choice legend="Passage and questions" name="layout" value={prefs.layout} onChange={(v) => update({ layout: v })}
                   options={[["side", "Side by side"], ["stacked", "Passage above the questions"]]} />
