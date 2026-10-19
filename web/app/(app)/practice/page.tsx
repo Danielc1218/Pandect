@@ -21,6 +21,7 @@ function TestList({ tests }: { tests: Row[] }) {
             <div className="muted">{t.year ? `${t.year}, ` : ""}{t.sections} sections</div>
           </div>
           <span className="tag">{t.done >= t.sections ? "Completed" : t.started ? "In progress" : "Not started"}</span>
+          <div className="progress mini" aria-hidden="true"><span style={{ width: `${pct(t.done, t.sections)}%` }} /></div>
           <div className="figure">{t.done} of {t.sections}</div>
         </Link>
       ))}

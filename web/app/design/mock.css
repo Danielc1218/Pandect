@@ -134,6 +134,7 @@ section.hero > *, section.stats > * { margin-top: 0; }
 .row .grow { flex: 1; min-width: 0; }
 .row .title { font-weight: 600; }
 .row .progress { flex: 1; }
+.row .progress.mini { flex: none; width: 96px; }
 .row .figure { min-width: 64px; text-align: right; font-weight: 600; }
 /* a question's last result, on its row: a coloured edge and tag */
 .row mark { background: var(--color-accent); color: var(--color-on-accent); border-radius: var(--radius-sm); }
