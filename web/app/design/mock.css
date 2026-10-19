@@ -329,6 +329,10 @@ input, select { accent-color: var(--color-primary); }
 body.test .theme-switch { bottom: auto; top: 72px; }
 .reader.single { grid-template-columns: minmax(0, 760px); justify-content: center; }
 .timer.low { border: 2px solid var(--color-danger); }
+/* under five minutes the clock pulses gently, every two seconds (not with reduced motion) */
+.timer.low { animation: timer-pulse 2s ease-in-out infinite; }
+@keyframes timer-pulse { 50% { background: color-mix(in srgb, var(--color-danger) 15%, var(--color-surface)); } }
+@media (prefers-reduced-motion: reduce) { .timer.low { animation: none; } }
 /* modal: a question the page needs answered before it carries on */
 .modal { max-width: 440px; padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-lg);
          background: var(--color-surface); color: var(--color-text); box-shadow: var(--shadow-card); }
