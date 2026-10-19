@@ -1,12 +1,12 @@
-/* Shared styles for the mock pages. Every colour, font, size, spacing and radius is a token from tokens.css. */
+/* Shared styles for the mock pages. Every color, font, size, spacing and radius is a token from tokens.css. */
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--color-background); color: var(--color-text);
        font-family: var(--font-family-body); font-size: var(--font-size-md); line-height: 1.5; }
-/* graph paper: a faint square grid over the page colour; panels, cards and bars sit on it with their own surface */
+/* graph paper: a faint square grid over the page color; panels, cards and bars sit on it with their own surface */
 body { background-image: linear-gradient(to right, color-mix(in srgb, var(--color-border) 45%, transparent) 1px, transparent 1px),
                          linear-gradient(to bottom, color-mix(in srgb, var(--color-border) 45%, transparent) 1px, transparent 1px);
        background-size: var(--space-6) var(--space-6); }
-/* dark mode swaps the colour tokens (themes/dark.css); this makes form controls and scrollbars follow */
+/* dark mode swaps the color tokens (themes/dark.css); this makes form controls and scrollbars follow */
 :root[data-theme="dark"] { color-scheme: dark; }
 /* selected text takes the accent, the same yellow as a highlight */
 ::selection { background: color-mix(in srgb, var(--color-accent) 60%, transparent); color: var(--color-text); }
@@ -151,7 +151,7 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-raised); }
 .tag.accent { background: var(--color-accent); color: var(--color-on-accent); }
 .progress { height: 8px; border-radius: var(--radius-sm); background: var(--color-surface-muted); overflow: hidden; }
 .progress > span { display: block; height: 100%; background: var(--color-primary); transition: width 450ms ease; }
-/* an accuracy bar's colour says how it is going */
+/* an accuracy bar's color says how it is going */
 .progress.good > span { background: var(--color-success); }
 .progress.fair > span { background: var(--color-accent); }
 .progress.poor > span { background: var(--color-danger); }
@@ -170,7 +170,7 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-raised); }
 .row .progress { flex: 1; }
 .row .progress.mini { flex: none; width: 96px; }
 .row .figure { min-width: 64px; text-align: right; font-weight: 600; }
-/* a question's last result, on its row: a coloured edge and tag */
+/* a question's last result, on its row: a colored edge and tag */
 .row mark { background: var(--color-accent); color: var(--color-on-accent); border-radius: var(--radius-sm); }
 .row[aria-current="true"] { background: var(--color-surface-muted); }
 .row[data-status="solved"] { box-shadow: inset 4px 0 var(--color-success); }
@@ -199,7 +199,7 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
                     border-radius: 0 var(--radius-sm) var(--radius-sm) 0; transition: width 450ms ease; }
 .bars .count { font-size: var(--font-size-sm); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
 .bars .count .of { font-weight: 400; color: var(--color-text-muted); }
-/* a type not started yet stays listed, in a lighter colour */
+/* a type not started yet stays listed, in a lighter color */
 .bars a.zero .name, .bars a.zero .count { color: var(--color-text-muted); font-weight: 400; }
 
 /* activity calendar: a square per day, weeks down the columns, shade by questions answered */
@@ -243,7 +243,7 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .choice.incorrect { border: 2px solid var(--color-danger); background: color-mix(in srgb, var(--color-danger) 8%, var(--color-surface)); }
 .choice.correct .note { color: var(--color-success); }
 .choice.incorrect .note { color: var(--color-danger); }
-/* a tick or a cross too, so right and wrong never rest on colour alone */
+/* a tick or a cross too, so right and wrong never rest on color alone */
 .choice.correct .note::before { content: "✓\00a0"; } /* a no-break space keeps the mark with its first word */
 .choice.incorrect .note::before { content: "✗\00a0"; }
 .choice.eliminated { opacity: 0.5; text-decoration: line-through; }

@@ -12,10 +12,10 @@ const FORMAT = [
   ["Argumentative Writing (taken separately online)", "1 prompt", "50 minutes", "No"],
 ];
 const FAQ = [
-  ["Are these real LSAT questions?", "No. They are practice questions written in the style of the LSAT, not questions from past tests. Every question is labelled with its type."],
+  ["Are these real LSAT questions?", "No. They are practice questions written in the style of the LSAT, not questions from past tests. Every question is labeled with its type."],
   ["How long should I study?", "It depends on your starting point and target. Short, regular sets on your weakest types tend to help more than occasional long sessions."],
   ["Can I use it on my phone?", "Yes. Every screen works at phone width, though timed sections are easier on a larger screen."],
-  ["What happened to Logic Games?", "That section was removed from the test. The scored sections are now two Logical Reasoning and one Reading Comprehension."],
+  ["What happened to Logic Games?", "That section was removed from the test. The scored sections are now two Logical Reasoning sections and one Reading Comprehension section."],
 ];
 
 export default function About() {
@@ -39,8 +39,8 @@ export default function About() {
         <h2>How the question bank is built</h2>
         <div className="steps">
           <div className="step"><div className="num">1</div><h3>{"Write practice questions"}</h3><p className="muted">{"Each question is written to follow the pattern of one LSAT question type."}</p></div>
-          <div className="step"><div className="num">2</div><h3>Label each question</h3><p className="muted">Every question is labelled by type, so you can practise one kind of reasoning at a time.</p></div>
-          <div className="step"><div className="num">3</div><h3>Track your answers</h3><p className="muted">Your answers build an accuracy record per type, which shows what to practise next.</p></div>
+          <div className="step"><div className="num">2</div><h3>Label each question</h3><p className="muted">Every question is labeled by type, so you can practice one kind of reasoning at a time.</p></div>
+          <div className="step"><div className="num">3</div><h3>Track your answers</h3><p className="muted">Your answers build an accuracy record per type, which shows what to practice next.</p></div>
         </div>
       </section>
       <section>
@@ -50,8 +50,8 @@ export default function About() {
         </div>
       </section>
       <section className="panel tinted">
-        <h2>Choose a question type to practise</h2>
-        <div><Link className="btn primary" href="/signup">Start practising free</Link></div>
+        <h2>Choose a question type to practice</h2>
+        <div><Link className="btn primary" href="/signup">Start practicing for free</Link></div>
       </section>
     </>
   );

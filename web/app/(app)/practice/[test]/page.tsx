@@ -37,7 +37,7 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
                     {done && `, last score ${done.score_correct} of ${done.score_total}`}
                   </div>
                 </div>
-                <span className={`btn${running || !done ? " primary" : ""}`}>{running ? "Resume" : done ? "Sit again" : "Start"}</span>
+                <span className={`btn${running || !done ? " primary" : ""}`}>{running ? "Resume" : done ? "Retake" : "Start"}</span>
               </>
             );
             return running ? (
@@ -60,7 +60,7 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
               <Link key={s.id} className="row" href={`/results/${s.id}`}>
                 <div className="grow">
                   <div className="title">Section {s.section_number}</div>
-                  <div className="muted">Finished {new Date(s.finished_at!).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</div>
+                  <div className="muted">Finished {new Date(s.finished_at!).toLocaleDateString("en-US", { day: "numeric", month: "long" })}</div>
                 </div>
                 <span className="tag">Results</span>
               </Link>

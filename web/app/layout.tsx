@@ -13,7 +13,7 @@ import "./prefs.css";
 
 export const metadata: Metadata = {
   title: { default: "LSAT Prep", template: "%s · LSAT Prep" },
-  description: `Practise on ${"LSAT-style"} questions, sorted by type, with your accuracy tracked.`,
+  description: `Practice on ${"LSAT-style"} questions, sorted by type, with your accuracy tracked.`,
 };
 
 // Only the nav's buttons depend on the session, so only they wait for it; the rest of the page prerenders.

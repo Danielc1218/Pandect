@@ -6,8 +6,8 @@ import { supabase } from "@/lib/supabase";
 
 
 const WAYS = [
-  { href: "/types", photo: "logic", tag: "Drill", title: "Drill one question type", text: "Flaw, Strengthen, Necessary Assumption and the rest, each in its own set." },
-  { href: "/practice", photo: "columns", tag: "Practice test", title: "Sit a timed section", text: "Logical Reasoning or Reading Comprehension, 35 minutes, like test day." },
+  { href: "/types", photo: "logic", tag: "Drill", title: "Drill one question type", text: "Flaw, Strengthen, Necessary Assumption, and the rest, each in its own set." },
+  { href: "/practice", photo: "columns", tag: "Practice test", title: "Take a timed section", text: "Logical Reasoning or Reading Comprehension, 35 minutes, like test day." },
   { href: "/progress", photo: "desk", tag: "Review", title: "Review what you missed", text: "See your accuracy by question type and redo the ones you got wrong." },
 ];
 const STEPS = [
@@ -16,7 +16,7 @@ const STEPS = [
   ["Test under the clock", "Timed sections tell you whether the practice is holding up."],
 ];
 
-const SIGN_UP = <Link className="btn primary" href="/signup">Start practising free</Link>;
+const SIGN_UP = <Link className="btn primary" href="/signup">Start practicing for free</Link>;
 
 /** The main call to action: sign up, or for someone already signed in, their dashboard. Only this waits for the session. */
 async function StartButton() {
@@ -31,7 +31,7 @@ export default function Home() {
       <section className="hero">
         <div className="stack">
           <span className="tag">Logical Reasoning and Reading Comprehension</span>
-          <h1>Practise on {"LSAT-style"} questions until the patterns feel <mark>obvious</mark>.</h1>
+          <h1>Practice on {"LSAT-style"} questions until the patterns feel <mark>obvious</mark>.</h1>
           <div className="actions">
             <Start />
             <Link className="btn" href="/about">How it works</Link>

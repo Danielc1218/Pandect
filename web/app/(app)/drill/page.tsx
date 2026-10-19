@@ -72,7 +72,7 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
   const question = row && (await drillQuestion(q));
   if (!question) notFound();
 
-  // Neighbours in list order, answered or not, for stepping through the list without answering.
+  // Neighbors in list order, answered or not, for stepping through the list without answering.
   const at = ids.indexOf(q);
   const prev = ids[at - 1], after = ids[at + 1];
   return (
@@ -80,7 +80,7 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
       <p className="muted crumbs"><Link href="/types">Question types</Link> / {section} / <Link href={base}>{type}</Link> / Question {row.n}</p>
       <div className="actions spread" style={{ alignItems: "center" }}>
         <h1>{type}</h1>
-        <nav className="actions" aria-label="Neighbouring questions">
+        <nav className="actions" aria-label="Neighboring questions">
           <Highlighter key={question.id} />
           {prev ? <Link className="btn" href={`${base}&q=${prev}`}>← Previous</Link> : <span className="btn" aria-disabled="true">← Previous</span>}
           {after ? <Link className="btn" href={`${base}&q=${after}`}>Skip →</Link> : <span className="btn" aria-disabled="true">Skip →</span>}

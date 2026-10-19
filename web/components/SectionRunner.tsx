@@ -143,7 +143,7 @@ export function SectionRunner({
           {questions.map((item, i) => {
             const state = [i === index && "current", flagged.includes(item.id) && "flagged", answers[item.id] && "done"].filter(Boolean).join(" ");
             const label = `Question ${i + 1}${answers[item.id] ? ", answered" : ""}${flagged.includes(item.id) ? ", flagged" : ""}`;
-            // In Reading Comprehension each passage's questions form a group, labelled P1, P2 and so on.
+            // In Reading Comprehension each passage's questions form a group, labeled P1, P2 and so on.
             const opens = item.passage !== null && item.passage !== questions[i - 1]?.passage;
             return (
               <Fragment key={item.id}>

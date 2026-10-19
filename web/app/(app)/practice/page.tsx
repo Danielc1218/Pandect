@@ -29,7 +29,7 @@ function TestList({ tests }: { tests: Row[] }) {
   );
 }
 
-const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric" });
 
 /** The generated bank has no fixed tests: each sitting is a fresh random set, and past sittings are history. */
 async function RandomSections() {

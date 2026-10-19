@@ -14,7 +14,7 @@ function Calendar({ perDay, today }: { perDay: Record<number, number>; today: nu
   const weekday = (new Date(today * 86_400_000).getUTCDay() + 6) % 7; // Monday is 0
   const first = today - weekday - (WEEKS - 1) * 7;
   const days = Array.from({ length: (WEEKS - 1) * 7 + weekday + 1 }, (_, i) => first + i);
-  const label = (d: number) => new Date(d * 86_400_000).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+  const label = (d: number) => new Date(d * 86_400_000).toLocaleDateString("en-US", { day: "numeric", month: "short", timeZone: "UTC" });
   const total = days.reduce((n, d) => n + (perDay[d] ?? 0), 0);
   return (
     <div className="panel">
@@ -83,7 +83,7 @@ export default async function Progress() {
                   <tr key={s.id}>
                     <td><Link href={`/results/${s.id}`}>{label.title}</Link></td>
                     <td>{label.subtitle}</td>
-                    <td>{new Date(s.finished_at!).toLocaleDateString("en-GB", { day: "numeric", month: "long" })}</td>
+                    <td>{new Date(s.finished_at!).toLocaleDateString("en-US", { day: "numeric", month: "long" })}</td>
                     <td><span className={`score ${grade(pct(s.score_correct ?? 0, s.score_total ?? 0))}`}>{s.score_correct} of {s.score_total} ({pct(s.score_correct ?? 0, s.score_total ?? 0)}%)</span></td>
                   </tr>
                 );

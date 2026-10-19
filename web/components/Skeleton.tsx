@@ -59,7 +59,7 @@ export function SkQuestion() {
   );
 }
 
-/** The log-in and sign-up panel: a heading, labelled fields and the submit button. */
+/** The log-in and sign-up panel: a heading, labeled fields and the submit button. */
 export function SkAuth({ fields = 2 }: { fields?: number }) {
   return (
     <Skeleton>

@@ -8,7 +8,7 @@ import { requireUser } from "@/lib/supabase";
 
 export const metadata = { title: "Learning" };
 
-const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric" });
 
 /** How many questions of each type the user has answered: one bar per type on a shared scale, most answered first. */
 function AnsweredBars({ types }: { types: TypeStat[] }) {
@@ -109,7 +109,7 @@ export default async function Learn() {
             ))}
           </div>
         ) : (
-          <div className="panel"><p>{stats.answered ? "Answer at least three questions of a type and, if you miss any, it will show here." : "Answer some questions and the types you miss most will show here."}</p></div>
+          <div className="panel"><p>{stats.answered ? "Types you miss will show here once you have answered at least three questions of a type." : "Answer some questions and the types you miss most will show here."}</p></div>
         )}
       </section>
       <section>

@@ -23,7 +23,7 @@ function ReviewRow({ q, text, passages, chosen }: { q: Key; text?: Text; passage
       <summary className="row" data-status={!chosen ? "blank" : chosen === q.correct_answer ? "solved" : "missed"}>
         <div className="grow">
           <div className="title">Question {q.number}</div>
-          <div className="muted">{chosen === q.correct_answer ? `Right: you chose ${chosen}.` : `${chosen ? `You chose ${chosen}.` : "Not answered."} Correct answer ${q.correct_answer}.`}</div>
+          <div className="muted">{chosen === q.correct_answer ? `Correct. You chose ${chosen}.` : `${chosen ? `You chose ${chosen}.` : "Not answered."} Correct answer ${q.correct_answer}.`}</div>
         </div>
         <span className="tag">{q.question_type}</span>
       </summary>
@@ -91,7 +91,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
         <h2>By question type</h2>
         <div className="list">
           {byType.map((t) => (
-            // each type leads to its drill, to practise what this section showed up
+            // each type leads to its drill, to practice what this section showed up
             <Link key={t.type} className="row" href={drillHref(t.section, t.type)} title={`Drill ${t.type}`}>
               <div className="grow"><div className="title">{t.type}</div><div className="muted">{t.right} of {t.total} correct</div></div>
               <div className={`progress ${grade(pct(t.right, t.total))}`}><span style={{ width: `${pct(t.right, t.total)}%` }} /></div>
@@ -110,7 +110,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
                 <ReviewRow key={q.id} q={q} text={text.get(q.id)} passages={section.passages} chosen={mine.get(q.id)?.chosen ?? null} />
               ))}
             </div>
-          ) : <div key={i} className="panel"><p>Nothing missed. Every question was right.</p></div>)}
+          ) : <div key={i} className="panel"><p>Nothing missed. You got every question right.</p></div>)}
         </Tabs>
       </section>
       <section>

@@ -37,12 +37,12 @@ html:root[data-theme="dark"][data-contrast="high"] {
 html[data-contrast="high"] body { background-image: none; }
 html[data-contrast="high"] :is(.panel, .passage, .question, .choice, .row, .stat) { border-width: 2px; }
 
-/* Reading tint: the page colour and two shades of it, set by lib/prefs.ts (light theme only; high contrast keeps white) */
+/* Reading tint: the page color and two shades of it, set by lib/prefs.ts (light theme only; high contrast keeps white) */
 html:root[data-theme="light"][data-tint="custom"]:not([data-contrast]) {
   --color-background: var(--tint-background); --color-surface: var(--tint-surface); --color-surface-muted: var(--tint-muted);
 }
 
-/* Colourblind-safe right/wrong: blue and orange (Okabe-Ito) instead of green and red (mock.css adds the tick or cross). */
+/* Colorblind-safe right/wrong: blue and orange (Okabe-Ito) instead of green and red (mock.css adds the tick or cross). */
 html:root[data-theme="light"][data-markers="colorblind"] { --color-success: #0072b2; --color-danger: #c85200; }
 html:root[data-theme="dark"][data-markers="colorblind"] { --color-success: #56b4e9; --color-danger: #f0a030; }
 
@@ -79,9 +79,9 @@ html[data-layout="stacked"] .drill-reader > .passage { position: static; max-hei
 .segmented input { accent-color: var(--color-primary); }
 .swatch { inline-size: 1em; block-size: 1em; border-radius: var(--radius-sm); border: 1px solid var(--color-border); }
 .accent-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
-/* colour swatches: one round button per preset or saved colour, the chosen one ringed */
-.colour-choice { border: 0; padding: 0; margin: 0; display: grid; gap: var(--space-3); }
-.colour-choice legend { font-size: var(--font-size-sm); font-weight: 600; margin-bottom: var(--space-2); padding: 0; }
+/* color swatches: one round button per preset or saved color, the chosen one ringed */
+.color-choice { border: 0; padding: 0; margin: 0; display: grid; gap: var(--space-3); }
+.color-choice legend { font-size: var(--font-size-sm); font-weight: 600; margin-bottom: var(--space-2); padding: 0; }
 .swatch-choice { position: relative; display: inline-flex; }
 .swatch-choice > button:first-child { inline-size: 32px; block-size: 32px; padding: 0; border: 1px solid var(--color-border);
                                       border-radius: var(--radius-full); cursor: pointer; }
@@ -90,7 +90,7 @@ html[data-layout="stacked"] .drill-reader > .passage { position: static; max-hei
 .swatch-choice .forget { position: absolute; top: -6px; right: -6px; inline-size: 18px; block-size: 18px; padding: 0; line-height: 1;
                          border: 1px solid var(--color-border); border-radius: var(--radius-full); background: var(--color-surface);
                          color: var(--color-text); font-size: var(--font-size-xs); cursor: pointer; }
-.colour-choice:disabled { opacity: 0.5; }
+.color-choice:disabled { opacity: 0.5; }
 .accent-row input[type="color"] { inline-size: 48px; block-size: 36px; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: none; }
 .settings-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 380px); gap: var(--space-6); align-items: start; }
 .settings-layout .preview { position: sticky; top: 88px; }
