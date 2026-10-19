@@ -6,6 +6,7 @@ import { filterRows, type QuestionRow, type Show, type Status } from "@/lib/ques
 
 const LABEL: Record<Status, string> = { solved: "Solved", missed: "Missed" };
 const PAGE = 50;
+const SHOWS: [Show, string][] = [["all", "All"], ["new", "Not started"], ["missed", "Missed"], ["solved", "Solved"]];
 
 /** Every question of one drill type, with a search box and a status filter. `base` is the type's drill link. */
 export function QuestionList({ rows, status, base, current }: { rows: QuestionRow[]; status: Record<string, Status>; base: string; current?: string }) {
@@ -25,15 +26,13 @@ export function QuestionList({ rows, status, base, current }: { rows: QuestionRo
           <label htmlFor={id + "q"}>Search</label>
           <input id={id + "q"} type="search" placeholder="Words from the question, or its source" value={query} onChange={(e) => filter(() => setQuery(e.target.value))} />
         </div>
-        <div className="field">
-          <label htmlFor={id + "s"}>Status</label>
-          <select id={id + "s"} value={show} onChange={(e) => filter(() => setShow(e.target.value as Show))}>
-            <option value="all">All</option>
-            <option value="new">Not started</option>
-            <option value="missed">Missed</option>
-            <option value="solved">Solved</option>
-          </select>
-        </div>
+      </div>
+      <div className="chips" role="group" aria-label="Show questions">
+        {SHOWS.map(([value, text]) => (
+          <button key={value} type="button" aria-pressed={show === value} onClick={() => filter(() => setShow(value))}>
+            {text} <span className="count">{value === "all" ? rows.length : rows.filter((r) => (status[r.id] ?? "new") === value).length}</span>
+          </button>
+        ))}
       </div>
       <p className="muted" role="status">{matches.length === rows.length ? `${rows.length} questions` : `${matches.length} of ${rows.length} questions`}</p>
       {shown.length > 0 && (

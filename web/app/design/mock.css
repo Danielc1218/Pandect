@@ -337,6 +337,15 @@ body.test .theme-switch { bottom: auto; top: 72px; }
 .tabs:not(.has-ind) button.active { background: var(--color-surface); border-radius: var(--radius-sm); }
 .tabs .nav-ind { background: var(--color-surface); border-radius: var(--radius-sm); box-shadow: var(--shadow-card); }
 
+/* filter chips: one choice from a few, each with its count */
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.chips button { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3);
+                border: 1px solid var(--color-border); border-radius: var(--radius-full); background: var(--color-surface);
+                color: var(--color-text); font-family: inherit; font-size: var(--font-size-sm); cursor: pointer; }
+.chips button:hover { background: var(--color-surface-muted); }
+.chips button[aria-pressed="true"] { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-on-primary); }
+.chips .count { font-size: var(--font-size-xs); font-variant-numeric: tabular-nums; opacity: 0.8; }
+
 /* a list row that triggers an action is one button */
 button.row { width: 100%; border: 0; border-bottom: 1px solid var(--color-border); background: none; font: inherit; text-align: left; cursor: pointer; }
 form:last-child > button.row { border-bottom: 0; }
