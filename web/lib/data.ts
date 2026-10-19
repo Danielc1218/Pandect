@@ -6,6 +6,8 @@ export type SectionKey = keyof typeof SECTIONS;
 export const sectionKey = (name: string): SectionKey => (name === SECTIONS.rc ? "rc" : "lr");
 export const drillHref = (section: string, type: string) => `/drill?section=${sectionKey(section)}&type=${encodeURIComponent(type)}`;
 export const pct = (part: number, whole: number) => (whole ? Math.round((100 * part) / whole) : 0);
+/** The class that colours an accuracy bar: green from 70%, yellow from 50%, red below. */
+export const grade = (percent: number) => (percent >= 70 ? "good" : percent >= 50 ? "fair" : "poor");
 export const testNumber = (id: string) => Number(id.replace(/\D/g, "")) || 0;
 
 export type TypeStat = { section_type: string; question_type: string; total: number; answered: number; correct: number };

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Choices } from "@/components/Choices";
 import { PassageText } from "@/components/PassageText";
-import { pct } from "@/lib/data";
+import { grade, pct } from "@/lib/data";
 import { sanitize } from "@/lib/prefs";
 import { SESSION_FIELDS, sessionAnswerKey, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
@@ -89,7 +89,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
           {byType.map((t) => (
             <div key={t.type} className="row">
               <div className="grow"><div className="title">{t.type}</div><div className="muted">{t.right} of {t.total} correct</div></div>
-              <div className="progress"><span style={{ width: `${pct(t.right, t.total)}%` }} /></div>
+              <div className={`progress ${grade(pct(t.right, t.total))}`}><span style={{ width: `${pct(t.right, t.total)}%` }} /></div>
               <div className="figure">{pct(t.right, t.total)}%</div>
             </div>
           ))}

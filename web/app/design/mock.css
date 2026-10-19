@@ -128,6 +128,10 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-raised); }
 .tag.accent { background: var(--color-accent); color: var(--color-on-accent); }
 .progress { height: 8px; border-radius: var(--radius-sm); background: var(--color-surface-muted); overflow: hidden; }
 .progress > span { display: block; height: 100%; background: var(--color-primary); transition: width 450ms ease; }
+/* an accuracy bar's colour says how it is going */
+.progress.good > span { background: var(--color-success); }
+.progress.fair > span { background: var(--color-accent); }
+.progress.poor > span { background: var(--color-danger); }
 
 /* list-row */
 .list { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg);

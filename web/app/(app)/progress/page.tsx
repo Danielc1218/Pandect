@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BANK_NAME } from "@/lib/bank";
-import { activity, drillHref, pct, typeStats } from "@/lib/data";
+import { activity, drillHref, grade, pct, typeStats } from "@/lib/data";
 import { SESSION_FIELDS, sessionLabel, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
 
@@ -32,7 +32,7 @@ export default async function Progress() {
             {tried.map((t) => (
               <Link key={t.section_type + t.question_type} className="row" href={drillHref(t.section_type, t.question_type)}>
                 <div className="grow"><div className="title">{t.question_type}</div><div className="muted">{t.answered} answered, {t.section_type}</div></div>
-                <div className="progress"><span style={{ width: `${pct(t.correct, t.answered)}%` }} /></div>
+                <div className={`progress ${grade(pct(t.correct, t.answered))}`}><span style={{ width: `${pct(t.correct, t.answered)}%` }} /></div>
                 <div className="figure">{pct(t.correct, t.answered)}%</div>
               </Link>
             ))}
