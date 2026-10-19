@@ -136,7 +136,7 @@ export function Rail() {
   return (
     <SlidingNav items={APP} className="rail" label="Learning">
       <Link className="btn primary" href="/practice">Start a section</Link>
-      <Link className="btn" href="/progress">Review mistakes</Link>
+      <Link className="btn" href="/progress#by-type">Review mistakes</Link>
     </SlidingNav>
   );
 }

@@ -56,7 +56,7 @@ export default async function Progress() {
         <Calendar perDay={stats.perDay} today={stats.today} />
       </section>
       <section>
-        <h2>Accuracy by question type</h2>
+        <h2 id="by-type">Accuracy by question type</h2>
         {tried.length ? (
           <div className="list">
             {tried.map((t) => (
