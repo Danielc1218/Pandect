@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Choices } from "@/components/Choices";
+import { PassageText } from "@/components/PassageText";
 import { pct } from "@/lib/data";
 import { sanitize } from "@/lib/prefs";
 import { SESSION_FIELDS, sessionAnswerKey, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
@@ -27,7 +28,7 @@ function ReviewRow({ q, text, passages, chosen }: { q: Key; text?: Text; passage
       {text && (
         <div className="body">
           {text.passage !== null && (
-            <details><summary>Read the passage</summary>{passages[text.passage].split(/\n\s*\n/).map((p, i) => <p key={i}>{typeset(p)}</p>)}</details>
+            <details><summary>Read the passage</summary><PassageText text={passages[text.passage]} /></details>
           )}
           {text.stimulus && <p>{typeset(text.stimulus)}</p>}
           <h3>{typeset(text.prompt)}</h3>

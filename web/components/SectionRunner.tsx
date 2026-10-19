@@ -6,6 +6,7 @@ import { finishSection, saveAnswer } from "@/lib/actions";
 import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
 import { Choices } from "./Choices";
+import { PassageText } from "./PassageText";
 import { ThemeToggle } from "./Nav";
 import { usePrefs } from "./Prefs";
 
@@ -74,7 +75,7 @@ export function SectionRunner({
         {q.passage !== null && (
           <article className="passage">
             <div><span className="tag">Passage {q.passage + 1} of {passages.length}</span></div>
-            {passages[q.passage].split(/\n\s*\n/).map((p, i) => <p key={i}>{typeset(p)}</p>)}
+            <PassageText text={passages[q.passage]} />
           </article>
         )}
         <div className="question">
