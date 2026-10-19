@@ -83,7 +83,12 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
           <button className="btn primary" disabled={!selected || pending} onClick={submit}>{pending ? "Checking…" : selected ? `Submit ${selected}` : "Choose an answer"}</button>
         )}
       </div>
-      <dialog ref={list} className="modal" style={{ width: "100%", maxWidth: 760 }} aria-labelledby="question-list-title">
+      {/* a click on the dimmed backdrop (outside the box) closes it */}
+      <dialog ref={list} className="modal" style={{ width: "100%", maxWidth: 760 }} aria-labelledby="question-list-title"
+        onClick={(e) => {
+          const box = e.currentTarget.getBoundingClientRect();
+          if (e.clientX < box.left || e.clientX > box.right || e.clientY < box.top || e.clientY > box.bottom) e.currentTarget.close();
+        }}>
         <div className="actions spread">
           <h2 id="question-list-title">{type}</h2>
           <form method="dialog"><button className="btn">Close</button></form>
