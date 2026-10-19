@@ -296,6 +296,8 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-1); border
   section { margin-bottom: var(--space-8); }
   .question, .passage { padding: var(--space-4); }
   table.plain { display: block; overflow-x: auto; }
+  /* a long row title (a question's opening words) stops at three lines, so a phone shows more rows */
+  .row .title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; }
 }
 
 /* test-mode: timer, passage and question-nav */
