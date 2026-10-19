@@ -49,6 +49,8 @@ a { color: var(--color-primary); }
 html { scroll-padding-top: 72px; }
 /* room for the scrollbar is kept on every page, so short and long pages line up and nothing jumps sideways */
 html { scrollbar-gutter: stable; }
+/* jumps within a page (the skip link, a scrolled-to explanation) glide, unless motion is reduced */
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
 /* a timed section has its own bar with the clock, so the site bar steps aside. After leaving the section, React
    keeps it mounted but hidden (inline display: none) for the back button, so a hidden test bar doesn't count. */
 body:has(.test-bar:not([style*="display: none"])) .top-nav { display: none; }

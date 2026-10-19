@@ -31,7 +31,7 @@ const PREFS_SCRIPT = `try{(${applyPrefs.toString()})(JSON.parse(localStorage.get
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
       <head>
         {/* Sets the theme and display preferences before the first paint: the saved choice, otherwise the device's
             setting. They change <html>'s attributes ahead of React, hence suppressHydrationWarning. */}
