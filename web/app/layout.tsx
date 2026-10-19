@@ -42,6 +42,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" />
       </head>
       <body>
+        {/* the first thing a keyboard reaches: straight past the navigation (pages without a main skip nothing) */}
+        <a className="skip-link" href="#main">Skip to content</a>
         {/* One top bar for the whole site, here rather than in each section's layout, so it is never remounted
             and its highlight slides between Home, About and Learning. A timed section hides it (mock.css). */}
         <Suspense fallback={<TopNav />}>

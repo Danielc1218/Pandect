@@ -6,7 +6,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="shell">
       <Rail />
-      <main>{children}</main>
+      <main id="main">{children}</main>
     </div>
   );
 }

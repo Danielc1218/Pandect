@@ -312,6 +312,11 @@ section:has(> .drill-reader) { max-width: 1280px; }
 .drill-reader > .question { max-width: none; }
 @media (max-width: 1023px) { .drill-reader { grid-template-columns: minmax(0, 1fr); } .drill-reader > .passage { position: static; max-height: none; } }
 
+/* skip link: out of sight until a keyboard focuses it */
+.skip-link { position: fixed; top: var(--space-2); left: var(--space-2); z-index: 20; padding: var(--space-2) var(--space-4);
+             border-radius: var(--radius-md); background: var(--color-primary); color: var(--color-on-primary); transform: translateY(-200%); }
+.skip-link:focus { transform: none; }
+
 /* focus and hover, shared */
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, [role="radio"]:focus-visible {
   outline: 2px solid var(--color-primary); outline-offset: 2px; }
