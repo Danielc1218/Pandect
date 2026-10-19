@@ -5,23 +5,29 @@ import { useId, useState } from "react";
 import { filterRows, type QuestionRow, type Show, type Status } from "@/lib/questions";
 
 const LABEL: Record<Status, string> = { solved: "Solved", missed: "Missed" };
+const PAGE = 50;
 
 /** Every question of one drill type, with a search box and a status filter. `base` is the type's drill link. */
 export function QuestionList({ rows, status, base, current }: { rows: QuestionRow[]; status: Record<string, Status>; base: string; current?: string }) {
   const id = useId();
   const [query, setQuery] = useState("");
   const [show, setShow] = useState<Show>("all");
-  const shown = filterRows(rows, status, query, show);
+  const matches = filterRows(rows, status, query, show);
+  // A page of rows at a time; enough to reach the current question, so the popup can show it.
+  const reach = Math.ceil((matches.findIndex((r) => r.id === current) + 1) / PAGE) * PAGE;
+  const [limit, setLimit] = useState(Math.max(PAGE, reach));
+  const shown = matches.slice(0, limit);
+  const filter = (f: () => void) => { f(); setLimit(Math.max(PAGE, reach)); };
   return (
     <div className="stack">
       <div className="actions">
         <div className="field" style={{ flex: 1, minWidth: 200 }}>
           <label htmlFor={id + "q"}>Search</label>
-          <input id={id + "q"} type="search" placeholder="Words from the question, or its source" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <input id={id + "q"} type="search" placeholder="Words from the question, or its source" value={query} onChange={(e) => filter(() => setQuery(e.target.value))} />
         </div>
         <div className="field">
           <label htmlFor={id + "s"}>Status</label>
-          <select id={id + "s"} value={show} onChange={(e) => setShow(e.target.value as Show)}>
+          <select id={id + "s"} value={show} onChange={(e) => filter(() => setShow(e.target.value as Show))}>
             <option value="all">All</option>
             <option value="new">Not started</option>
             <option value="missed">Missed</option>
@@ -29,7 +35,7 @@ export function QuestionList({ rows, status, base, current }: { rows: QuestionRo
           </select>
         </div>
       </div>
-      <p className="muted" role="status">{shown.length === rows.length ? `${rows.length} questions` : `${shown.length} of ${rows.length} questions`}</p>
+      <p className="muted" role="status">{matches.length === rows.length ? `${rows.length} questions` : `${matches.length} of ${rows.length} questions`}</p>
       {shown.length > 0 && (
         <div className="list">
           {shown.map((r) => (
@@ -48,6 +54,14 @@ export function QuestionList({ rows, status, base, current }: { rows: QuestionRo
               </div>
             </Link>
           ))}
+        </div>
+      )}
+      {matches.length > shown.length && (
+        <div className="actions">
+          <button type="button" className="btn" onClick={() => setLimit((n) => n + PAGE)}>
+            Show {Math.min(PAGE, matches.length - shown.length)} more
+          </button>
+          <span className="muted" style={{ alignSelf: "center" }}>Showing {shown.length} of {matches.length}</span>
         </div>
       )}
     </div>
