@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Choices } from "@/components/Choices";
 import { PassageText } from "@/components/PassageText";
-import { grade, pct } from "@/lib/data";
+import { drillHref, grade, pct } from "@/lib/data";
 import { sanitize } from "@/lib/prefs";
 import { SESSION_FIELDS, sessionAnswerKey, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
@@ -65,7 +65,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
   // Today's extended-time setting, not the one in force during the sitting; store it on test_sessions if that matters
   const over = seconds - Math.round(sectionMinutes(all.length) * sanitize(profile?.preferences).extraTime * 60);
   const byType = Object.entries(Object.groupBy(all, (q) => q.question_type))
-    .map(([type, qs]) => ({ type, total: qs!.length, right: qs!.filter((q) => mine.get(q.id)?.correct).length }))
+    .map(([type, qs]) => ({ type, section: qs![0].section_type, total: qs!.length, right: qs!.filter((q) => mine.get(q.id)?.correct).length }))
     .sort((a, b) => a.right / a.total - b.right / b.total);
   const missed = all.filter((q) => !mine.get(q.id)?.correct);
   const label = sessionLabel(session);
@@ -87,11 +87,12 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
         <h2>By question type</h2>
         <div className="list">
           {byType.map((t) => (
-            <div key={t.type} className="row">
+            // each type leads to its drill, to practise what this section showed up
+            <Link key={t.type} className="row" href={drillHref(t.section, t.type)} title={`Drill ${t.type}`}>
               <div className="grow"><div className="title">{t.type}</div><div className="muted">{t.right} of {t.total} correct</div></div>
               <div className={`progress ${grade(pct(t.right, t.total))}`}><span style={{ width: `${pct(t.right, t.total)}%` }} /></div>
               <div className="figure">{pct(t.right, t.total)}%</div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>
