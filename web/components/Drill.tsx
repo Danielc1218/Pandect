@@ -6,6 +6,7 @@ import { useEffect, useEffectEvent, useRef, useState, useTransition, type ReactN
 import { answer } from "@/lib/actions";
 import { typeset } from "@/lib/text";
 import { Choices } from "./Choices";
+import { usePrefs } from "./Prefs";
 
 export type DrillQuestion = { id: string; stimulus: string | null; prompt: string; options: Record<string, string>; source: string };
 
@@ -21,6 +22,16 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
   const [eliminated, setEliminated] = useState<string[]>([]);
   const [result, setResult] = useState<{ correct: boolean; correctAnswer: string; explanation: string | null } | null>(null);
   const [pending, start] = useTransition();
+  // A stopwatch for this question, stopped by the answer; hidden with the timer setting.
+  const { hideTimer } = usePrefs();
+  const [startedAt] = useState(() => Date.now());
+  const [seconds, setSeconds] = useState(0);
+  useEffect(() => {
+    if (result) return;
+    const tick = setInterval(() => setSeconds(Math.floor((Date.now() - startedAt) / 1000)), 1000);
+    return () => clearInterval(tick);
+  }, [result, startedAt]);
+  const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
   const submit = () => selected && !pending && start(async () => { setResult(await answer(question.id, selected)); router.refresh(); });
   const pick = (l: string) => { setSelected(l); setEliminated((list) => list.filter((x) => x !== l)); };
   // Keys: A–E or 1–5 choose, Enter submits and then moves on. Ignored while typing or with the question list open.
@@ -46,7 +57,9 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
   };
   return (
     <div className="question" aria-busy={pending}>
-      <div className="meta"><span className="tag">{type}</span><span className="muted">Question {number} of {total} · {question.source}</span></div>
+      <div className="meta"><span className="tag">{type}</span><span className="muted">Question {number} of {total} · {question.source}</span>
+        {!hideTimer && <span className="stopwatch" role="timer" aria-label={`Time on this question ${clock}`} title={result ? "Time you took" : "Time on this question"}>{clock}</span>}
+      </div>
       <div className="progress"><span style={{ width: `${Math.round((100 * answered) / total)}%` }} /></div>
       {question.stimulus && <p>{typeset(question.stimulus)}</p>}
       <h3>{typeset(question.prompt)}</h3>
