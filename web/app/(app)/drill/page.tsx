@@ -36,6 +36,7 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
   if (!q) {
     return (
       <section className="stack">
+        <p className="muted crumbs"><Link href="/types">Question types</Link> / {section}</p>
         <h1>{type}</h1>
         <p className="muted">{answered} of {rows.length} answered, {ids.filter((id) => status[id] === "solved").length} solved</p>
         <div className="actions">
@@ -56,6 +57,7 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
   const prev = ids[at - 1], after = ids[at + 1];
   return (
     <section>
+      <p className="muted crumbs"><Link href="/types">Question types</Link> / {section} / <Link href={base}>{type}</Link> / Question {row.n}</p>
       <div className="actions spread" style={{ alignItems: "center" }}>
         <h1>{type}</h1>
         <nav className="actions" aria-label="Neighbouring questions">
