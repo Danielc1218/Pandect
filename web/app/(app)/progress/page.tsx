@@ -24,7 +24,10 @@ function Calendar({ perDay, today }: { perDay: Record<number, number>; today: nu
           return <span key={d} data-level={LEVELS.findLastIndex((l) => n >= l)} title={`${label(d)}: ${n} ${n === 1 ? "question" : "questions"}`} />;
         })}
       </div>
-      <p className="muted">{total} questions in the last {WEEKS} weeks. Each square is a day; darker means more.</p>
+      <div className="actions spread" style={{ alignItems: "center" }}>
+        <p className="muted">{total} questions in the last {WEEKS} weeks. Each square is a day.</p>
+        <p className="muted calendar-legend" aria-hidden="true">Less {LEVELS.map((_, i) => <span key={i} data-level={i} />)} More</p>
+      </div>
     </div>
   );
 }
