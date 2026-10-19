@@ -40,6 +40,8 @@ export async function activity(db: SupabaseClient) {
   const last100 = rows.slice(0, 100);
   const today = Math.floor(Date.now() / DAY);
   const days = new Set(rows.map((r) => dayOf(r.created_at)));
+  const perDay: Record<number, number> = {};
+  for (const r of rows) perDay[dayOf(r.created_at)] = (perDay[dayOf(r.created_at)] ?? 0) + 1;
   let streak = 0;
   for (let d = days.has(today) ? today : today - 1; days.has(d); d--) streak++;
   // The last question answered in a drill (not in a timed section), and when: where a driller left off.
@@ -50,6 +52,9 @@ export async function activity(db: SupabaseClient) {
     accuracy: pct(last100.filter((r) => r.correct).length, last100.length),
     week: rows.filter((r) => dayOf(r.created_at) > today - 7).length,
     streak,
+    /** Questions answered on each day (days since 1970, UTC), from the same latest 1,000 answers; and today. */
+    perDay,
+    today,
     latest,
     latestAt: drill?.created_at as string | undefined,
     /** When the user last answered in each timed section, newest first. */

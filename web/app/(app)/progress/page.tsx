@@ -6,6 +6,29 @@ import { requireUser } from "@/lib/supabase";
 
 export const metadata = { title: "Progress" };
 
+const WEEKS = 12;
+const LEVELS = [0, 1, 5, 15, 30]; // answers in a day for each shade
+
+/** The last twelve weeks, one square a day, darker for more questions answered; weeks run down the columns. */
+function Calendar({ perDay, today }: { perDay: Record<number, number>; today: number }) {
+  const weekday = (new Date(today * 86_400_000).getUTCDay() + 6) % 7; // Monday is 0
+  const first = today - weekday - (WEEKS - 1) * 7;
+  const days = Array.from({ length: (WEEKS - 1) * 7 + weekday + 1 }, (_, i) => first + i);
+  const label = (d: number) => new Date(d * 86_400_000).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+  const total = days.reduce((n, d) => n + (perDay[d] ?? 0), 0);
+  return (
+    <div className="panel">
+      <div className="calendar" role="img" aria-label={`${total} questions answered in the last ${WEEKS} weeks`}>
+        {days.map((d) => {
+          const n = perDay[d] ?? 0;
+          return <span key={d} data-level={LEVELS.findLastIndex((l) => n >= l)} title={`${label(d)}: ${n} ${n === 1 ? "question" : "questions"}`} />;
+        })}
+      </div>
+      <p className="muted">{total} questions in the last {WEEKS} weeks. Each square is a day; darker means more.</p>
+    </div>
+  );
+}
+
 export default async function Progress() {
   const { db } = await requireUser();
   const [stats, types, { data: sessions }] = await Promise.all([
@@ -24,6 +47,10 @@ export default async function Progress() {
           <div className="stat"><div className="value">{stats.week}</div><div className="label">answered this week</div></div>
           <div className="stat"><div className="value">{stats.streak} {stats.streak === 1 ? "day" : "days"}</div><div className="label">current streak</div></div>
         </div>
+      </section>
+      <section>
+        <h2>Activity</h2>
+        <Calendar perDay={stats.perDay} today={stats.today} />
       </section>
       <section>
         <h2>Accuracy by question type</h2>
