@@ -15,9 +15,9 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
         <form className="stack" action={action}>
           {state.error && <p className="field invalid" role="alert"><span className="hint">{state.error}</span></p>}
           {signup && (
-            <div className="field"><label htmlFor="name">Name</label><input id="name" name="name" type="text" autoComplete="name" defaultValue={state.name} required /></div>
+            <div className="field"><label htmlFor="name">Name</label><input id="name" name="name" type="text" autoComplete="name" defaultValue={state.name} required autoFocus /></div>
           )}
-          <div className="field"><label htmlFor="email">Email</label><input id="email" name="email" type="email" autoComplete="email" defaultValue={state.email} required /></div>
+          <div className="field"><label htmlFor="email">Email</label><input id="email" name="email" type="email" autoComplete="email" defaultValue={state.email} required autoFocus={!signup} /></div>
           <div className="field">
             <label htmlFor="password">Password</label>
             <div className="with-button">
