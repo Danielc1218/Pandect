@@ -2,7 +2,7 @@
 
 import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { savePreferences } from "@/lib/actions";
-import { applyPrefs, DEFAULT_PREFS, RANGES, storePrefs, type Prefs } from "@/lib/prefs";
+import { applyPrefs, DEFAULT_PREFS, RANGES, SAVED_MAX, storePrefs, type Prefs } from "@/lib/prefs";
 import { markEdited, usePrefs } from "./Prefs";
 
 type Theme = "system" | "light" | "dark";
@@ -46,6 +46,46 @@ function Choice<T extends string | number>({ legend, name, value, options, onCha
           {label}
         </label>
       ))}
+    </fieldset>
+  );
+}
+
+const ACCENTS: [string, string][] = [["", "Green (the theme's)"], ["#1f5fae", "Blue"], ["#127a7a", "Teal"], ["#6b3fa0", "Purple"],
+  ["#b3261e", "Red"], ["#b45309", "Orange"], ["#44546a", "Slate"]];
+const TINTS: [string, string][] = [["", "None"], ["#f8f1df", "Cream"], ["#eadbbd", "Sepia"], ["#e9eef4", "Cool"],
+  ["#e6f2ea", "Mint"], ["#f6e8ea", "Rose"], ["#ece8f6", "Lavender"]];
+
+/**
+ * One colour setting: preset swatches, the user's saved colours (each can be forgotten), a picker for any colour,
+ * and Save to keep the picked one as a swatch. `value` "" is the preset whose colour is `fallback` (struck through
+ * when `none`, as for no tint).
+ */
+function ColourChoice({ id, legend, value, presets, saved, fallback, none, disabled, onChange, onSaved }: {
+  id: string; legend: string; value: string; presets: [string, string][]; saved: string[]; fallback: string; none?: boolean; disabled?: boolean;
+  onChange: (colour: string) => void; onSaved: (list: string[]) => void;
+}) {
+  const known = presets.some(([c]) => c === value) || saved.includes(value);
+  const swatch = (colour: string, name: string, forget?: () => void) => (
+    <span key={colour || "none"} className="swatch-choice">
+      <button type="button" aria-pressed={value === colour} title={name} aria-label={name} disabled={disabled} onClick={() => onChange(colour)}
+              style={{ background: colour || fallback }} className={!colour && none ? "plain" : undefined} />
+      {forget && <button type="button" className="forget" aria-label={`Forget ${name}`} title="Forget this colour" onClick={forget}>×</button>}
+    </span>
+  );
+  return (
+    <fieldset className="field colour-choice" disabled={disabled}>
+      <legend>{legend}</legend>
+      <div className="accent-row">
+        {presets.map(([c, name]) => swatch(c, name))}
+        {saved.map((c) => swatch(c, `Saved colour ${c}`, () => onSaved(saved.filter((x) => x !== c))))}
+      </div>
+      <div className="accent-row">
+        <label htmlFor={id} className="muted">Any colour</label>
+        <input id={id} type="color" value={value || fallback} onChange={(e) => onChange(e.target.value)} />
+        <button type="button" className="btn" disabled={!value || known || saved.length >= SAVED_MAX} onClick={() => onSaved([...saved, value])}>
+          Save this colour
+        </button>
+      </div>
     </fieldset>
   );
 }
@@ -107,16 +147,10 @@ export function DisplaySettings() {
           <Choice legend="Theme" name="theme" value={theme} onChange={chooseTheme}
                   options={[["system", "Match this device"], ["light", "Light"], ["dark", "Dark"]]} />
           <Check label="High contrast" checked={prefs.contrast === "high"} onChange={(v) => update({ contrast: v ? "high" : "normal" })} />
-          <div className="field">
-            <label htmlFor="accent">Accent colour</label>
-            <div className="accent-row">
-              <input id="accent" type="color" value={prefs.accent || "#1e6b43"} disabled={prefs.contrast === "high"}
-                     onChange={(e) => update({ accent: e.target.value })} />
-              <button type="button" className="btn" disabled={!prefs.accent} onClick={() => update({ accent: "" })}>Use the theme&apos;s colour</button>
-            </div>
-          </div>
-          <Choice legend="Background tint" name="tint" value={prefs.tint} onChange={(v) => update({ tint: v })}
-                  options={(["none", "cream", "sepia", "cool"] as const).map((t) => [t, t === "none" ? "None" : t[0].toUpperCase() + t.slice(1)])} />
+          <ColourChoice id="accent" legend="Accent colour" value={prefs.accent} presets={ACCENTS} saved={prefs.savedAccents} fallback="#1e6b43"
+                        disabled={prefs.contrast === "high"} onChange={(accent) => update({ accent })} onSaved={(savedAccents) => update({ savedAccents })} />
+          <ColourChoice id="tint" legend="Background tint" value={prefs.tint} presets={TINTS} saved={prefs.savedTints} fallback="#ffffff" none
+                        disabled={prefs.contrast === "high"} onChange={(tint) => update({ tint })} onSaved={(savedTints) => update({ savedTints })} />
           <Choice legend="Right and wrong answers" name="markers" value={prefs.markers} onChange={(v) => update({ markers: v })}
                   options={[["standard", "Green and red"], ["colorblind", "Blue and orange, with ✓ and ✗"]]} />
         </section>
@@ -139,7 +173,11 @@ export function DisplaySettings() {
 
         <div className="actions spread">
           <p role="status" className="muted" style={{ margin: 0 }}>{status}</p>
-          <button type="button" className="btn" onClick={() => { update(DEFAULT_PREFS); chooseTheme("system"); }}>Reset everything</button>
+          <button type="button" className="btn" onClick={() => {
+            // back to the defaults, keeping the colours saved for picking again
+            update({ ...DEFAULT_PREFS, savedAccents: prefs.savedAccents, savedTints: prefs.savedTints });
+            chooseTheme("system");
+          }}>Reset everything</button>
         </div>
       </div>
 

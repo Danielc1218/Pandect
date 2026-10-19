@@ -13,7 +13,9 @@ export type Prefs = {
   passageFont: "same" | "serif" | "atkinson";
   contrast: "normal" | "high";
   accent: string;         // "" for the theme's own, else #rrggbb
-  tint: "none" | "cream" | "sepia" | "cool";
+  tint: string;           // page colour in the light theme: "" for none, else #rrggbb
+  savedAccents: string[]; // colours the user saved to pick again, #rrggbb, at most SAVED_MAX
+  savedTints: string[];
   markers: "standard" | "colorblind";
   motion: "system" | "reduce";
   focus: "standard" | "strong";
@@ -24,7 +26,7 @@ export type Prefs = {
 
 export const DEFAULT_PREFS: Prefs = {
   textScale: 1, lineHeight: 1.5, letterSpacing: 0, wordSpacing: 0, font: "inter", passageFont: "same",
-  contrast: "normal", accent: "", tint: "none", markers: "standard", motion: "system", focus: "standard",
+  contrast: "normal", accent: "", tint: "", savedAccents: [], savedTints: [], markers: "standard", motion: "system", focus: "standard",
   extraTime: 1, hideTimer: false, layout: "side",
 };
 
@@ -39,13 +41,16 @@ const CHOICES = {
   font: ["inter", "atkinson", "lexend"],
   passageFont: ["same", "serif", "atkinson"],
   contrast: ["normal", "high"],
-  tint: ["none", "cream", "sepia", "cool"],
   markers: ["standard", "colorblind"],
   motion: ["system", "reduce"],
   focus: ["standard", "strong"],
   extraTime: [1, 1.5, 2],
   layout: ["side", "stacked"],
 } as const;
+
+export const SAVED_MAX = 8;
+const isHex = (v: unknown): v is string => typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v);
+const OLD_TINTS: Record<string, string> = { none: "", cream: "#f8f1df", sepia: "#eadbbd", cool: "#e9eef4" };
 
 /** Any stored or submitted value, made into valid preferences: unknown keys dropped, bad values defaulted. */
 export function sanitize(raw: unknown): Prefs {
@@ -58,14 +63,20 @@ export function sanitize(raw: unknown): Prefs {
   for (const [key, allowed] of Object.entries(CHOICES)) {
     if ((allowed as readonly unknown[]).includes(r[key])) (out as Record<string, unknown>)[key] = r[key];
   }
-  if (typeof r.accent === "string" && /^#[0-9a-f]{6}$/i.test(r.accent)) out.accent = r.accent.toLowerCase();
+  if (isHex(r.accent)) out.accent = r.accent.toLowerCase();
+  // Tints were once named; those names keep their colours.
+  const tint = typeof r.tint === "string" ? (OLD_TINTS[r.tint] ?? r.tint) : "";
+  if (isHex(tint)) out.tint = tint.toLowerCase();
+  for (const key of ["savedAccents", "savedTints"] as const) {
+    if (Array.isArray(r[key])) out[key] = [...new Set((r[key] as unknown[]).filter(isHex).map((c) => c.toLowerCase()))].slice(0, SAVED_MAX);
+  }
   if (typeof r.hideTimer === "boolean") out.hideTimer = r.hideTimer;
   return out;
 }
 
-/** The changes from the defaults, which is all that needs storing. */
+/** The changes from the defaults, which is all that needs storing (an empty list counts as unchanged). */
 export const changed = (p: Prefs) =>
-  Object.fromEntries(Object.entries(p).filter(([k, v]) => DEFAULT_PREFS[k as keyof Prefs] !== v)) as Partial<Prefs>;
+  Object.fromEntries(Object.entries(p).filter(([k, v]) => (Array.isArray(v) ? v.length > 0 : DEFAULT_PREFS[k as keyof Prefs] !== v))) as Partial<Prefs>;
 
 /** WCAG relative luminance of a #rrggbb colour. */
 export function luminance(hex: string) {
@@ -100,9 +111,17 @@ export function applyPrefs(p: Partial<Prefs>) {
       .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
     vars["--color-primary"] = accent;
     vars["--color-on-primary"] = (lum + 0.05) / 0.05 > 1.05 / (lum + 0.05) ? "#000000" : "#ffffff";
+    // Tags, tabs and other pale panels take a wash of the chosen colour, over whatever the page surface is.
+    vars["--color-surface-muted"] = `color-mix(in srgb, ${accent} 14%, var(--color-surface))`;
   } else {
-    vars["--color-primary"] = vars["--color-on-primary"] = undefined;
+    vars["--color-primary"] = vars["--color-on-primary"] = vars["--color-surface-muted"] = undefined;
   }
+  // A tint is the page colour; panels are a lighter version and pale fills a slightly deeper one (app/prefs.css
+  // uses them in the light theme only, without high contrast).
+  const tint = p.tint || "";
+  vars["--tint-background"] = tint || undefined;
+  vars["--tint-surface"] = tint ? `color-mix(in srgb, ${tint} 40%, #ffffff)` : undefined;
+  vars["--tint-muted"] = tint ? `color-mix(in srgb, ${tint} 90%, #000000)` : undefined;
   for (const [name, value] of Object.entries(vars)) {
     if (value === undefined) html.style.removeProperty(name);
     else html.style.setProperty(name, value);
@@ -111,7 +130,7 @@ export function applyPrefs(p: Partial<Prefs>) {
     font: p.font !== "inter" ? p.font : undefined,
     passageFont: p.passageFont !== "same" ? p.passageFont : undefined,
     contrast: p.contrast === "high" ? "high" : undefined,
-    tint: p.tint !== "none" ? p.tint : undefined,
+    tint: p.tint ? "custom" : undefined,
     markers: p.markers === "colorblind" ? "colorblind" : undefined,
     motion: p.motion === "reduce" ? "reduce" : undefined,
     focus: p.focus === "strong" ? "strong" : undefined,

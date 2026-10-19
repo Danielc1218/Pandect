@@ -19,14 +19,20 @@ test("sanitize keeps valid values and replaces or drops everything else", () => 
   assert.equal(p.extraTime, 1.5);
   assert.equal(p.hideTimer, false);        // not a boolean
   assert.ok(!("underlineLinks" in p));      // a setting that no longer exists is dropped
-  assert.equal(p.tint, "sepia");
+  assert.equal(p.tint, "#eadbbd");         // a tint once stored by name keeps its colour
   assert.ok(!("evil" in p));
   assert.equal(sanitize({ accent: "red; background: url(x)" }).accent, "");
   assert.equal(sanitize({ extraTime: 3 }).extraTime, 1);
+  assert.equal(sanitize({ tint: "url(x)" }).tint, "");
+  // saved colours: valid ones only, lower case, no repeats, at most eight
+  const saved = sanitize({ savedTints: ["#AAAAAA", "#aaaaaa", "red", 7, ...Array.from({ length: 10 }, (_, i) => `#00000${i}`)] }).savedTints;
+  assert.deepEqual(saved.slice(0, 2), ["#aaaaaa", "#000000"]);
+  assert.equal(saved.length, 8);
 });
 
 test("only changes from the defaults are stored", () => {
   assert.deepEqual(changed(DEFAULT_PREFS), {});
+  assert.deepEqual(changed({ ...DEFAULT_PREFS, savedAccents: [] }), {}); // an empty list is no change
   assert.deepEqual(changed({ ...DEFAULT_PREFS, textScale: 1.2, motion: "reduce" }), { textScale: 1.2, motion: "reduce" });
 });
 
