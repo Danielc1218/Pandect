@@ -328,6 +328,8 @@ kbd { display: inline-block; min-width: 1.6em; padding: 0 var(--space-1); border
 .qnav a.done { background: color-mix(in srgb, var(--color-success) 35%, var(--color-surface)); border-color: var(--color-success); }
 .qnav a.flagged { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); }
 .qnav a.current { outline: 2px solid var(--color-primary); outline-offset: 1px; font-weight: 600; }
+/* on a touch screen the buttons grow to a fingertip's size */
+@media (pointer: coarse) { .qnav a:not(.btn) { width: 40px; height: 40px; } }
 .qnav .spacer { flex: 1; }
 /* the question buttons wrap among themselves, so the count and Finish stay at the right; on a phone they are one
    row of their own that scrolls sideways */
