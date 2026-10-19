@@ -4,7 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
-type Item = { href: string; label: string; match?: string[] };
+/** `icon` is the path data of a 24×24 outline icon drawn before the label. */
+type Item = { href: string; label: string; match?: string[]; icon?: string };
+
+const Icon = ({ d }: { d?: string }) =>
+  d ? <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg> : null;
 
 /** Measures the `.active` child of a container so one highlight can slide to it. Re-measures when `dep` changes. */
 export function useSlide<T extends HTMLElement>(dep: unknown, underline = false) {
@@ -39,7 +43,7 @@ type NavProps = { items: Item[]; className: string; underline?: boolean; label: 
 export function SlidingNav(props: NavProps) {
   const plain = (
     <nav className={props.className} aria-label={props.label}>
-      {props.items.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}
+      {props.items.map((item) => <Link key={item.href} href={item.href}><Icon d={item.icon} />{item.label}</Link>)}
       {props.children}
     </nav>
   );
@@ -55,7 +59,7 @@ function ActiveNav({ items, className, underline = false, label, children }: Nav
       {style && <span className="nav-ind" style={style} />}
       {items.map((item) => (
         <Link key={item.href} href={item.href} className={isActive(item) ? "active" : undefined} aria-current={isActive(item) ? "page" : undefined}>
-          {item.label}
+          <Icon d={item.icon} />{item.label}
         </Link>
       ))}
       {children}
@@ -122,10 +126,10 @@ export function TopNav({ signedIn }: { signedIn?: boolean }) {
 }
 
 const APP: Item[] = [
-  { href: "/learn", label: "Dashboard" },
-  { href: "/types", label: "Question types", match: ["/drill"] },
-  { href: "/practice", label: "Practice tests", match: ["/results"] },
-  { href: "/progress", label: "Progress" },
+  { href: "/learn", label: "Dashboard", icon: "M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z" },
+  { href: "/types", label: "Question types", match: ["/drill"], icon: "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" },
+  { href: "/practice", label: "Practice tests", match: ["/results"], icon: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2" },
+  { href: "/progress", label: "Progress", icon: "M3 3v18h18M7 15l4-4 3 3 5-6" },
 ];
 
 export function Rail() {

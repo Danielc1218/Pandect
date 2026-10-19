@@ -66,6 +66,8 @@ body:has(.test-bar:not([style*="display: none"])) .top-nav { display: none; }
 .rail a { position: relative; z-index: 1; display: block; padding: var(--space-2) var(--space-4); border-radius: var(--radius-md);
           color: var(--color-text); text-decoration: none; font-size: var(--font-size-sm); }
 .rail a.active { background: var(--color-accent); color: var(--color-on-accent); font-weight: 600; }
+.rail a:not(.btn) { display: flex; align-items: center; gap: var(--space-3); }
+.nav-icon { flex: none; width: 18px; height: 18px; }
 /* the two actions under the rail's links are buttons, not links in the list */
 .rail a.btn { margin-top: var(--space-2); padding: var(--space-2) var(--space-4); text-align: center; }
 .rail a.btn:first-of-type { margin-top: var(--space-6); }
