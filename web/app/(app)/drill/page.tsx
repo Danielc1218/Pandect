@@ -40,7 +40,8 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
   const next = nextUnanswered(ids, status, q);
   // ?show=missed (or new, solved) opens the list with that filter, as the Progress page's links do
   const initialShow = (["new", "missed", "solved"] as const).find((s) => s === params.show);
-  const list = <QuestionList rows={rows} status={status} base={base} current={q} initialShow={initialShow} />;
+  // keyed by the filter, so following a link that changes it starts the list afresh
+  const list = <QuestionList key={initialShow ?? "all"} rows={rows} status={status} base={base} current={q} initialShow={initialShow} />;
 
   if (!q) {
     return (
@@ -52,8 +53,14 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
           {answered} of {rows.length} answered, {solved} solved{answered > 0 && ` (${pct(solved, answered)}% of those answered)`}
         </p>
         <div className="progress" style={{ maxWidth: 480 }}><span style={{ width: `${pct(answered, rows.length)}%` }} /></div>
+        {!next && (
+          <div className="panel tinted">
+            <p>You have answered every {type} question.{answered > solved ? " The missed ones are worth another look." : ""}</p>
+          </div>
+        )}
         <div className="actions">
           {next && <Link className="btn primary" href={`${base}&q=${next}`}>{answered ? "Continue" : "Start"}</Link>}
+          {!next && answered > solved && <Link className="btn primary" href={`${base}&show=missed`}>Review missed questions</Link>}
           <Link className="btn" href="/types">Back to question types</Link>
         </div>
         {list}
