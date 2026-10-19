@@ -106,11 +106,14 @@ export function SectionRunner({
             <button className="btn" onClick={flag}>
               {flagged.includes(q.id) ? "Remove flag" : "Flag for review"}
             </button>
-            {index < questions.length - 1 ? (
-              <button className="btn primary" onClick={() => setIndex(index + 1)}>Next question</button>
-            ) : (
-              <button className="btn primary" disabled={pending} onClick={finish}>Finish section</button>
-            )}
+            <div className="actions">
+              <button className="btn" disabled={index === 0} onClick={() => setIndex(index - 1)} aria-keyshortcuts="ArrowLeft">Previous</button>
+              {index < questions.length - 1 ? (
+                <button className="btn primary" onClick={() => setIndex(index + 1)} aria-keyshortcuts="ArrowRight">Next question</button>
+              ) : (
+                <button className="btn primary" disabled={pending} onClick={finish}>Finish section</button>
+              )}
+            </div>
           </div>
         </div>
       </div>
