@@ -51,12 +51,11 @@ html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-mo
   animation: none !important; transition: none !important; scroll-behavior: auto !important;
 }
 
-/* Focus and links */
+/* Focus */
 html[data-focus="strong"] :focus-visible {
   outline: 3px solid var(--color-text) !important; outline-offset: 3px !important;
   box-shadow: 0 0 0 7px var(--color-accent) !important;
 }
-html[data-links="underline"] :is(p, li, td, .muted) a { text-decoration: underline; text-underline-offset: 0.15em; }
 
 /* Passage above the questions instead of beside them */
 html[data-layout="stacked"] .reader:not(.single) { grid-template-columns: minmax(0, 760px); justify-content: center; }

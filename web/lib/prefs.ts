@@ -17,7 +17,6 @@ export type Prefs = {
   markers: "standard" | "colorblind";
   motion: "system" | "reduce";
   focus: "standard" | "strong";
-  underlineLinks: boolean;
   extraTime: 1 | 1.5 | 2;
   hideTimer: boolean;
   layout: "side" | "stacked";
@@ -26,7 +25,7 @@ export type Prefs = {
 export const DEFAULT_PREFS: Prefs = {
   textScale: 1, lineHeight: 1.5, letterSpacing: 0, wordSpacing: 0, font: "inter", passageFont: "same",
   contrast: "normal", accent: "", tint: "none", markers: "standard", motion: "system", focus: "standard",
-  underlineLinks: false, extraTime: 1, hideTimer: false, layout: "side",
+  extraTime: 1, hideTimer: false, layout: "side",
 };
 
 export const RANGES = {
@@ -60,7 +59,7 @@ export function sanitize(raw: unknown): Prefs {
     if ((allowed as readonly unknown[]).includes(r[key])) (out as Record<string, unknown>)[key] = r[key];
   }
   if (typeof r.accent === "string" && /^#[0-9a-f]{6}$/i.test(r.accent)) out.accent = r.accent.toLowerCase();
-  for (const key of ["underlineLinks", "hideTimer"] as const) if (typeof r[key] === "boolean") out[key] = r[key];
+  if (typeof r.hideTimer === "boolean") out.hideTimer = r.hideTimer;
   return out;
 }
 
@@ -116,7 +115,6 @@ export function applyPrefs(p: Partial<Prefs>) {
     markers: p.markers === "colorblind" ? "colorblind" : undefined,
     motion: p.motion === "reduce" ? "reduce" : undefined,
     focus: p.focus === "strong" ? "strong" : undefined,
-    links: p.underlineLinks ? "underline" : undefined,
     layout: p.layout === "stacked" ? "stacked" : undefined,
   };
   for (const [key, value] of Object.entries(data)) {

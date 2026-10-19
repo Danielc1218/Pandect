@@ -126,7 +126,6 @@ export function DisplaySettings() {
           <Choice legend="Animation" name="motion" value={prefs.motion} onChange={(v) => update({ motion: v })}
                   options={[["system", "Match this device"], ["reduce", "Reduce motion"]]} />
           <Check label="Stronger focus outline" checked={prefs.focus === "strong"} onChange={(v) => update({ focus: v ? "strong" : "standard" })} />
-          <Check label="Always underline links" checked={prefs.underlineLinks} onChange={(v) => update({ underlineLinks: v })} />
         </section>
 
         <section className="panel prefs-group" aria-labelledby="tests">
@@ -155,7 +154,6 @@ export function DisplaySettings() {
             <div className="choice correct"><span className="letter">A</span><span>Installment breaks served a narrative purpose too.</span><span className="note">Correct answer</span></div>
             <div className="choice incorrect"><span className="letter">B</span><span>Serial novels were written only for profit.</span><span className="note">Your answer</span></div>
           </div>
-          <p className="muted">Links look <a href="#reading">like this</a>.</p>
           <div className="actions"><button type="button" className="btn primary">Next question</button></div>
         </div>
       </aside>

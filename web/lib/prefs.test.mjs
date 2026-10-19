@@ -18,7 +18,7 @@ test("sanitize keeps valid values and replaces or drops everything else", () => 
   assert.equal(p.accent, "#abcdef");
   assert.equal(p.extraTime, 1.5);
   assert.equal(p.hideTimer, false);        // not a boolean
-  assert.equal(p.underlineLinks, true);
+  assert.ok(!("underlineLinks" in p));      // a setting that no longer exists is dropped
   assert.equal(p.tint, "sepia");
   assert.ok(!("evil" in p));
   assert.equal(sanitize({ accent: "red; background: url(x)" }).accent, "");
