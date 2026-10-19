@@ -79,7 +79,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
           <Link ref={next} className="btn primary" href={nextHref ?? listHref}>{nextHref ? "Next question" : "Back to question list"}</Link>
         ) : (
           // The refresh re-reads this question's status, so the list, the bar and the next link count the new answer.
-          <button className="btn primary" disabled={!selected || pending} onClick={submit}>Submit answer</button>
+          <button className="btn primary" disabled={!selected || pending} onClick={submit}>{pending ? "Checking…" : selected ? `Submit ${selected}` : "Choose an answer"}</button>
         )}
       </div>
       <dialog ref={list} className="modal" style={{ width: "100%", maxWidth: 760 }} aria-labelledby="question-list-title">
