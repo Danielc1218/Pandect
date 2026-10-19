@@ -131,7 +131,7 @@ export function DisplaySettings() {
         <section className="panel prefs-group" aria-labelledby="tests">
           <h2 id="tests">Timed sections</h2>
           <Choice legend="Time allowed" name="extra-time" value={prefs.extraTime} onChange={(v) => update({ extraTime: v })}
-                  options={[[1, "Standard (35 minutes)"], [1.5, "Time and a half"], [2, "Double time"]]} />
+                  options={[[1, "Standard (35 minutes)"], [1.5, "Time and a half (52\u00bd minutes)"], [2, "Double time (70 minutes)"]]} />
           <Check label="Hide the timer until 5 minutes are left" checked={prefs.hideTimer} onChange={(v) => update({ hideTimer: v })} />
           <Choice legend="Passage and questions" name="layout" value={prefs.layout} onChange={(v) => update({ layout: v })}
                   options={[["side", "Side by side"], ["stacked", "Passage above the questions"]]} />
