@@ -42,11 +42,9 @@ html:root[data-theme="light"][data-tint="cream"]:not([data-contrast]) { --color-
 html:root[data-theme="light"][data-tint="sepia"]:not([data-contrast]) { --color-background: #eadbbd; --color-surface: #f6ecd6; --color-surface-muted: #e2d0aa; --color-text: #3a2e1c; --color-text-muted: #5e4d33; }
 html:root[data-theme="light"][data-tint="cool"]:not([data-contrast]) { --color-background: #e9eef4; --color-surface: #f6f8fb; --color-surface-muted: #dde5ee; }
 
-/* Colourblind-safe right/wrong: blue and orange (Okabe-Ito) instead of green and red, plus a tick or cross. */
+/* Colourblind-safe right/wrong: blue and orange (Okabe-Ito) instead of green and red (mock.css adds the tick or cross). */
 html:root[data-theme="light"][data-markers="colorblind"] { --color-success: #0072b2; --color-danger: #c85200; }
 html:root[data-theme="dark"][data-markers="colorblind"] { --color-success: #56b4e9; --color-danger: #f0a030; }
-html[data-markers="colorblind"] .choice.correct .note::before { content: "✓ "; }
-html[data-markers="colorblind"] .choice.incorrect .note::before { content: "✗ "; }
 
 /* Motion */
 html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after {
