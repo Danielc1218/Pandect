@@ -74,6 +74,8 @@ body:has(.test-bar:not([style*="display: none"])) .top-nav { display: none; }
 /* app-shell */
 .shell { display: flex; min-height: 100vh; }
 .rail { position: relative; width: 240px; flex: none; padding: var(--space-4); border-right: 1px solid var(--color-border); background: var(--color-surface); }
+/* on a wide screen the menu stays put while a long page scrolls (on a phone it is a row above the page) */
+@media (min-width: 768px) { .rail { align-self: flex-start; position: sticky; top: 64px; min-height: calc(100vh - 64px); } }
 .rail a { position: relative; z-index: 1; display: block; padding: var(--space-2) var(--space-4); border-radius: var(--radius-md);
           color: var(--color-text); text-decoration: none; font-size: var(--font-size-sm); }
 .rail a.active { background: var(--color-accent); color: var(--color-on-accent); font-weight: 600; }
