@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { BANK_NAME } from "@/lib/bank";
+import { supabase } from "@/lib/supabase";
 
 
 const WAYS = [
@@ -14,6 +16,15 @@ const STEPS = [
   ["Test under the clock", "Timed sections tell you whether the practice is holding up."],
 ];
 
+const SIGN_UP = <Link className="btn primary" href="/signup">Start practising free</Link>;
+
+/** The main call to action: sign up, or for someone already signed in, their dashboard. Only this waits for the session. */
+async function StartButton() {
+  const { data } = await (await supabase()).auth.getClaims();
+  return data?.claims ? <Link className="btn primary" href="/learn">Go to your dashboard</Link> : SIGN_UP;
+}
+const Start = () => <Suspense fallback={SIGN_UP}><StartButton /></Suspense>;
+
 export default function Home() {
   return (
     <>
@@ -22,7 +33,7 @@ export default function Home() {
           <span className="tag">Logical Reasoning and Reading Comprehension</span>
           <h1>Practise on {"LSAT-style"} questions until the patterns feel <mark>obvious</mark>.</h1>
           <div className="actions">
-            <Link className="btn primary" href="/signup">Start practising free</Link>
+            <Start />
             <Link className="btn" href="/about">How it works</Link>
           </div>
         </div>
@@ -57,7 +68,7 @@ export default function Home() {
       </section>
       <section className="panel tinted">
         <h2>Ready for your first set?</h2>
-        <div><Link className="btn primary" href="/signup">Start practising free</Link></div>
+        <div><Start /></div>
       </section>
     </>
   );
