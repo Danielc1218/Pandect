@@ -1,37 +1,78 @@
 import Image from "next/image";
 import Link from "next/link";
-import { activity, daysUntil, drillHref, pct, typeStats } from "@/lib/data";
+import { Tabs } from "@/components/Tabs";
+import { BANK_NAME } from "@/lib/bank";
+import { activity, daysUntil, drillHref, pct, SECTIONS, typeStats, type TypeStat } from "@/lib/data";
+import { SESSION_FIELDS, sessionHome, sessionLabel, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
 
 export const metadata = { title: "Learning" };
 
+const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
+
+/** How many questions of each type the user has answered: one bar per type on a shared scale, most answered first. */
+function AnsweredBars({ types }: { types: TypeStat[] }) {
+  if (!types.length) return <div className="panel"><p>No questions of this kind yet.</p></div>;
+  const most = Math.max(1, ...types.map((t) => t.answered));
+  return (
+    <div className="bars">
+      {[...types].sort((a, b) => b.answered - a.answered || a.question_type.localeCompare(b.question_type)).map((t) => (
+        <Link key={t.question_type} href={drillHref(t.section_type, t.question_type)} title={`${t.question_type}: ${t.answered} of ${t.total} answered`}>
+          <span className="name">{t.question_type}</span>
+          <span className="bar"><span style={{ width: `${(100 * t.answered) / most}%` }} /></span>
+          <span className="count">{t.answered}</span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export default async function Learn() {
   const { db, user } = await requireUser();
-  const [{ data: profile }, stats, types] = await Promise.all([
+  const [{ data: profile }, stats, types, { data: sessions }] = await Promise.all([
     db.from("profiles").select("display_name, weekly_goal, test_date").eq("id", user.id).single(),
     activity(db),
     typeStats(db),
+    db.from("test_sessions").select(SESSION_FIELDS).eq("bank", BANK_NAME).order("started_at", { ascending: false }).limit(1),
   ]);
   const goal = profile?.weekly_goal ?? 60;
-  const next = types.find((t) => t.question_type === stats.latest?.question_type && t.section_type === stats.latest?.section_type) ?? types[0];
-  // Weakest types once there is enough of a record; otherwise the most common ones.
-  const tried = types.filter((t) => t.answered >= 5).sort((a, b) => a.correct / a.answered - b.correct / b.answered);
-  const plan = (tried.length >= 3 ? tried : types).slice(0, 3);
   const daysLeft = profile?.test_date ? daysUntil(profile.test_date) : null;
+
+  // Where the user left off: their latest timed section or their latest drill, whichever they touched last.
+  const session = (sessions as unknown as Session[] | null)?.[0];
+  const sessionAt = session && [session.started_at, stats.sessionAt(session.id) ?? ""].sort().at(-1)!;
+  const inSection = session && (!stats.latestAt || sessionAt! > stats.latestAt);
+  const drill = types.find((t) => t.question_type === stats.latest?.question_type && t.section_type === stats.latest?.section_type) ?? types[0];
+  // Weakest types: the highest share of wrong answers first, the larger number of misses breaking ties.
+  const weakest = types.filter((t) => t.answered > t.correct)
+    .map((t) => ({ ...t, wrong: t.answered - t.correct }))
+    .sort((x, y) => y.wrong / y.answered - x.wrong / x.answered || y.wrong - x.wrong).slice(0, 5);
+  const photo = (section?: string | null) => `/images/${section === SECTIONS.rc ? "reading" : "logic"}.jpg`;
 
   return (
     <>
       <section>
         <h1>{stats.answered ? "Welcome back" : "Welcome"}, {profile?.display_name ?? "there"}</h1>
         <div className="split">
-          {next && (
-            <Link className="card wide" href={drillHref(next.section_type, next.question_type)}>
-              <Image className="photo" src={`/images/${next.section_type === "Reading Comprehension" ? "reading" : "logic"}.jpg`} alt="" width={800} height={400} priority />
+          {inSection ? (
+            // A section still running resumes where it stopped; a finished one leads back to its test for the next section.
+            <Link className="card wide" href={session.finished_at ? sessionHome(session) : `/section/${session.id}`}>
+              <Image className="photo" src={photo(session.section_type)} alt="" width={800} height={400} priority />
               <div className="body">
-                <div><span className="tag">{next.section_type}</span> <span className="tag accent">{stats.answered ? "Continue" : "Start here"}</span></div>
-                <h3>{next.question_type}</h3>
-                <p className="muted">{next.answered} of {next.total} answered</p>
-                <div className="progress"><span style={{ width: `${pct(next.answered, next.total)}%` }} /></div>
+                <div><span className="tag accent">Where you left off</span> <span className="tag">{session.finished_at ? "Finished" : "In progress"}</span></div>
+                <h3>{sessionLabel(session).title}</h3>
+                <p className="muted">{sessionLabel(session).subtitle}</p>
+                <p className="muted">{session.finished_at ? `Finished ${day(session.finished_at)}` : `Started ${day(session.started_at)}`}</p>
+              </div>
+            </Link>
+          ) : drill && (
+            <Link className="card wide" href={drillHref(drill.section_type, drill.question_type)}>
+              <Image className="photo" src={photo(drill.section_type)} alt="" width={800} height={400} priority />
+              <div className="body">
+                <div><span className="tag accent">{stats.latest ? "Where you left off" : "Start here"}</span> <span className="tag">{drill.section_type}</span></div>
+                <h3>{drill.question_type}</h3>
+                <p className="muted">{drill.answered} of {drill.total} answered</p>
+                <div className="progress"><span style={{ width: `${pct(drill.answered, drill.total)}%` }} /></div>
               </div>
             </Link>
           )}
@@ -50,19 +91,29 @@ export default async function Learn() {
         <div className="stat"><div className="value">{daysLeft === null ? "–" : Math.max(0, daysLeft)}</div><div className="label">{daysLeft === null ? "no test date set" : "days to test day"}</div></div>
       </section>
       <section>
-        <h2>{tried.length >= 3 ? "Your weakest types" : "Most common types"}</h2>
-        <div className="list">
-          {plan.map((t) => (
-            <Link key={t.section_type + t.question_type} className="row" href={drillHref(t.section_type, t.question_type)}>
-              <div className="grow">
-                <div className="title">{t.question_type}</div>
-                <div className="muted">{t.answered ? `${t.correct} of ${t.answered} correct` : `${t.total} questions, not started`}</div>
-              </div>
-              <span className="tag">{t.section_type}</span>
-              <div className="figure">{t.answered ? `${pct(t.correct, t.answered)}%` : "–"}</div>
-            </Link>
-          ))}
-        </div>
+        <h2>Your weakest types</h2>
+        {weakest.length ? (
+          <div className="list">
+            {weakest.map((t) => (
+              <Link key={t.section_type + t.question_type} className="row" href={drillHref(t.section_type, t.question_type)}>
+                <div className="grow">
+                  <div className="title">{t.question_type}</div>
+                  <div className="muted">{t.wrong} of {t.answered} wrong</div>
+                </div>
+                <span className="tag">{t.section_type}</span>
+                <div className="figure">{pct(t.wrong, t.answered)}% wrong</div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="panel"><p>{stats.answered ? "No wrong answers yet." : "Answer some questions and the types you miss most will show here."}</p></div>
+        )}
+      </section>
+      <section>
+        <h2>Questions answered by type</h2>
+        <Tabs labels={Object.values(SECTIONS)} label="Section">
+          {Object.values(SECTIONS).map((s) => <AnsweredBars key={s} types={types.filter((t) => t.section_type === s)} />)}
+        </Tabs>
         <div className="actions">
           <Link className="btn" href="/types">All question types</Link>
           <Link className="btn" href="/practice">Timed sections</Link>

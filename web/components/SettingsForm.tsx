@@ -1,16 +1,15 @@
 "use client";
 
 import { useActionState } from "react";
-import { saveSettings, type SettingsState } from "@/lib/actions";
+import { saveProfile, saveSettings, type SettingsState } from "@/lib/actions";
 
-type Profile = { display_name: string; target_score: number | null; curr_score: number | null; test_date: string | null; weekly_goal: number };
+type Profile = { target_score: number | null; curr_score: number | null; test_date: string | null; weekly_goal: number };
 
+/** The learner's goals: scores, test date and weekly target. Shown on the profile page. */
 export function SettingsForm({ profile }: { profile: Profile }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveSettings, {});
   return (
     <form className="panel stack" action={action}>
-      <h2>Profile</h2>
-      <div className="field"><label htmlFor="display-name">Display name</label><input id="display-name" name="display_name" type="text" defaultValue={profile.display_name} required /></div>
       <h2>Goal</h2>
       <div className="field">
         <label htmlFor="target-score">Target score</label>
@@ -22,6 +21,18 @@ export function SettingsForm({ profile }: { profile: Profile }) {
         <label htmlFor="weekly-goal">Weekly goal</label>
         <select id="weekly-goal" name="weekly_goal" defaultValue={profile.weekly_goal}>{[20, 40, 60, 100].map((n) => <option key={n} value={n}>{n} questions</option>)}</select>
       </div>
+      {state.error && <p className="field invalid" role="alert"><span className="hint">{state.error}</span></p>}
+      {state.saved && <p role="status">Saved.</p>}
+      <div className="actions"><button className="btn primary" disabled={pending}>Save changes</button></div>
+    </form>
+  );
+}
+
+export function ProfileForm({ name }: { name: string }) {
+  const [state, action, pending] = useActionState<SettingsState, FormData>(saveProfile, {});
+  return (
+    <form className="panel stack" action={action}>
+      <div className="field"><label htmlFor="display-name">Display name</label><input id="display-name" name="display_name" type="text" defaultValue={name} required /></div>
       {state.error && <p className="field invalid" role="alert"><span className="hint">{state.error}</span></p>}
       {state.saved && <p role="status">Saved.</p>}
       <div className="actions"><button className="btn primary" disabled={pending}>Save changes</button></div>

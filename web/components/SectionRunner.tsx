@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { finishSection, saveAnswer } from "@/lib/actions";
 import { sectionMinutes } from "@/lib/timing";
 import { Choices } from "./Choices";
+import { ThemeToggle } from "./Nav";
 import { usePrefs } from "./Prefs";
 
 export type SectionQuestion = { id: string; number: number; stimulus: string | null; prompt: string; options: Record<string, string>; passage: number | null };
@@ -65,6 +66,7 @@ export function SectionRunner({
         <span className="spacer" />
         <span className="muted">{expired ? "Over time" : low ? "Under 5 minutes left" : "Time left"}</span>
         <span className={`timer${low ? " low" : ""}`} role="timer">{clock}</span>
+        <ThemeToggle />
         <Link className="btn" href="/practice">Pause and exit</Link>
       </header>
       <div className={`reader${q.passage === null ? " single" : ""}`}>
@@ -94,7 +96,7 @@ export function SectionRunner({
       </div>
       <nav className="qnav" aria-label="Questions in this section">
         {questions.map((item, i) => {
-          const state = i === index ? "current" : flagged.includes(item.id) ? "flagged" : answers[item.id] ? "done" : "";
+          const state = [i === index && "current", flagged.includes(item.id) && "flagged", answers[item.id] && "done"].filter(Boolean).join(" ");
           const label = `Question ${i + 1}${answers[item.id] ? ", answered" : ""}${flagged.includes(item.id) ? ", flagged" : ""}`;
           return <a key={item.id} href="#" className={state || undefined} aria-label={label} aria-current={i === index ? "true" : undefined} onClick={(e) => { e.preventDefault(); setIndex(i); }}>{i + 1}</a>;
         })}

@@ -6,6 +6,7 @@ import { BANK_NAME } from "@/lib/bank";
 import { applyPrefs } from "@/lib/prefs";
 import { supabase } from "@/lib/supabase";
 import "./design/tokens.css";
+import "./design/dark.css";
 import "./design/mock.css";
 import "./skeleton.css";
 import "./prefs.css";

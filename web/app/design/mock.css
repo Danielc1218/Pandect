@@ -2,6 +2,23 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--color-background); color: var(--color-text);
        font-family: var(--font-family-body); font-size: var(--font-size-md); line-height: 1.5; }
+/* graph paper: a faint square grid over the page colour; panels, cards and bars sit on it with their own surface */
+body { background-image: linear-gradient(to right, color-mix(in srgb, var(--color-border) 45%, transparent) 1px, transparent 1px),
+                         linear-gradient(to bottom, color-mix(in srgb, var(--color-border) 45%, transparent) 1px, transparent 1px);
+       background-size: var(--space-6) var(--space-6); }
+/* dark mode swaps the colour tokens (themes/dark.css); this makes form controls and scrollbars follow */
+:root[data-theme="dark"] { color-scheme: dark; }
+/* theme switch: a slider with the moon on the left and the sun on the right; the knob sits under the current one */
+.theme-toggle { position: relative; flex: none; display: inline-flex; align-items: center; justify-content: space-between;
+                width: 60px; height: 32px; padding: 0 var(--space-2); border: 1px solid var(--color-border);
+                border-radius: var(--radius-full); background: var(--color-surface-muted); color: var(--color-text-muted); cursor: pointer; }
+.theme-toggle svg { position: relative; z-index: 1; width: 16px; height: 16px; transition: color 200ms ease; }
+.theme-toggle::before { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: var(--radius-full);
+                        background: var(--color-surface); box-shadow: var(--shadow-card); transform: translateX(28px); transition: transform 200ms ease; }
+.theme-toggle .sun, :root[data-theme="dark"] .theme-toggle .moon { color: var(--color-text); }
+:root[data-theme="dark"] .theme-toggle::before { transform: none; }
+:root[data-theme="dark"] .theme-toggle .sun { color: var(--color-text-muted); }
+@media (prefers-reduced-motion: reduce) { .theme-toggle::before, .theme-toggle svg { transition: none; } }
 h1, h2, h3 { font-family: var(--font-family-heading); font-weight: 600; margin: 0; line-height: 1.25; }
 h1 { font-size: var(--font-size-xl); }
 h2 { font-size: var(--font-size-md); }
@@ -48,6 +65,15 @@ body:has(.test-bar:not([style*="display: none"])) .top-nav { display: none; }
 .rail a { position: relative; z-index: 1; display: block; padding: var(--space-2) var(--space-4); border-radius: var(--radius-md);
           color: var(--color-text); text-decoration: none; font-size: var(--font-size-sm); }
 .rail a.active { background: var(--color-accent); color: var(--color-on-accent); font-weight: 600; }
+/* the two actions under the rail's links are buttons, not links in the list */
+.rail a.btn { margin-top: var(--space-2); padding: var(--space-2) var(--space-4); text-align: center; }
+.rail a.btn:first-of-type { margin-top: var(--space-6); }
+.rail a.btn.primary { color: var(--color-on-primary); }
+/* icon-button: a round control that is only an icon (settings, profile) */
+.icon-btn { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--color-border);
+            border-radius: var(--radius-full); background: var(--color-surface); color: var(--color-text); transition: background-color 120ms ease; }
+.icon-btn:hover { background: var(--color-surface-muted); }
+.icon-btn svg { width: 18px; height: 18px; }
 main { flex: 1; min-width: 0; padding: var(--space-8); }
 section { max-width: 1000px; margin: 0 auto var(--space-12); }
 section > * + * { margin-top: var(--space-4); }
@@ -117,6 +143,18 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .faq summary { font-weight: 600; cursor: pointer; }
 .faq details p { margin-top: var(--space-2); }
 
+/* bar-chart: one count per row, every bar on the same scale; the number sits beside its bar */
+.bars { display: grid; grid-template-columns: max-content 1fr max-content; align-items: center; gap: var(--space-3) var(--space-4);
+        padding: var(--space-6); background: var(--color-surface); border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg); box-shadow: var(--shadow-card); }
+.bars a { display: contents; color: var(--color-text); text-decoration: none; }
+.bars .name { font-size: var(--font-size-sm); }
+.bars a:hover .name { text-decoration: underline; }
+.bars .bar { height: 12px; border-left: 1px solid var(--color-border); }
+.bars .bar > span { display: block; height: 100%; background: var(--color-primary);
+                    border-radius: 0 var(--radius-sm) var(--radius-sm) 0; transition: width 450ms ease; }
+.bars .count { font-size: var(--font-size-sm); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+
 /* question and answer-choice */
 .question { max-width: 760px; background: var(--color-surface); border: 1px solid var(--color-border);
             border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-8); }
@@ -157,7 +195,11 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 
 .menu-btn { display: none; }
 @media (max-width: 767px) {
-  .rail, .top-nav .links, .top-nav .btn:not(.primary):not(.menu-btn), .test-bar .muted { display: none; }
+  .top-nav .links, .top-nav .btn:not(.primary):not(.menu-btn), .test-bar .muted { display: none; }
+  /* the rail becomes a wrapping row above the page, so its links and buttons stay reachable */
+  .shell { flex-direction: column; }
+  .rail { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2); width: auto; border-right: 0; border-bottom: 1px solid var(--color-border); }
+  .rail a.btn, .rail a.btn:first-of-type { margin-top: 0; }
   .menu-btn { display: inline-block; }
   body.menu-open .top-nav { height: auto; flex-wrap: wrap; padding-bottom: var(--space-3); }
   body.menu-open .top-nav .links { display: flex; flex-direction: column; gap: var(--space-3); order: 9; width: 100%; padding-top: var(--space-3); }
@@ -189,9 +231,11 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
         padding: var(--space-3) var(--space-6); background: var(--color-surface); border-top: 1px solid var(--color-border); }
 .qnav a:not(.btn) { width: 32px; height: 32px; display: grid; place-items: center; border: 1px solid var(--color-border);
           border-radius: var(--radius-sm); color: var(--color-text); font-size: var(--font-size-sm); text-decoration: none; }
-.qnav a.done { background: var(--color-surface-muted); }
-.qnav a.flagged { border: 2px dashed var(--color-text); }
-.qnav a.current { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); font-weight: 600; }
+/* shading is the question's state (green answered, yellow flagged, flag wins); the current one has the heavy outline */
+.qnav a:not(.btn) { transition: background-color 200ms ease, border-color 200ms ease; }
+.qnav a.done { background: color-mix(in srgb, var(--color-success) 35%, var(--color-surface)); border-color: var(--color-success); }
+.qnav a.flagged { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); }
+.qnav a.current { outline: 2px solid var(--color-primary); outline-offset: 1px; font-weight: 600; }
 .qnav .spacer { flex: 1; }
 @media (max-width: 767px) { .reader { grid-template-columns: 1fr; padding: var(--space-4); } }
 

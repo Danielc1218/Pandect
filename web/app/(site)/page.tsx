@@ -5,7 +5,7 @@ import { BANK_NAME } from "@/lib/bank";
 
 const WAYS = [
   { href: "/types", photo: "logic", tag: "Drill", title: "Drill one question type", text: "Flaw, Strengthen, Necessary Assumption and the rest, each in its own set." },
-  { href: "/practice", photo: "columns", tag: "Practice test", title: "Sit a timed section", text: "A Logical Reasoning section against a 35-minute clock, like test day." },
+  { href: "/practice", photo: "columns", tag: "Practice test", title: "Sit a timed section", text: "Logical Reasoning or Reading Comprehension, 35 minutes, like test day." },
   { href: "/progress", photo: "desk", tag: "Review", title: "Review what you missed", text: "See your accuracy by question type and redo the ones you got wrong." },
 ];
 const STEPS = [
@@ -19,7 +19,7 @@ export default function Home() {
     <>
       <section className="hero">
         <div className="stack">
-          <span className="tag">{"Logical Reasoning"}</span>
+          <span className="tag">Logical Reasoning and Reading Comprehension</span>
           <h1>Practise on {"LSAT-style"} questions until the patterns feel <mark>obvious</mark>.</h1>
           <div className="actions">
             <Link className="btn primary" href="/signup">Start practising free</Link>

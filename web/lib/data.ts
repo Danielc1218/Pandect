@@ -32,7 +32,7 @@ export async function activity(db: SupabaseClient) {
   // Reads the latest 1,000 attempts and counts in JS; move to a SQL view when users pass that.
   const [{ count }, { data }] = await Promise.all([
     db.from("attempts").select("id", { count: "exact", head: true }),
-    db.from("attempts").select("correct, created_at, questions(section_type, question_type)").order("created_at", { ascending: false }).limit(1000),
+    db.from("attempts").select("correct, created_at, session_id, questions(section_type, question_type)").order("created_at", { ascending: false }).limit(1000),
   ]);
   const rows = data ?? [];
   const last100 = rows.slice(0, 100);
@@ -40,12 +40,17 @@ export async function activity(db: SupabaseClient) {
   const days = new Set(rows.map((r) => dayOf(r.created_at)));
   let streak = 0;
   for (let d = days.has(today) ? today : today - 1; days.has(d); d--) streak++;
-  const latest = rows[0]?.questions as unknown as { section_type: string; question_type: string } | undefined;
+  // The last question answered in a drill (not in a timed section), and when: where a driller left off.
+  const drill = rows.find((r) => !r.session_id);
+  const latest = drill?.questions as unknown as { section_type: string; question_type: string } | undefined;
   return {
     answered: count ?? 0,
     accuracy: pct(last100.filter((r) => r.correct).length, last100.length),
     week: rows.filter((r) => dayOf(r.created_at) > today - 7).length,
     streak,
     latest,
+    latestAt: drill?.created_at as string | undefined,
+    /** When the user last answered in each timed section, newest first. */
+    sessionAt: (id: string) => rows.find((r) => r.session_id === id)?.created_at as string | undefined,
   };
 }

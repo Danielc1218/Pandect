@@ -58,12 +58,9 @@ export type SettingsState = { saved?: boolean; error?: string };
 export async function saveSettings(_: SettingsState, form: FormData): Promise<SettingsState> {
   const { db, user } = await requireUser();
   const number = (key: string) => (form.get(key) ? Number(form.get(key)) : null);
-  const name = String(form.get("display_name") ?? "").trim();
-  if (!name) return { error: "Enter a display name." };
   const { error } = await db
     .from("profiles")
     .update({
-      display_name: name,
       target_score: number("target_score"),
       curr_score: number("curr_score"),
       test_date: String(form.get("test_date") ?? "") || null,
@@ -71,6 +68,16 @@ export async function saveSettings(_: SettingsState, form: FormData): Promise<Se
     })
     .eq("id", user.id);
   if (error) return { error: "Scores must be between 120 and 180." };
+  revalidatePath("/", "layout");
+  return { saved: true };
+}
+
+export async function saveProfile(_: SettingsState, form: FormData): Promise<SettingsState> {
+  const { db, user } = await requireUser();
+  const name = String(form.get("display_name") ?? "").trim();
+  if (!name) return { error: "Enter a display name." };
+  const { error } = await db.from("profiles").update({ display_name: name }).eq("id", user.id);
+  if (error) return { error: error.message };
   revalidatePath("/", "layout");
   return { saved: true };
 }

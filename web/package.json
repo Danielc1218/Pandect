@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --test lib/*.test.mjs",
-    "design": "if [ -d ../design/mock ]; then mkdir -p app/design public/images && cp ../design/mock/tokens.css ../design/mock/mock.css app/design/ && cp ../design/mock/images/*.jpg public/images/; fi",
+    "design": "if [ -d ../design/mock ]; then mkdir -p app/design public/images && cp ../design/mock/tokens.css ../design/mock/mock.css app/design/ && sed 's/^:root {/:root[data-theme=dark] {/' ../design/mock/themes/dark.css > app/design/dark.css && cp ../design/mock/images/*.jpg public/images/; fi",
     "predev": "npm run design",
     "prebuild": "npm run design"
   },
