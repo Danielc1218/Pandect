@@ -100,7 +100,8 @@ export function SectionRunner({
       </header>
       <div className={`reader${q.passage === null ? " single" : ""}`}>
         {q.passage !== null && (
-          <article className="passage">
+          // keyed by passage, so a new passage starts at its top rather than where the last one was scrolled to
+          <article key={q.passage} className="passage">
             <div><span className="tag">Passage {q.passage + 1} of {passages.length}</span></div>
             <PassageText text={passages[q.passage]} />
           </article>
