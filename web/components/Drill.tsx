@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useEffectEvent, useRef, useState, useTransition, type ReactNode } from "react";
 import { answer } from "@/lib/actions";
 import { typeset } from "@/lib/text";
 import { Choices } from "./Choices";
@@ -19,6 +19,19 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
   const [eliminated, setEliminated] = useState<string[]>([]);
   const [result, setResult] = useState<{ correct: boolean; correctAnswer: string; explanation: string | null } | null>(null);
   const [pending, start] = useTransition();
+  const submit = () => selected && !pending && start(async () => { setResult(await answer(question.id, selected)); router.refresh(); });
+  const pick = (l: string) => { setSelected(l); setEliminated((list) => list.filter((x) => x !== l)); };
+  // Keys: A–E or 1–5 choose, Enter submits and then moves on. Ignored while typing or with the question list open.
+  const onKey = useEffectEvent((e: KeyboardEvent) => {
+    if (e.metaKey || e.ctrlKey || e.altKey || list.current?.open || (e.target as HTMLElement).closest("input, select, textarea, button, a")) return;
+    const letter = "ABCDE"[Number(e.key) - 1] ?? (/^[a-e]$/i.test(e.key) ? e.key.toUpperCase() : null);
+    if (letter && !result && question.options[letter]) { e.preventDefault(); pick(letter); }
+    else if (e.key === "Enter") { e.preventDefault(); if (result) router.push(nextHref ?? listHref); else submit(); }
+  });
+  useEffect(() => {
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const toggle = (letter: string) => {
     setEliminated((list) => (list.includes(letter) ? list.filter((l) => l !== letter) : [...list, letter]));
     setSelected((s) => (s === letter ? null : s));
@@ -31,7 +44,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
       <h3>{typeset(question.prompt)}</h3>
       <Choices
         options={question.options} selected={selected} eliminated={eliminated} result={result}
-        onSelect={(l) => { setSelected(l); setEliminated((list) => list.filter((x) => x !== l)); }}
+        onSelect={pick}
         onEliminate={toggle}
       />
       {result && <div className="explain" role="status"><strong>{result.correct ? "Correct." : `Not quite. The answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{typeset(result.explanation)}</p>}</div>}
@@ -41,7 +54,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
           <Link className="btn primary" href={nextHref ?? listHref}>{nextHref ? "Next question" : "Back to question list"}</Link>
         ) : (
           // The refresh re-reads this question's status, so the list, the bar and the next link count the new answer.
-          <button className="btn primary" disabled={!selected || pending} onClick={() => start(async () => { setResult(await answer(question.id, selected!)); router.refresh(); })}>Submit answer</button>
+          <button className="btn primary" disabled={!selected || pending} onClick={submit}>Submit answer</button>
         )}
       </div>
       <dialog ref={list} className="modal" style={{ width: "100%", maxWidth: 760 }} aria-labelledby="question-list-title">
