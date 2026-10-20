@@ -43,6 +43,7 @@ export function Choices({
           >
             <span className="letter">{letter}</span>
             <span>{typeset(options[letter])}</span>
+            {state === "eliminated" && <span className="sr-only"> (crossed out)</span>}
             {result && letter === result.correctAnswer && <span className="note">Correct answer</span>}
             {result && letter === selected && letter !== result.correctAnswer && <span className="note">Your answer</span>}
             {!result && onEliminate && (
