@@ -174,6 +174,7 @@ export function DisplaySettings() {
         <div className="actions spread">
           <p role="status" className="muted" style={{ margin: 0 }}>{status}</p>
           <button type="button" className="btn" onClick={() => {
+            if (!confirm("Put every display setting back to how it started?")) return;
             // back to the defaults, keeping the colors saved for picking again
             update({ ...DEFAULT_PREFS, savedAccents: prefs.savedAccents, savedTints: prefs.savedTints });
             chooseTheme("system");
