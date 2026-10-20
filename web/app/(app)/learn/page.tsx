@@ -89,7 +89,15 @@ export default async function Learn() {
         <div className="stat"><div className="value">{stats.answered.toLocaleString()}</div><div className="label">questions answered</div></div>
         <div className="stat"><div className={`value ${stats.answered ? grade(stats.accuracy) : ""}`}>{stats.answered ? `${stats.accuracy}%` : "–"}</div><div className="label">accuracy, last 100</div></div>
         <div className="stat"><div className="value">{stats.streak} {stats.streak === 1 ? "day" : "days"}</div><div className="label">current streak</div></div>
-        <div className="stat"><div className="value">{daysLeft === null ? "–" : Math.max(0, daysLeft)}</div><div className="label">{daysLeft === null ? <Link href="/profile">Set your test date</Link> : "days to test day"}</div></div>
+        {/* no date, or one that has passed, leads to where it is set */}
+        <div className="stat">
+          <div className="value">{daysLeft === null || daysLeft < 0 ? "–" : daysLeft === 0 ? "Today" : daysLeft}</div>
+          <div className="label">
+            {daysLeft === null ? <Link href="/profile">Set your test date</Link>
+              : daysLeft < 0 ? <Link href="/profile">Test date passed. Set a new one</Link>
+              : daysLeft === 0 ? "is test day. Good luck!" : daysLeft === 1 ? "day to test day" : "days to test day"}
+          </div>
+        </div>
       </section>
       <section>
         <h2>Your weakest types</h2>
