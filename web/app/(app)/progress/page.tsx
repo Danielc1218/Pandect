@@ -26,14 +26,14 @@ function Calendar({ perDay, today }: { perDay: Record<number, number>; today: nu
           return <span key={w}>{w === 0 || month(start) !== month(start - 7) ? new Date(start * 86_400_000).toLocaleDateString("en-US", { month: "short", timeZone: "UTC" }) : ""}</span>;
         })}
       </div>
-      <div className="calendar" role="img" aria-label={`${total} questions answered in the last ${WEEKS} weeks`}>
+      <div className="calendar" role="img" aria-label={`${total} ${total === 1 ? "question" : "questions"} answered in the last ${WEEKS} weeks`}>
         {days.map((d) => {
           const n = perDay[d] ?? 0;
           return <span key={d} data-level={LEVELS.findLastIndex((l) => n >= l)} data-today={d === today || undefined} title={`${d === today ? "Today" : label(d)}: ${n} ${n === 1 ? "question" : "questions"}`} />;
         })}
       </div>
       <div className="actions spread" style={{ alignItems: "center" }}>
-        <p className="muted">{total} questions in the last {WEEKS} weeks. Each square is a day.</p>
+        <p className="muted">{total} {total === 1 ? "question" : "questions"} in the last {WEEKS} weeks. Each square is a day.</p>
         <p className="muted calendar-legend" aria-hidden="true">Less {LEVELS.map((_, i) => <span key={i} data-level={i} />)} More</p>
       </div>
     </div>
