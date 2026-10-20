@@ -16,9 +16,9 @@ import { ShortcutsHelp } from "./ShortcutsHelp";
 export type SectionQuestion = { id: string; number: number; stimulus: string | null; prompt: string; options: Record<string, string>; passage: number | null };
 
 export function SectionRunner({
-  sessionId, title, subtitle, startedAt, questions, passages, saved,
+  sessionId, title, subtitle, startedAt, questions, passages, saved, exitHref,
 }: {
-  sessionId: string; title: string; subtitle: string; startedAt: string;
+  sessionId: string; title: string; subtitle: string; startedAt: string; exitHref: string;
   questions: SectionQuestion[]; passages: string[]; saved: Record<string, string>;
 }) {
   const [index, setIndex] = useState(() => Math.max(0, questions.findIndex((q) => !saved[q.id])));
@@ -144,7 +144,7 @@ export function SectionRunner({
         <Highlighter />
         <ThemeToggle />
         {/* the clock runs from when the section started, so leaving does not stop it; the button says so */}
-        <Link className="btn" href="/practice" title="Your answers are saved. The clock keeps running while you are away.">Save and exit</Link>
+        <Link className="btn" href={exitHref} title="Your answers are saved. The clock keeps running while you are away.">Save and exit</Link>
       </header>
       <div id="main" tabIndex={-1} className={`reader${q.passage === null ? " single" : ""}`}>
         {q.passage !== null && (

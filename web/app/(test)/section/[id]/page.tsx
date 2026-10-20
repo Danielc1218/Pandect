@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { SectionRunner } from "@/components/SectionRunner";
-import { SESSION_FIELDS, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
+import { SESSION_FIELDS, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
 
 export const metadata = { title: "Timed section" };
@@ -25,6 +25,7 @@ export default async function SectionPage({ params }: PageProps<"/section/[id]">
       title={label.title}
       subtitle={label.subtitle}
       startedAt={session.started_at}
+      exitHref={sessionHome(session)}
       passages={section.passages}
       saved={Object.fromEntries((attempts ?? []).map((a) => [a.question_id, a.chosen]))}
       questions={section.questions}
