@@ -3,7 +3,10 @@
 import { useEffect, useRef } from "react";
 import { closeOnBackdrop } from "@/lib/dialog";
 
-/** "?" opens a list of the page's keyboard shortcuts. `keys` pairs what to press with what it does. */
+/**
+ * "?" opens a list of the page's keyboard shortcuts, as does the small button this draws (where there is a keyboard).
+ * `keys` pairs what to press with what it does.
+ */
 export function ShortcutsHelp({ keys }: { keys: [string, string][] }) {
   const help = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -16,15 +19,18 @@ export function ShortcutsHelp({ keys }: { keys: [string, string][] }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
   return (
-    <dialog ref={help} className="modal" aria-labelledby="shortcuts-title" onClick={closeOnBackdrop}>
-      <h2 id="shortcuts-title">Keyboard shortcuts</h2>
-      <table className="plain">
-        <tbody>
-          {keys.map(([press, does]) => <tr key={press}><td><kbd>{press}</kbd></td><td>{does}</td></tr>)}
-          <tr><td><kbd>?</kbd></td><td>This list</td></tr>
-        </tbody>
-      </table>
-      <form method="dialog" className="actions"><button className="btn">Close</button></form>
-    </dialog>
+    <>
+      <button type="button" className="link-btn keys-hint" onClick={() => help.current?.showModal()} aria-keyshortcuts="?">All keyboard shortcuts</button>
+      <dialog ref={help} className="modal" aria-labelledby="shortcuts-title" onClick={closeOnBackdrop}>
+        <h2 id="shortcuts-title">Keyboard shortcuts</h2>
+        <table className="plain">
+          <tbody>
+            {keys.map(([press, does]) => <tr key={press}><td><kbd>{press}</kbd></td><td>{does}</td></tr>)}
+            <tr><td><kbd>?</kbd></td><td>This list</td></tr>
+          </tbody>
+        </table>
+        <form method="dialog" className="actions"><button className="btn">Close</button></form>
+      </dialog>
+    </>
   );
 }

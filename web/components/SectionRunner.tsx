@@ -166,7 +166,7 @@ export function SectionRunner({
           {q.stimulus && <p>{typeset(q.stimulus)}</p>}
           <h3>{typeset(q.prompt)}</h3>
           <Choices options={q.options} selected={answers[q.id] ?? null} eliminated={eliminated[q.id] ?? []} onSelect={select} onEliminate={eliminate} />
-          <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> answer · <kbd>←</kbd> <kbd>→</kbd> previous and next · <kbd>F</kbd> flag · <kbd>Shift</kbd>+letter or <kbd>✕</kbd> crosses a choice out · <kbd>?</kbd> all shortcuts</p>
+          <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> answer · <kbd>←</kbd> <kbd>→</kbd> previous and next · <kbd>F</kbd> flag · <kbd>Shift</kbd>+letter or <kbd>✕</kbd> crosses a choice out</p>
           <ShortcutsHelp keys={[["A–E or 1–5", "Answer"], ["Shift+A–E", "Cross out a choice, or bring it back"], ["← →", "Previous and next question"], ["Home End", "First and last question"], ["F", "Flag or unflag for review"], ["H", "Turn the highlighter on or off"]]} />
           <div className="actions spread">
             <button className="btn" onClick={flag} aria-pressed={flagged.includes(q.id)} aria-keyshortcuts="F">
