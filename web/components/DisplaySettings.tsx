@@ -182,7 +182,8 @@ export function DisplaySettings() {
         </div>
       </div>
 
-      <aside className="preview stack" aria-label="Preview">
+      {/* a picture of the settings at work: inert, so its button can't be focused or pressed */}
+      <aside className="preview stack" aria-label="Preview" inert>
         <article className="passage">
           <div><span className="tag">Preview</span></div>
           <p>Critics have long treated the serialized novel as a commercial product first and a work of art second. Yet the breaks between installments could also shape how readers understood what came before them.</p>
