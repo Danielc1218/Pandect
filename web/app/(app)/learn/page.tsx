@@ -110,7 +110,8 @@ export default async function Learn() {
                   <div className="muted">{t.wrong} of {t.answered} wrong</div>
                 </div>
                 <span className="tag">{t.section_type}</span>
-                <div className="figure">{pct(t.wrong, t.answered)}% wrong</div>
+                {/* wrong is the flip side of accuracy, so it takes the color accuracy would */}
+                <div className={`figure score ${grade(pct(t.correct, t.answered))}`}>{pct(t.wrong, t.answered)}% wrong</div>
               </Link>
             ))}
           </div>
