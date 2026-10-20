@@ -60,6 +60,13 @@ export function SectionRunner({
     setEliminated((e) => ({ ...e, [q.id]: (e[q.id] ?? []).filter((l) => l !== letter) }));
     startSave(() => saveAnswer(sessionId, q.id, letter));
   };
+  // Closing the tab while an answer is on its way would lose it: the browser asks first.
+  useEffect(() => {
+    if (!saving) return;
+    const ask = (e: BeforeUnloadEvent) => e.preventDefault();
+    addEventListener("beforeunload", ask);
+    return () => removeEventListener("beforeunload", ask);
+  }, [saving]);
   const eliminate = (letter: string) =>
     setEliminated((e) => {
       const list = e[q.id] ?? [];
