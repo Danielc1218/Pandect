@@ -3,7 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { Choices } from "@/components/Choices";
 import { ExpandAll } from "@/components/ExpandAll";
 import { PassageText } from "@/components/PassageText";
+import { SubmitButton } from "@/components/SubmitButton";
 import { Tabs } from "@/components/Tabs";
+import { startSection } from "@/lib/actions";
 import { drillHref, formatDay, grade, pct } from "@/lib/data";
 import { sanitize } from "@/lib/prefs";
 import { SESSION_FIELDS, sessionAnswerKey, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
@@ -125,6 +127,13 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
       <section>
         <div className="actions">
           <Link className="btn primary" href={home}>{session.kind === "random" ? "Start another section" : `Back to ${label.title}`}</Link>
+          {session.kind === "fixed" && session.test_id && (
+            <form action={startSection}>
+              <input type="hidden" name="test_id" value={session.test_id} />
+              <input type="hidden" name="section_number" value={session.section_number ?? ""} />
+              <SubmitButton className="btn" busy="Starting…">Retake this section</SubmitButton>
+            </form>
+          )}
           <Link className="btn" href="/progress">See your progress</Link>
         </div>
       </section>
