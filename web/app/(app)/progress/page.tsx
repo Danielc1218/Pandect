@@ -21,7 +21,7 @@ function Calendar({ perDay, today }: { perDay: Record<number, number>; today: nu
       <div className="calendar" role="img" aria-label={`${total} questions answered in the last ${WEEKS} weeks`}>
         {days.map((d) => {
           const n = perDay[d] ?? 0;
-          return <span key={d} data-level={LEVELS.findLastIndex((l) => n >= l)} title={`${label(d)}: ${n} ${n === 1 ? "question" : "questions"}`} />;
+          return <span key={d} data-level={LEVELS.findLastIndex((l) => n >= l)} data-today={d === today || undefined} title={`${d === today ? "Today" : label(d)}: ${n} ${n === 1 ? "question" : "questions"}`} />;
         })}
       </div>
       <div className="actions spread" style={{ alignItems: "center" }}>
