@@ -76,7 +76,9 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
   const seconds = Math.round((new Date(session.finished_at).getTime() - new Date(session.started_at).getTime()) / 1000);
   const perQuestion = Math.round(seconds / Math.max(1, all.length));
   // Today's extended-time setting, not the one in force during the sitting; store it on test_sessions if that matters
-  const over = seconds - Math.round(sectionMinutes(all.length) * sanitize(profile?.preferences).extraTime * 60);
+  const allowed = Math.round(sectionMinutes(all.length) * sanitize(profile?.preferences).extraTime * 60);
+  const over = seconds - allowed;
+  const pace = Math.floor(allowed / Math.max(1, all.length)); // the time per question that just fits the limit
   const byType = Object.entries(Object.groupBy(all, (q) => q.question_type))
     .map(([type, qs]) => ({ type, section: qs![0].section_type, total: qs!.length, right: qs!.filter((q) => mine.get(q.id)?.correct).length }))
     .sort((a, b) => a.right / a.total - b.right / b.total);
@@ -94,7 +96,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
           <div className="stat"><div className="value">{right} of {all.length}</div><div className="label">questions correct</div></div>
           <div className="stat"><div className={`value ${grade(pct(right, all.length))}`}>{pct(right, all.length)}%</div><div className="label">accuracy</div></div>
           <div className="stat"><div className={`value${all.length > mine.size ? " poor" : ""}`}>{all.length - mine.size}</div><div className="label">left unanswered</div></div>
-          <div className="stat"><div className="value">{Math.floor(perQuestion / 60)}:{String(perQuestion % 60).padStart(2, "0")}</div><div className="label">a question on average</div></div>
+          <div className="stat"><div className="value">{Math.floor(perQuestion / 60)}:{String(perQuestion % 60).padStart(2, "0")}</div><div className="label" title="The time per question that just fits the limit">a question on average, pace {Math.floor(pace / 60)}:{String(pace % 60).padStart(2, "0")}</div></div>
           <div className="stat"><div className="value">{Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}</div><div className="label">{over > 0 ? `time used, ${Math.floor(over / 60)}:${String(over % 60).padStart(2, "0")} over the limit` : "time used"}</div></div>
         </div>
       </section>
