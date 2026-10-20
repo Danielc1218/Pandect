@@ -99,6 +99,7 @@ export function QuestionList({ rows, status, base, current, initialShow = "all" 
           <button type="button" className="btn" onClick={() => setLimit((n) => n + PAGE)}>
             Show {Math.min(PAGE, matches.length - shown.length)} more
           </button>
+          <button type="button" className="btn" onClick={() => setLimit(matches.length)}>Show all {matches.length}</button>
           <span className="muted" style={{ alignSelf: "center" }}>Showing {shown.length} of {matches.length}</span>
         </div>
       )}
