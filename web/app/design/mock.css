@@ -29,7 +29,7 @@ h1 { font-size: var(--font-size-xl); }
 h2 { font-size: var(--font-size-md); }
 h3 { font-size: var(--font-size-md); }
 p { margin: 0; }
-a { color: var(--color-primary); }
+a { color: var(--color-primary); text-underline-offset: 0.18em; } /* underlines clear the letters' tails */
 .muted { color: var(--color-text-muted); font-size: var(--font-size-sm); }
 .stack > * + * { margin-top: var(--space-4); }
 
