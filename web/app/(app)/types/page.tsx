@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Tabs } from "@/components/Tabs";
-import { drillHref, pct, SECTIONS, typeStats, type TypeStat } from "@/lib/data";
+import { drillHref, grade, pct, SECTIONS, typeStats, type TypeStat } from "@/lib/data";
 import { requireUser } from "@/lib/supabase";
 import { describeType } from "@/lib/types";
 
@@ -14,7 +14,7 @@ function TypeList({ types }: { types: TypeStat[] }) {
           <div className="grow">
             <div className="title">{t.question_type}</div>
             <div className="muted">{describeType(t.section_type, t.question_type)}</div>
-            <div className="muted">{t.answered ? `${t.answered} answered, ${pct(t.correct, t.answered)}% correct` : "Not started"}</div>
+            <div className="muted">{t.answered ? <>{t.answered} answered, <span className={`score ${grade(pct(t.correct, t.answered))}`}>{pct(t.correct, t.answered)}% correct</span></> : "Not started"}</div>
           </div>
           {/* the bar is how much of the type you have done; the figure is how many questions it has */}
           <div className="progress" title={`${t.answered} of ${t.total} answered`}><span style={{ width: `${pct(t.answered, t.total)}%` }} /></div>
