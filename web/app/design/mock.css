@@ -517,3 +517,5 @@ button.row[aria-busy="true"] { opacity: 0.6; cursor: progress; } /* its action i
 .list > form:last-child > button.row { border-bottom: 0; }
 /* in a timed section the passage scrolls on its own, beside the question */
 body.test .reader .passage { max-height: calc(100vh - 180px); overflow: auto; }
+/* a passage that scrolls on its own has a slim scrollbar, so it takes less room from the text */
+body.test .reader .passage, .drill-reader > .passage, .modal { scrollbar-width: thin; }
