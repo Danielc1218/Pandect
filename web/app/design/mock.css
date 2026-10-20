@@ -164,7 +164,7 @@ a.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-raised); }
 .row:last-child { border-bottom: 0; }
 /* a row that goes somewhere answers the pointer */
 :is(a, button, summary).row { transition: background-color 120ms ease; }
-:is(a, button, summary).row:hover { background: var(--color-surface-muted); }
+@media (hover: hover) { :is(a, button, summary).row:hover { background: var(--color-surface-muted); } }
 .row .grow { flex: 1; min-width: 0; }
 .row .title { font-weight: 600; }
 .row .progress { flex: 1; }
@@ -236,8 +236,9 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .choice[tabindex="0"]:active { transform: scale(0.99); }
 .choice.selected { animation: choice-push 220ms ease; }
 @keyframes choice-push { 50% { transform: scale(0.985); } }
-/* only a choice that can still be picked answers the pointer; a marked review stays still */
-.choice[tabindex="0"]:hover { background: var(--color-surface-muted); }
+/* only a choice that can still be picked answers the pointer; a marked review stays still. Hover shading is for
+   mice only, so a tapped choice or row on a phone doesn't stay shaded after the finger lifts */
+@media (hover: hover) { .choice[tabindex="0"]:hover { background: var(--color-surface-muted); } }
 .choice:not([tabindex="0"]) { cursor: default; }
 .choice.selected { border-color: var(--color-primary); }
 .choice.selected .letter { background: var(--color-primary); color: var(--color-on-primary); }
@@ -481,7 +482,7 @@ body.test .theme-switch { bottom: auto; top: 72px; }
 .chips button { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3);
                 border: 1px solid var(--color-border); border-radius: var(--radius-full); background: var(--color-surface);
                 color: var(--color-text); font-family: inherit; font-size: var(--font-size-sm); cursor: pointer; }
-.chips button:hover { background: var(--color-surface-muted); }
+@media (hover: hover) { .chips button:hover { background: var(--color-surface-muted); } }
 .chips button[aria-pressed="true"] { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-on-primary); }
 .chips .count { font-size: var(--font-size-xs); font-variant-numeric: tabular-nums; opacity: 0.8; }
 
