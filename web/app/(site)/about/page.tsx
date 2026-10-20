@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Art } from "@/components/Art";
 import { Start } from "@/components/StartButton";
 import { BANK_NAME } from "@/lib/bank";
 
@@ -26,7 +26,7 @@ export default function About() {
           <span className="tag">Our approach</span>
           <h1>Learn the reasoning one <mark>question type</mark> at a time.</h1>
         </div>
-        <Image src="/images/about.jpg" alt="" width={960} height={640} priority />
+        <Art kind="about" />
       </section>
       <section>
         <h2>The test at a glance</h2>

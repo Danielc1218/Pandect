@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CountUp } from "@/components/CountUp";
 import { BANK_NAME } from "@/lib/bank";
 import { activity, drillHref, formatDay, grade, pct, typeStats } from "@/lib/data";
 import { SESSION_FIELDS, sessionLabel, type Session } from "@/lib/sessions";
@@ -64,10 +65,10 @@ export default async function Progress() {
       <section>
         <h1>Progress</h1>
         <div className="stats">
-          <div className="stat"><div className="value">{stats.answered.toLocaleString()}</div><div className="label">{stats.answered === 1 ? "question" : "questions"} answered</div></div>
-          <div className="stat"><div className={`value ${stats.answered ? grade(stats.accuracy) : ""}`}>{stats.answered ? `${stats.accuracy}%` : "–"}</div><div className="label">accuracy, last 100</div></div>
-          <div className="stat"><div className="value">{stats.week}</div><div className="label">answered this week</div></div>
-          <div className="stat"><div className="value">{stats.streak} {stats.streak === 1 ? "day" : "days"}</div><div className="label">current streak{stats.best > Math.max(1, stats.streak) ? `, best ${stats.best} days` : ""}</div></div>
+          <div className="stat"><div className="value"><CountUp value={stats.answered} /></div><div className="label">{stats.answered === 1 ? "question" : "questions"} answered</div></div>
+          <div className="stat"><div className={`value ${stats.answered ? grade(stats.accuracy) : ""}`}>{stats.answered ? <CountUp value={stats.accuracy} suffix="%" /> : "–"}</div><div className="label">accuracy, last 100</div></div>
+          <div className="stat"><div className="value"><CountUp value={stats.week} /></div><div className="label">answered this week</div></div>
+          <div className="stat"><div className="value"><CountUp value={stats.streak} suffix={stats.streak === 1 ? " day" : " days"} /></div><div className="label">current streak{stats.best > Math.max(1, stats.streak) ? `, best ${stats.best} days` : ""}</div></div>
         </div>
       </section>
       <section>

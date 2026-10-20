@@ -1,13 +1,13 @@
-import Image from "next/image";
 import Link from "next/link";
 import { BANK_NAME } from "@/lib/bank";
+import { Art, type ArtKind } from "@/components/Art";
 import { Start } from "@/components/StartButton";
 
 
-const WAYS = [
-  { href: "/types", photo: "logic", tag: "Drill", title: "Drill one question type", text: "Flaw, Strengthen, Necessary Assumption, and the rest, each in its own set." },
-  { href: "/practice", photo: "columns", tag: "Practice test", title: "Take a timed section", text: "Logical Reasoning or Reading Comprehension, 35 minutes, like test day." },
-  { href: "/progress", photo: "desk", tag: "Review", title: "Review what you missed", text: "See your accuracy by question type and redo the ones you got wrong." },
+const WAYS: { href: string; art: ArtKind; tag: string; title: string; text: string }[] = [
+  { href: "/types", art: "logic", tag: "Drill", title: "Drill one question type", text: "Flaw, Strengthen, Necessary Assumption, and the rest, each in its own set." },
+  { href: "/practice", art: "columns", tag: "Practice test", title: "Take a timed section", text: "Logical Reasoning or Reading Comprehension, 35 minutes, like test day." },
+  { href: "/progress", art: "desk", tag: "Review", title: "Review what you missed", text: "See your accuracy by question type and redo the ones you got wrong." },
 ];
 const STEPS = [
   ["Pick a question type", "Start with the common ones: Flaw, Necessary Assumption, Strengthen."],
@@ -28,14 +28,14 @@ export default function Home() {
             <Link className="btn" href="/about">How it works</Link>
           </div>
         </div>
-        <Image src="/images/hero.jpg" alt="" width={960} height={640} priority />
+        <Art kind="hero" />
       </section>
       <section>
         <h2>Three ways to study</h2>
         <div className="grid">
           {WAYS.map((w) => (
             <Link key={w.href} className="card" href={w.href}>
-              <Image className="photo" src={`/images/${w.photo}.jpg`} alt="" width={800} height={400} />
+              <Art kind={w.art} className="photo" />
               <div className="body">
                 <span className="tag">{w.tag}</span>
                 <h3>{w.title}</h3>

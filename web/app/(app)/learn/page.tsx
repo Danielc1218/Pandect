@@ -1,5 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
+import { Art } from "@/components/Art";
+import { CountUp } from "@/components/CountUp";
 import { Tabs } from "@/components/Tabs";
 import { BANK_NAME } from "@/lib/bank";
 import { activity, daysUntil, drillHref, formatDay, grade, pct, SECTIONS, typeStats, type TypeStat } from "@/lib/data";
@@ -46,7 +47,7 @@ export default async function Learn() {
   const weakest = types.filter((t) => t.answered >= 3 && t.answered > t.correct)
     .map((t) => ({ ...t, wrong: t.answered - t.correct }))
     .sort((x, y) => y.wrong / y.answered - x.wrong / x.answered || y.wrong - x.wrong).slice(0, 5);
-  const photo = (section?: string | null) => `/images/${section === SECTIONS.rc ? "reading" : "logic"}.jpg`;
+  const art = (section?: string | null) => (section === SECTIONS.rc ? "reading" : "logic");
 
   return (
     <>
@@ -56,7 +57,7 @@ export default async function Learn() {
           {inSection ? (
             // A section still running resumes where it stopped; a finished one leads back to its test for the next section.
             <Link className="card wide" href={session.finished_at ? sessionHome(session) : `/section/${session.id}`}>
-              <Image className="photo" src={photo(session.section_type)} alt="" width={800} height={400} priority />
+              <Art kind={art(session.section_type)} className="photo" />
               <div className="body">
                 <div><span className="tag accent">Where you left off</span> <span className="tag">{session.finished_at ? "Finished" : "In progress"}</span></div>
                 <h3>{sessionLabel(session).title}</h3>
@@ -67,7 +68,7 @@ export default async function Learn() {
             </Link>
           ) : drill && (
             <Link className="card wide" href={drillHref(drill.section_type, drill.question_type)}>
-              <Image className="photo" src={photo(drill.section_type)} alt="" width={800} height={400} priority />
+              <Art kind={art(drill.section_type)} className="photo" />
               <div className="body">
                 <div><span className="tag accent">{stats.latest ? "Where you left off" : "Start here"}</span> <span className="tag">{drill.section_type}</span></div>
                 <h3>{drill.question_type}</h3>
@@ -86,9 +87,9 @@ export default async function Learn() {
         </div>
       </section>
       <section className="stats">
-        <div className="stat"><div className="value">{stats.answered.toLocaleString()}</div><div className="label">{stats.answered === 1 ? "question" : "questions"} answered</div></div>
-        <div className="stat"><div className={`value ${stats.answered ? grade(stats.accuracy) : ""}`}>{stats.answered ? `${stats.accuracy}%` : "–"}</div><div className="label">accuracy, last 100</div></div>
-        <div className="stat"><div className="value">{stats.streak} {stats.streak === 1 ? "day" : "days"}</div><div className="label">{stats.streak && !stats.perDay[stats.today] ? "streak: answer one today to keep it" : "current streak"}</div></div>
+        <div className="stat"><div className="value"><CountUp value={stats.answered} /></div><div className="label">{stats.answered === 1 ? "question" : "questions"} answered</div></div>
+        <div className="stat"><div className={`value ${stats.answered ? grade(stats.accuracy) : ""}`}>{stats.answered ? <CountUp value={stats.accuracy} suffix="%" /> : "–"}</div><div className="label">accuracy, last 100</div></div>
+        <div className="stat"><div className="value"><CountUp value={stats.streak} suffix={stats.streak === 1 ? " day" : " days"} /></div><div className="label">{stats.streak && !stats.perDay[stats.today] ? "streak: answer one today to keep it" : "current streak"}</div></div>
         {/* no date, or one that has passed, leads to where it is set */}
         <div className="stat">
           <div className="value">{daysLeft === null || daysLeft < 0 ? "–" : daysLeft === 0 ? "Today" : daysLeft}</div>
