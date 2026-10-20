@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { closeOnBackdrop } from "@/lib/dialog";
 
 /** "?" opens a list of the page's keyboard shortcuts. `keys` pairs what to press with what it does. */
 export function ShortcutsHelp({ keys }: { keys: [string, string][] }) {
@@ -15,7 +16,7 @@ export function ShortcutsHelp({ keys }: { keys: [string, string][] }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
   return (
-    <dialog ref={help} className="modal" aria-labelledby="shortcuts-title">
+    <dialog ref={help} className="modal" aria-labelledby="shortcuts-title" onClick={closeOnBackdrop}>
       <h2 id="shortcuts-title">Keyboard shortcuts</h2>
       <table className="plain">
         <tbody>

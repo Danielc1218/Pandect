@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Fragment, useEffect, useEffectEvent, useRef, useState, useTransition } from "react";
 import { finishSection, saveAnswer } from "@/lib/actions";
+import { closeOnBackdrop } from "@/lib/dialog";
 import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
 import { Choices } from "./Choices";
@@ -203,7 +204,7 @@ export function SectionRunner({
         {failed > 0 && !saving && <button className="btn" onClick={retry}>Try saving again</button>}
         <button className="btn primary" disabled={pending || saving} onClick={askFinish}>Finish section</button>
       </nav>
-      <dialog ref={check} className="modal" aria-labelledby="finish-check-title">
+      <dialog ref={check} className="modal" aria-labelledby="finish-check-title" onClick={closeOnBackdrop}>
         <h2 id="finish-check-title">Finish this section?</h2>
         {blank.length || unsure.length ? (
           <p>

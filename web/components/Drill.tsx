@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useRef, useState, useTransition, type ReactNode } from "react";
 import { answer } from "@/lib/actions";
+import { closeOnBackdrop } from "@/lib/dialog";
 import type { Status } from "@/lib/questions";
 import { typeset } from "@/lib/text";
 import { Choices } from "./Choices";
@@ -103,12 +104,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
           <button className="btn primary" disabled={!selected || pending} onClick={submit}>{pending ? "Checking…" : selected ? `Submit ${selected}` : "Choose an answer"}</button>
         )}
       </div>
-      {/* a click on the dimmed backdrop (outside the box) closes it */}
-      <dialog ref={list} className="modal" style={{ width: "100%", maxWidth: 760 }} aria-labelledby="question-list-title"
-        onClick={(e) => {
-          const box = e.currentTarget.getBoundingClientRect();
-          if (e.clientX < box.left || e.clientX > box.right || e.clientY < box.top || e.clientY > box.bottom) e.currentTarget.close();
-        }}>
+      <dialog ref={list} className="modal" style={{ width: "100%", maxWidth: 760 }} aria-labelledby="question-list-title" onClick={closeOnBackdrop}>
         <div className="actions spread modal-head">
           <h2 id="question-list-title">{type}</h2>
           <form method="dialog"><button className="btn">Close</button></form>
