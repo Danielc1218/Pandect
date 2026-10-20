@@ -70,13 +70,14 @@ function Steps() {
 
 // Lines of a passage with one phrase highlighted; the highlight sweeps across on hover.
 function Passage() {
-  const lens = [600, 550, 640, 440, 580, 320], x = 150, h = 30, gap = 22, y0 = (600 - (6 * h + 5 * gap)) / 2, hy = y0 + 2 * (h + gap);
+  // kept within x 200-1000, the part the Learning page's narrow card shows
+  const lens = [480, 440, 512, 352, 464, 256], x = 220, h = 30, gap = 22, y0 = (600 - (6 * h + 5 * gap)) / 2, hy = y0 + 2 * (h + gap);
   return (
     <>
-      <circle cx="1010" cy="300" r="140" fill={DARK} />
-      <circle cx="1010" cy="300" r="140" stroke={LIGHT} {...DOTS} />
+      <circle cx="880" cy="300" r="105" fill={DARK} />
+      <circle cx="880" cy="300" r="105" stroke={LIGHT} {...DOTS} />
       {lens.map((l, i) => <rect key={i} x={x} y={y0 + i * (h + gap)} width={l} height={h} rx={h / 2} fill={LIGHT} opacity="0.9" />)}
-      <rect className="mark" x={x + 170} y={hy - 8} width="330" height={h + 16} rx={(h + 16) / 2} fill={POP} />
+      <rect className="mark" x={x + 140} y={hy - 8} width="270" height={h + 16} rx={(h + 16) / 2} fill={POP} />
     </>
   );
 }
