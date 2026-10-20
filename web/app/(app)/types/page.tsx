@@ -40,7 +40,7 @@ export default async function Types() {
         <div className="stat"><div className="value">{sum(rc).toLocaleString()}</div><div className="label">Reading Comprehension questions</div></div>
         <div className="stat"><div className="value">{types.length}</div><div className="label">question types</div></div>
       </div>
-      <Tabs labels={[SECTIONS.lr, SECTIONS.rc]} label="Section">
+      <Tabs labels={[`${SECTIONS.lr} (${lr.length})`, `${SECTIONS.rc} (${rc.length})`]} label="Section">
         <TypeList types={lr} />
         <TypeList types={rc} />
       </Tabs>
