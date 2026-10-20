@@ -29,7 +29,7 @@ export function SettingsForm({ profile }: { profile: Profile }) {
       </div>
       {state.error && <p className="field invalid" role="alert"><span className="hint">{state.error}</span></p>}
       {state.saved && <p role="status">Saved.</p>}
-      <div className="actions"><button className="btn primary" disabled={pending}>Save changes</button></div>
+      <div className="actions"><button className="btn primary" disabled={pending} aria-busy={pending}>{pending ? "Saving…" : "Save changes"}</button></div>
     </form>
   );
 }
@@ -41,7 +41,7 @@ export function ProfileForm({ name }: { name: string }) {
       <div className="field"><label htmlFor="display-name">Display name</label><input id="display-name" name="display_name" type="text" autoComplete="nickname" maxLength={50} defaultValue={name} required /></div>
       {state.error && <p className="field invalid" role="alert"><span className="hint">{state.error}</span></p>}
       {state.saved && <p role="status">Saved.</p>}
-      <div className="actions"><button className="btn primary" disabled={pending}>Save changes</button></div>
+      <div className="actions"><button className="btn primary" disabled={pending} aria-busy={pending}>{pending ? "Saving…" : "Save changes"}</button></div>
     </form>
   );
 }

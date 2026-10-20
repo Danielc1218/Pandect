@@ -1,4 +1,5 @@
 import { ProfileForm, SettingsForm } from "@/components/SettingsForm";
+import { SubmitButton } from "@/components/SubmitButton";
 import { logOut } from "@/lib/auth";
 import { requireUser } from "@/lib/supabase";
 
@@ -19,7 +20,7 @@ export default async function Profile() {
         <div className="panel">
           <h3>Account</h3>
           <p className="muted">{user.email}</p>
-          <form className="actions" action={logOut}><button className="btn">Log out</button></form>
+          <form className="actions" action={logOut}><SubmitButton className="btn" busy="Logging out…">Log out</SubmitButton></form>
         </div>
       </div>
     </section>
