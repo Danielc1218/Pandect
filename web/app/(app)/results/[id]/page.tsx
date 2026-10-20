@@ -4,7 +4,7 @@ import { Choices } from "@/components/Choices";
 import { ExpandAll } from "@/components/ExpandAll";
 import { PassageText } from "@/components/PassageText";
 import { Tabs } from "@/components/Tabs";
-import { drillHref, grade, pct } from "@/lib/data";
+import { drillHref, formatDay, grade, pct } from "@/lib/data";
 import { sanitize } from "@/lib/prefs";
 import { SESSION_FIELDS, sessionAnswerKey, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
@@ -86,6 +86,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
       <section>
         <p className="muted"><Link href={home}>{label.title}</Link> / {label.subtitle}</p>
         <h1>{label.title} results</h1>
+        <p className="muted">{label.subtitle}, finished {formatDay(session.finished_at)}</p>
         <div className="stats">
           <div className="stat"><div className="value">{right} of {all.length}</div><div className="label">questions correct</div></div>
           <div className="stat"><div className={`value ${grade(pct(right, all.length))}`}>{pct(right, all.length)}%</div><div className="label">accuracy</div></div>
