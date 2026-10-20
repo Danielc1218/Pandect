@@ -77,7 +77,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
         {before && !result && <span className={`tag ${before}`}>{before === "solved" ? "Solved before" : "Missed before"}</span>}<span className="muted">Question {number} of {total} · {question.sourceHref ? <Link href={question.sourceHref}>{question.source}</Link> : question.source}</span>
         {!hideTimer && <span className="stopwatch" role="timer" aria-label={`Time on this question ${clock}`} title={result ? "Time you took" : "Time on this question"}>{clock}</span>}
       </div>
-      <div className="progress"><span style={{ width: `${Math.round((100 * answered) / total)}%` }} /></div>
+      <div className="progress" role="img" aria-label={`${answered} of ${total} answered`} title={`${answered} of ${total} answered`}><span style={{ width: `${Math.round((100 * answered) / total)}%` }} /></div>
       {question.stimulus && <p>{typeset(question.stimulus)}</p>}
       <h3>{typeset(question.prompt)}</h3>
       <Choices

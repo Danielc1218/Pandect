@@ -117,7 +117,9 @@ export function SectionRunner({
         )}
         <div className="question">
           <div className="meta"><span className="muted">Question {index + 1} of {questions.length}</span></div>
-          <div className="progress"><span style={{ width: `${Math.round((100 * Object.keys(answers).length) / questions.length)}%` }} /></div>
+          <div className="progress" role="img" aria-label={`${questions.length - blank.length} of ${questions.length} answered`} title={`${questions.length - blank.length} of ${questions.length} answered`}>
+            <span style={{ width: `${Math.round((100 * (questions.length - blank.length)) / questions.length)}%` }} />
+          </div>
           {q.stimulus && <p>{typeset(q.stimulus)}</p>}
           <h3>{typeset(q.prompt)}</h3>
           <Choices options={q.options} selected={answers[q.id] ?? null} eliminated={eliminated[q.id] ?? []} onSelect={select} onEliminate={eliminate} />
