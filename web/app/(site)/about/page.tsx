@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Start } from "@/components/StartButton";
 import { BANK_NAME } from "@/lib/bank";
 
 
@@ -51,7 +51,7 @@ export default function About() {
       </section>
       <section className="panel tinted">
         <h2>Choose a question type to practice</h2>
-        <div><Link className="btn primary" href="/signup">Start practicing for free</Link></div>
+        <div><Start /></div>
       </section>
     </>
   );
