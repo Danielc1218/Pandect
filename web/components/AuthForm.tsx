@@ -9,6 +9,8 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(mode === "signup" ? signUp : logIn, {});
   const signup = mode === "signup";
   const [reveal, setReveal] = useState(false);
+  const [caps, setCaps] = useState(false); // Caps Lock on while typing the password
+  const watchCaps = (e: React.KeyboardEvent) => setCaps(e.getModifierState("CapsLock"));
   return (
     <section className="auth">
       <div className="panel">
@@ -22,9 +24,11 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
           <div className="field">
             <label htmlFor="password">Password</label>
             <div className="with-button">
-              <input id="password" name="password" type={reveal ? "text" : "password"} autoComplete={signup ? "new-password" : "current-password"} minLength={signup ? 12 : undefined} aria-describedby={signup ? "password-hint" : undefined} required />
+              <input id="password" name="password" type={reveal ? "text" : "password"} autoComplete={signup ? "new-password" : "current-password"} minLength={signup ? 12 : undefined} aria-describedby={signup ? "password-hint" : undefined} required
+                onKeyDown={watchCaps} onKeyUp={watchCaps} onBlur={() => setCaps(false)} />
               <button type="button" className="btn" aria-pressed={reveal} aria-controls="password" onClick={() => setReveal(!reveal)}>{reveal ? "Hide" : "Show"}</button>
             </div>
+            {caps && <p className="hint" role="status">Caps Lock is on.</p>}
             {signup && <p className="hint" id="password-hint">At least 12 characters.</p>}
           </div>
           {signup && (
