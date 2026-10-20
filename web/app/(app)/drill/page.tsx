@@ -82,15 +82,16 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
         <h1>{type}</h1>
         <nav className="actions" aria-label="Neighboring questions">
           <Highlighter key={question.id} />
-          {prev ? <Link className="btn" href={`${base}&q=${prev}`}>← Previous</Link> : <span className="btn" aria-disabled="true">← Previous</span>}
-          {after ? <Link className="btn" href={`${base}&q=${after}`}>Skip →</Link> : <span className="btn" aria-disabled="true">Skip →</span>}
+          {prev ? <Link className="btn" href={`${base}&q=${prev}`} aria-keyshortcuts="ArrowLeft">← Previous</Link> : <span className="btn" aria-disabled="true">← Previous</span>}
+          {after ? <Link className="btn" href={`${base}&q=${after}`} aria-keyshortcuts="ArrowRight">Skip →</Link> : <span className="btn" aria-disabled="true">Skip →</span>}
         </nav>
       </div>
       {/* A Reading Comprehension question sits beside its passage, which scrolls on its own */}
       <div className={question.passage ? "drill-reader" : undefined}>
         {question.passage && <article className="passage"><PassageText text={question.passage} /></article>}
         {/* key remounts the question so selections reset when another one loads */}
-        <Drill key={question.id} question={{ ...question, sourceHref: BANK_NAME === "other" ? `/practice/${question.testId}` : undefined }} type={type} number={row.n} answered={answered} total={rows.length} listHref={base} nextHref={next && `${base}&q=${next}`}>
+        <Drill key={question.id} question={{ ...question, sourceHref: BANK_NAME === "other" ? `/practice/${question.testId}` : undefined }} type={type} number={row.n} answered={answered} total={rows.length} listHref={base} nextHref={next && `${base}&q=${next}`}
+          prevHref={prev && `${base}&q=${prev}`} skipHref={after && `${base}&q=${after}`}>
           {list}
         </Drill>
       </div>

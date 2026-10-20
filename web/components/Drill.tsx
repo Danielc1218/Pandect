@@ -12,9 +12,13 @@ import { ShortcutsHelp } from "./ShortcutsHelp";
 /** `sourceHref` is the practice test the question comes from, when the bank has fixed tests. */
 export type DrillQuestion = { id: string; stimulus: string | null; prompt: string; options: Record<string, string>; source: string; sourceHref?: string };
 
-/** One drill question. `children` is the type's question list, shown in a popup; `nextHref` is the next unanswered question, if any. */
-export function Drill({ question, type, number, answered, total, listHref, nextHref, children }: {
-  question: DrillQuestion; type: string; number: number; answered: number; total: number; listHref: string; nextHref?: string; children: ReactNode;
+/**
+ * One drill question. `children` is the type's question list, shown in a popup; `nextHref` is the next unanswered
+ * question, if any; `prevHref` and `skipHref` are its neighbors in the list.
+ */
+export function Drill({ question, type, number, answered, total, listHref, nextHref, prevHref, skipHref, children }: {
+  question: DrillQuestion; type: string; number: number; answered: number; total: number; listHref: string; nextHref?: string;
+  prevHref?: string; skipHref?: string; children: ReactNode;
 }) {
   const router = useRouter();
   const list = useRef<HTMLDialogElement>(null);
@@ -40,12 +44,15 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
     setEliminated((list) => (list.includes(letter) ? list.filter((l) => l !== letter) : [...list, letter]));
     setSelected((s) => (s === letter ? null : s));
   };
-  // Keys: A–E or 1–5 choose, Enter submits and then moves on. Ignored while typing or with the question list open.
+  // Keys: A–E or 1–5 choose, Enter submits and then moves on, ← and → step through the list. Ignored while typing,
+  // with the question list open, or when a choice already used the key (its arrows move between choices).
   const onKey = useEffectEvent((e: KeyboardEvent) => {
-    if (e.metaKey || e.ctrlKey || e.altKey || document.querySelector("dialog[open]") || (e.target as HTMLElement).closest("input, select, textarea, button, a")) return;
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || document.querySelector("dialog[open]") || (e.target as HTMLElement).closest("input, select, textarea, button, a")) return;
     const letter = "ABCDE"[Number(e.key) - 1] ?? (/^[a-e]$/i.test(e.key) ? e.key.toUpperCase() : null);
     if (letter && !result && question.options[letter]) { e.preventDefault(); if (e.shiftKey) toggle(letter); else pick(letter); }
     else if (e.key === "Enter") { e.preventDefault(); if (result) router.push(nextHref ?? listHref); else submit(); }
+    else if (e.key === "ArrowLeft" && prevHref) { e.preventDefault(); router.push(prevHref); }
+    else if (e.key === "ArrowRight" && skipHref) { e.preventDefault(); router.push(skipHref); }
   });
   // Once answered, bring the explanation into view and put focus on the way forward.
   useEffect(() => {
@@ -70,8 +77,8 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
         onSelect={pick}
         onEliminate={toggle}
       />
-      <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> choose · <kbd>Enter</kbd> {result ? "next question" : "submit"} · <kbd>Shift</kbd>+letter, <kbd>✕</kbd> or right-click crosses a choice out · <kbd>?</kbd> all shortcuts</p>
-      <ShortcutsHelp keys={[["A–E or 1–5", "Choose an answer"], ["Shift+A–E", "Cross out a choice, or bring it back"], ["Enter", "Submit, then go to the next question"], ["↑ ↓", "Move between the choices"], ["/", "Search the question list"]]} />
+      <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> choose · <kbd>Enter</kbd> {result ? "next question" : "submit"} · <kbd>←</kbd> <kbd>→</kbd> previous and skip · <kbd>Shift</kbd>+letter, <kbd>✕</kbd> or right-click crosses a choice out · <kbd>?</kbd> all shortcuts</p>
+      <ShortcutsHelp keys={[["A–E or 1–5", "Choose an answer"], ["Shift+A–E", "Cross out a choice, or bring it back"], ["Enter", "Submit, then go to the next question"], ["↑ ↓", "Move between the choices"], ["← →", "Previous question, or skip to the next"], ["/", "Search the question list"]]} />
       {result && <div ref={explain} className={`explain ${result.correct ? "right" : "wrong"}`} role="status"><strong>{result.correct ? `Correct: ${result.correctAnswer}.` : `Not quite. You chose ${selected}; the answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{typeset(result.explanation)}</p>}</div>}
       <div className="actions spread">
         <button className="btn" onClick={() => {
