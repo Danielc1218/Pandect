@@ -7,6 +7,12 @@ import { allSections, allTests } from "@/lib/bank";
 import { formatDay } from "@/lib/data";
 import { requireUser } from "@/lib/supabase";
 
+/** The tab names the test (the list of tests is cached). */
+export async function generateMetadata({ params }: PageProps<"/practice/[test]">) {
+  const { test } = await params;
+  return { title: (await allTests()).find((t) => t.id === test)?.name ?? "Practice test" };
+}
+
 export default async function TestPage({ params }: PageProps<"/practice/[test]">) {
   const { test: testId } = await params;
   const { db } = await requireUser();
