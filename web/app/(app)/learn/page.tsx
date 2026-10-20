@@ -51,7 +51,7 @@ export default async function Learn() {
   return (
     <>
       <section>
-        <h1>{stats.answered ? "Welcome back" : "Welcome"}, {profile?.display_name ?? "there"}</h1>
+        <h1>{stats.answered ? "Welcome back" : "Welcome"}, {profile?.display_name?.trim().split(/\s+/)[0] || "there"}</h1>
         <div className="split">
           {inSection ? (
             // A section still running resumes where it stopped; a finished one leads back to its test for the next section.
