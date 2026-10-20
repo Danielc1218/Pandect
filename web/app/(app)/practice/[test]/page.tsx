@@ -24,7 +24,7 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
   return (
     <>
       <section>
-        <p className="muted"><Link href="/practice">Practice tests</Link> / {test.year ?? ""}</p>
+        <p className="muted crumbs"><Link href="/practice">Practice tests</Link> / {test.name}{test.year ? `, ${test.year}` : ""}</p>
         <h1>{test.name}</h1>
         <div className="list">
           {(sections ?? []).map((s) => {
