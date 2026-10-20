@@ -170,13 +170,13 @@ export function SectionRunner({
         <div className="qnav-items" ref={items}>
           {questions.map((item, i) => {
             const state = [i === index && "current", flagged.includes(item.id) && "flagged", answers[item.id] && "done"].filter(Boolean).join(" ");
-            const label = `Question ${i + 1}${answers[item.id] ? ", answered" : ""}${flagged.includes(item.id) ? ", flagged" : ""}`;
+            const label = `Question ${i + 1}${answers[item.id] ? `, answered ${answers[item.id]}` : ", unanswered"}${flagged.includes(item.id) ? ", flagged" : ""}`;
             // In Reading Comprehension each passage's questions form a group, labeled P1, P2 and so on.
             const opens = item.passage !== null && item.passage !== questions[i - 1]?.passage;
             return (
               <Fragment key={item.id}>
                 {opens && <span className="qnav-group" aria-hidden="true">P{item.passage! + 1}</span>}
-                <a href="#" className={state || undefined} aria-label={label} aria-current={i === index ? "true" : undefined} onClick={(e) => { e.preventDefault(); setIndex(i); }}>{i + 1}</a>
+                <a href="#" className={state || undefined} aria-label={label} title={label} aria-current={i === index ? "true" : undefined} onClick={(e) => { e.preventDefault(); setIndex(i); }}>{i + 1}</a>
               </Fragment>
             );
           })}
