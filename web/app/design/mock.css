@@ -66,7 +66,9 @@ body:has(.test-bar:not([style*="display: none"])) .top-nav { display: none; }
 .btn { transition: filter 100ms ease, transform 60ms ease; }
 .btn:hover { filter: brightness(0.94); }
 .btn:active { filter: brightness(0.86); transform: translateY(1px) scale(0.98); }
-.btn:disabled { opacity: 0.6; cursor: progress; filter: none; transform: none; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; filter: none; transform: none; }
+/* ...with the busy pointer only while something is actually running */
+[aria-busy="true"] .btn:disabled, .btn[aria-busy="true"]:disabled { cursor: progress; }
 .btn[aria-disabled="true"] { opacity: 0.45; cursor: default; filter: none; transform: none; }
 .actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .actions.spread { justify-content: space-between; }
