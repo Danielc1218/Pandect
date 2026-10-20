@@ -142,7 +142,7 @@ export function SectionRunner({
           </article>
         )}
         <div className="question">
-          <div className="meta"><span className="muted">Question {index + 1} of {questions.length}</span></div>
+          <div className="meta"><span className="muted">Question {index + 1} of {questions.length}</span>{flagged.includes(q.id) && <span className="tag accent">Flagged</span>}</div>
           <div className="progress" role="img" aria-label={`${questions.length - blank.length} of ${questions.length} answered`} title={`${questions.length - blank.length} of ${questions.length} answered`}>
             <span style={{ width: `${Math.round((100 * (questions.length - blank.length)) / questions.length)}%` }} />
           </div>
@@ -152,7 +152,7 @@ export function SectionRunner({
           <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> answer · <kbd>←</kbd> <kbd>→</kbd> previous and next · <kbd>F</kbd> flag · <kbd>Shift</kbd>+letter or <kbd>✕</kbd> crosses a choice out · <kbd>?</kbd> all shortcuts</p>
           <ShortcutsHelp keys={[["A–E or 1–5", "Answer"], ["Shift+A–E", "Cross out a choice, or bring it back"], ["← →", "Previous and next question"], ["F", "Flag or unflag for review"]]} />
           <div className="actions spread">
-            <button className="btn" onClick={flag}>
+            <button className="btn" onClick={flag} aria-pressed={flagged.includes(q.id)} aria-keyshortcuts="F">
               {flagged.includes(q.id) ? "Remove flag" : "Flag for review"}
             </button>
             <div className="actions">
