@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { supabase } from "./supabase";
 
-export type AuthState = { error?: string; email?: string; name?: string; target?: number };
+export type AuthState = { error?: string; notice?: string; email?: string; name?: string; target?: number };
 
 export async function signUp(_: AuthState, form: FormData): Promise<AuthState> {
   const name = String(form.get("name") ?? "").trim();
@@ -18,7 +18,7 @@ export async function signUp(_: AuthState, form: FormData): Promise<AuthState> {
   const db = await supabase();
   const { data, error } = await db.auth.signUp({ email, password, options: { data: { display_name: name } } });
   if (error) return { error: error.message, email, name, target };
-  if (!data.session) return { error: "Check your email to confirm your account, then log in.", email, name, target };
+  if (!data.session) return { notice: "Check your email to confirm your account, then log in.", email, name, target };
   await db.from("profiles").update({ target_score: target, test_date: testDate }).eq("id", data.user!.id);
   redirect("/learn");
 }

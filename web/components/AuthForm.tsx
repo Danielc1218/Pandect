@@ -17,6 +17,8 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
         <h1>{signup ? "Create your account" : "Log in"}</h1>
         <form className="stack" action={action}>
           {state.error && <p className="field invalid" role="alert"><span className="hint">{state.error}</span></p>}
+          {/* not a mistake, just the next step, so it isn't shown in red */}
+          {state.notice && <p className="explain" role="status">{state.notice}</p>}
           {signup && (
             <div className="field"><label htmlFor="name">Name</label><input id="name" name="name" type="text" autoComplete="name" defaultValue={state.name} required autoFocus /></div>
           )}
