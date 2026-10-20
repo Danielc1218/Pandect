@@ -50,6 +50,9 @@ export async function activity(db: SupabaseClient) {
   for (const r of rows) perDay[dayOf(r.created_at)] = (perDay[dayOf(r.created_at)] ?? 0) + 1;
   let streak = 0;
   for (let d = days.has(today) ? today : today - 1; days.has(d); d--) streak++;
+  // The longest run of days in a row with an answer, within the same latest answers.
+  let best = 0;
+  for (const d of days) if (!days.has(d - 1)) { let n = 1; while (days.has(d + n)) n++; best = Math.max(best, n); }
   // The last question answered in a drill (not in a timed section), and when: where a driller left off.
   const drill = rows.find((r) => !r.session_id);
   const latest = drill?.questions as unknown as { section_type: string; question_type: string } | undefined;
@@ -58,6 +61,7 @@ export async function activity(db: SupabaseClient) {
     accuracy: pct(last100.filter((r) => r.correct).length, last100.length),
     week: rows.filter((r) => dayOf(r.created_at) > today - 7).length,
     streak,
+    best,
     /** Questions answered on each day (days since 1970, UTC), from the same latest 1,000 answers; and today. */
     perDay,
     today,

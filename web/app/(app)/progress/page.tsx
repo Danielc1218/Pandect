@@ -48,7 +48,7 @@ export default async function Progress() {
           <div className="stat"><div className="value">{stats.answered.toLocaleString()}</div><div className="label">questions answered</div></div>
           <div className="stat"><div className={`value ${stats.answered ? grade(stats.accuracy) : ""}`}>{stats.answered ? `${stats.accuracy}%` : "–"}</div><div className="label">accuracy, last 100</div></div>
           <div className="stat"><div className="value">{stats.week}</div><div className="label">answered this week</div></div>
-          <div className="stat"><div className="value">{stats.streak} {stats.streak === 1 ? "day" : "days"}</div><div className="label">current streak</div></div>
+          <div className="stat"><div className="value">{stats.streak} {stats.streak === 1 ? "day" : "days"}</div><div className="label">current streak{stats.best > Math.max(1, stats.streak) ? `, best ${stats.best} days` : ""}</div></div>
         </div>
       </section>
       <section>
