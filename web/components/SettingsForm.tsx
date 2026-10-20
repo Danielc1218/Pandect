@@ -16,9 +16,11 @@ export function SettingsForm({ profile }: { profile: Profile }) {
       <h2>Goal</h2>
       <div className="field">
         <label htmlFor="target-score">Target score</label>
-        <input id="target-score" name="target_score" type="number" min={120} max={180} defaultValue={profile.target_score ?? ""} />
+        <input id="target-score" name="target_score" type="number" inputMode="numeric" min={120} max={180} defaultValue={profile.target_score ?? ""} aria-describedby="score-hint" />
       </div>
-      <div className="field"><label htmlFor="curr-score">Latest official or practice score</label><input id="curr-score" name="curr_score" type="number" min={120} max={180} defaultValue={profile.curr_score ?? ""} /></div>
+      <div className="field"><label htmlFor="curr-score">Latest official or practice score</label><input id="curr-score" name="curr_score" type="number" inputMode="numeric" min={120} max={180} defaultValue={profile.curr_score ?? ""} aria-describedby="score-hint" />
+        <p className="hint" id="score-hint">Scores run from 120 to 180. Leave either blank if you don&rsquo;t know it yet.</p>
+      </div>
       <div className="field"><label htmlFor="test-date">Test date</label><input id="test-date" name="test_date" type="date" defaultValue={profile.test_date ?? ""} min={[today(), profile.test_date ?? ""].sort()[0] || today()} /></div>
       <div className="field">
         <label htmlFor="weekly-goal">Weekly goal</label>
