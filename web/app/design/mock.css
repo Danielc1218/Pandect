@@ -236,7 +236,9 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .choice[tabindex="0"]:active { transform: scale(0.99); }
 .choice.selected { animation: choice-push 220ms ease; }
 @keyframes choice-push { 50% { transform: scale(0.985); } }
-.choice:hover { background: var(--color-surface-muted); }
+/* only a choice that can still be picked answers the pointer; a marked review stays still */
+.choice[tabindex="0"]:hover { background: var(--color-surface-muted); }
+.choice:not([tabindex="0"]) { cursor: default; }
 .choice.selected { border-color: var(--color-primary); }
 .choice.selected .letter { background: var(--color-primary); color: var(--color-on-primary); }
 .choice.correct { border: 2px solid var(--color-success); background: color-mix(in srgb, var(--color-success) 10%, var(--color-surface)); }
