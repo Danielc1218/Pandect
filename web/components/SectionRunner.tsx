@@ -133,6 +133,8 @@ export function SectionRunner({
         <span className="spacer" />
         <span className="muted">{expired ? "Over time" : low ? "Under 5 minutes left" : "Time left"}</span>
         <span className={`timer${low ? " low" : ""}`} role="timer">{clock}</span>
+        {/* a timer is not read out as it ticks, so the two moments that matter are announced */}
+        <span className="sr-only" aria-live="assertive">{expired ? "Time is up." : low ? "Five minutes left." : ""}</span>
         <Highlighter />
         <ThemeToggle />
         {/* the clock runs from when the section started, so leaving does not stop it; the button says so */}
