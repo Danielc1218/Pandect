@@ -10,10 +10,12 @@ import { latestStatus, nextUnanswered } from "@/lib/questions";
 import { requireUser } from "@/lib/supabase";
 import { describeType } from "@/lib/types";
 
-/** The tab says which type is being drilled, and whether it is the list or a question. */
+/** The tab says which type is being drilled, and whether it is the list or which question (the list is cached). */
 export async function generateMetadata({ searchParams }: PageProps<"/drill">) {
-  const { type, q } = await searchParams;
-  return { title: type ? `${type}${q ? " question" : " questions"}` : "Drill" };
+  const { section, type, q } = await searchParams;
+  if (!type) return { title: "Drill" };
+  const n = q && SECTIONS[section as SectionKey] ? (await typeQuestions(SECTIONS[section as SectionKey], String(type))).find((r) => r.id === q)?.n : undefined;
+  return { title: q ? `${type} question${n ? ` ${n}` : ""}` : `${type} questions` };
 }
 
 /** Without `q` this is the type's question list; with `q` it is that question, with the list in a popup. */
