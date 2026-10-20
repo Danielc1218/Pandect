@@ -202,7 +202,10 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
         border-radius: var(--radius-lg); box-shadow: var(--shadow-card); }
 .bars a { display: contents; color: var(--color-text); text-decoration: none; }
 .bars .name { font-size: var(--font-size-sm); }
-.bars a:hover .name { text-decoration: underline; }
+.bars a:hover .name, .bars a:focus-visible .name { text-decoration: underline; }
+/* each row's link has no box of its own (display: contents), so keyboard focus rings its name instead */
+.bars a:focus-visible { outline: none; }
+.bars a:focus-visible .name { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: var(--radius-sm); }
 .bars .bar { height: 12px; border-left: 1px solid var(--color-border); }
 .bars .bar > span { display: block; height: 100%; background: var(--color-primary);
                     border-radius: 0 var(--radius-sm) var(--radius-sm) 0; transition: width 450ms ease; }
