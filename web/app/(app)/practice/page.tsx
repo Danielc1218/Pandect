@@ -110,6 +110,7 @@ export default async function Practice({ searchParams }: PageProps<"/practice">)
     // "90" finds test 90, "2019" that year's tests, and words match the name.
     .filter((t) => !find || find.split(/\s+/).every((w) => `${t.name} ${t.year ?? ""} ${testNumber(t.id)}`.toLowerCase().split(/\s+/).includes(w.toLowerCase()) || t.name.toLowerCase().includes(w.toLowerCase())));
   const started = rows.filter((t) => t.started && t.done < t.sections);
+  const completed = rows.filter((t) => t.done >= t.sections);
   return (
     <section>
       <h1>Practice tests</h1>
@@ -118,10 +119,10 @@ export default async function Practice({ searchParams }: PageProps<"/practice">)
         <input id="find-test" name="q" type="search" defaultValue={find} placeholder="A number like 72, or a year like 2015" />
       </form>
       {find && <p className="muted">{rows.length} {rows.length === 1 ? "test matches" : "tests match"} “{find}”. <Link href="/practice">Show all</Link></p>}
-      <Tabs labels={["All", "In progress", "Completed"]} label="Filter practice tests">
+      <Tabs labels={[`All (${rows.length})`, `In progress (${started.length})`, `Completed (${completed.length})`]} label="Filter practice tests">
         <TestList tests={rows} empty={find ? "No tests match that search." : "No tests here yet."} />
         <TestList tests={started} empty={find ? "None of the matching tests is in progress." : "Tests you have started but not finished will show here."} />
-        <TestList tests={rows.filter((t) => t.done >= t.sections)} empty={find ? "None of the matching tests is completed." : "Tests with every section finished will show here."} />
+        <TestList tests={completed} empty={find ? "None of the matching tests is completed." : "Tests with every section finished will show here."} />
       </Tabs>
     </section>
   );
