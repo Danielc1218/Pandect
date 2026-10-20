@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { SubmitButton } from "@/components/SubmitButton";
 import { startSection } from "@/lib/actions";
 import { allSections, allTests } from "@/lib/bank";
-import { formatDay } from "@/lib/data";
+import { formatDay, grade, pct } from "@/lib/data";
 import { requireUser } from "@/lib/supabase";
 
 /** The tab names the test (the list of tests is cached). */
@@ -70,7 +70,7 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
                   <div className="title">Section {s.section_number}</div>
                   <div className="muted">Finished {formatDay(s.finished_at!)}</div>
                 </div>
-                <span className="tag">Results</span>
+                <span className={`score ${grade(pct(s.score_correct ?? 0, s.score_total ?? 0))}`}>{s.score_correct} of {s.score_total}</span>
               </Link>
             ))}
           </div>
