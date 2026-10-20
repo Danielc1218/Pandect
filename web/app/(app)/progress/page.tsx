@@ -32,6 +32,13 @@ function Calendar({ perDay, today }: { perDay: Record<number, number>; today: nu
   );
 }
 
+/** How long a sitting took, as m:ss, or h:mm:ss for one left open a long time. */
+function duration(s: Session) {
+  const t = Math.round((new Date(s.finished_at!).getTime() - new Date(s.started_at).getTime()) / 1000);
+  const [h, m, sec] = [Math.floor(t / 3600), Math.floor(t / 60) % 60, t % 60].map((n, i) => (i ? String(n).padStart(2, "0") : String(n)));
+  return h === "0" ? `${Number(m)}:${sec}` : `${h}:${m}:${sec}`;
+}
+
 export default async function Progress() {
   const { db } = await requireUser();
   const [stats, types, { data: sessions }] = await Promise.all([
@@ -75,7 +82,7 @@ export default async function Progress() {
         <section>
           <h2>Timed sections</h2>
           <table className="plain">
-            <thead><tr><th>Test</th><th>Section</th><th>Date</th><th>Score</th></tr></thead>
+            <thead><tr><th>Test</th><th>Section</th><th>Date</th><th>Time</th><th>Score</th></tr></thead>
             <tbody>
               {(sessions as unknown as Session[]).map((s) => {
                 const label = sessionLabel(s);
@@ -84,6 +91,7 @@ export default async function Progress() {
                     <td><Link href={`/results/${s.id}`}>{label.title}</Link></td>
                     <td>{label.subtitle}</td>
                     <td>{formatDay(s.finished_at!)}</td>
+                    <td style={{ fontVariantNumeric: "tabular-nums" }}>{duration(s)}</td>
                     <td><span className={`score ${grade(pct(s.score_correct ?? 0, s.score_total ?? 0))}`}>{s.score_correct} of {s.score_total} ({pct(s.score_correct ?? 0, s.score_total ?? 0)}%)</span></td>
                   </tr>
                 );
