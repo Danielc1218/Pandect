@@ -224,6 +224,8 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .question { max-width: 760px; background: var(--color-surface); border: 1px solid var(--color-border);
             border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: var(--space-8); }
 .question > * + * { margin-top: var(--space-4); }
+/* a long unbroken string (a URL, a chemical name) wraps instead of pushing the box past a phone's edge */
+.question, .passage, .row .grow { overflow-wrap: break-word; }
 .question .meta { display: flex; align-items: center; gap: var(--space-3); }
 /* on a narrow screen the source wraps under the tag, and the stopwatch keeps to the right */
 .question .meta { flex-wrap: wrap; row-gap: var(--space-1); }
