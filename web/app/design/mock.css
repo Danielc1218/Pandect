@@ -492,6 +492,7 @@ body.test .theme-switch { bottom: auto; top: 72px; }
 
 /* a list row that triggers an action is one button */
 button.row { width: 100%; border: 0; border-bottom: 1px solid var(--color-border); background: none; font: inherit; text-align: left; cursor: pointer; }
+button.row[aria-busy="true"] { opacity: 0.6; cursor: progress; } /* its action is on the way */
 /* such a button is the only child of its form, so .row:last-child would drop every divider; only the list's last form loses it */
 .list > form:not(:last-child) > button.row { border-bottom: 1px solid var(--color-border); }
 .list > form:last-child > button.row { border-bottom: 0; }
