@@ -93,6 +93,13 @@ export function SectionRunner({
   const hms = [Math.floor(shown / 3600), Math.floor(shown / 60) % 60, shown % 60];
   const time = hms[0] ? `${hms[0]}:${String(hms[1]).padStart(2, "0")}:${String(hms[2]).padStart(2, "0")}` : `${hms[1]}:${String(hms[2]).padStart(2, "0")}`;
   const clock = prefs.hideTimer && !low ? "Hidden" : `${expired ? "+" : ""}${time}`;
+  // The browser tab shows the clock too, so it can be watched from another tab (not while it is hidden).
+  useEffect(() => {
+    if (left === null) return;
+    const before = document.title;
+    if (clock !== "Hidden") document.title = `${clock} · ${title}`;
+    return () => { document.title = before; };
+  }, [clock, left, title]);
 
   return (
     <>
