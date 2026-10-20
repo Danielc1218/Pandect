@@ -38,7 +38,12 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
     return () => clearInterval(tick);
   }, [result, startedAt]);
   const clock = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-  const submit = () => selected && !pending && start(async () => { setResult(await answer(question.id, selected)); router.refresh(); });
+  // A failed check (a dropped connection) says so and keeps the choice, rather than replacing the page with an error.
+  const [failed, setFailed] = useState(false);
+  const submit = () => selected && !pending && start(async () => {
+    setFailed(false);
+    try { setResult(await answer(question.id, selected)); router.refresh(); } catch { setFailed(true); }
+  });
   const pick = (l: string) => { setSelected(l); setEliminated((list) => list.filter((x) => x !== l)); };
   const toggle = (letter: string) => {
     setEliminated((list) => (list.includes(letter) ? list.filter((l) => l !== letter) : [...list, letter]));
@@ -79,6 +84,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
       />
       <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> choose · <kbd>Enter</kbd> {result ? "next question" : "submit"} · <kbd>←</kbd> <kbd>→</kbd> previous and skip · <kbd>Shift</kbd>+letter, <kbd>✕</kbd> or right-click crosses a choice out · <kbd>?</kbd> all shortcuts</p>
       <ShortcutsHelp keys={[["A–E or 1–5", "Choose an answer"], ["Shift+A–E", "Cross out a choice, or bring it back"], ["Enter", "Submit, then go to the next question"], ["↑ ↓", "Move between the choices"], ["← →", "Previous question, or skip to the next"], ["/", "Search the question list"]]} />
+      {failed && <p className="field invalid" role="alert"><span className="hint">Your answer couldn&rsquo;t be checked. Check your connection and submit again.</span></p>}
       {result && <div ref={explain} className={`explain ${result.correct ? "right" : "wrong"}`} role="status"><strong>{result.correct ? `Correct: ${result.correctAnswer}.` : `Not quite. You chose ${selected}; the answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{typeset(result.explanation)}</p>}</div>}
       <div className="actions spread">
         <button className="btn" onClick={() => {
