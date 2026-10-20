@@ -3,6 +3,9 @@
 import { useActionState } from "react";
 import { saveProfile, saveSettings, type SettingsState } from "@/lib/actions";
 
+/** Today as yyyy-mm-dd, the earliest test date the date pickers offer. */
+export const today = () => new Date().toISOString().slice(0, 10);
+
 type Profile = { target_score: number | null; curr_score: number | null; test_date: string | null; weekly_goal: number };
 
 /** The learner's goals: scores, test date and weekly target. Shown on the profile page. */
@@ -16,7 +19,7 @@ export function SettingsForm({ profile }: { profile: Profile }) {
         <input id="target-score" name="target_score" type="number" min={120} max={180} defaultValue={profile.target_score ?? ""} />
       </div>
       <div className="field"><label htmlFor="curr-score">Latest official or practice score</label><input id="curr-score" name="curr_score" type="number" min={120} max={180} defaultValue={profile.curr_score ?? ""} /></div>
-      <div className="field"><label htmlFor="test-date">Test date</label><input id="test-date" name="test_date" type="date" defaultValue={profile.test_date ?? ""} /></div>
+      <div className="field"><label htmlFor="test-date">Test date</label><input id="test-date" name="test_date" type="date" defaultValue={profile.test_date ?? ""} min={[today(), profile.test_date ?? ""].sort()[0] || today()} /></div>
       <div className="field">
         <label htmlFor="weekly-goal">Weekly goal</label>
         <select id="weekly-goal" name="weekly_goal" defaultValue={profile.weekly_goal}>{[20, 40, 60, 100].map((n) => <option key={n} value={n}>{n} questions</option>)}</select>

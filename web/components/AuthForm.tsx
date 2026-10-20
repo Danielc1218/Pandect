@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { logIn, signUp, type AuthState } from "@/lib/auth";
+import { today } from "./SettingsForm";
 
 export function AuthForm({ mode }: { mode: "signup" | "login" }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(mode === "signup" ? signUp : logIn, {});
@@ -35,7 +36,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
               </div>
               <div className="field">
                 <label htmlFor="test-date">Test date</label>
-                <input id="test-date" name="test_date" type="date" aria-describedby="date-hint" />
+                <input id="test-date" name="test_date" type="date" min={today()} aria-describedby="date-hint" />
                 <p className="hint" id="date-hint">Leave blank if you have not booked yet.</p>
               </div>
             </>
