@@ -168,6 +168,7 @@ export function Highlighter() {
 
   if (!supported) return null;
   const clear = () => {
+    if (!confirm(`Remove ${count === 1 ? "the highlight" : `all ${count} highlights`} on this page?`)) return;
     for (const box of document.querySelectorAll(BOXES)) save(keyOf(box.textContent ?? ""), []);
     paint();
     setCount(0);
