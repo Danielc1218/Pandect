@@ -61,7 +61,7 @@ async function RandomSections() {
             {open.map((s) => (
               <Link key={s.id} className="row" href={`/section/${s.id}`}>
                 <div className="grow"><div className="title">{sessionLabel(s).subtitle}</div><div className="muted">Started {formatDay(s.started_at)}</div></div>
-                <span className="tag">Resume</span>
+                <span className="btn primary">Resume</span>
               </Link>
             ))}
           </div>
