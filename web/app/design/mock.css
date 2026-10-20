@@ -241,7 +241,9 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .question .meta .stopwatch { margin-left: auto; color: var(--color-text-muted); font-size: var(--font-size-sm); font-variant-numeric: tabular-nums; }
 .choice { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3) var(--space-4);
           border: 1px solid var(--color-border); border-radius: var(--radius-md); }
-.choice .letter { flex: none; width: 28px; height: 28px; border-radius: var(--radius-sm); display: grid; place-items: center;
+/* a tap on a choice or button acts at once, without waiting to see if it is a double-tap zoom */
+.choice, .btn, .qnav a, .chips button { touch-action: manipulation; }
+.choice .letter { user-select: none; flex: none; width: 28px; height: 28px; border-radius: var(--radius-sm); display: grid; place-items: center;
                   background: var(--color-surface-muted); font-size: var(--font-size-sm); font-weight: 600; }
 .choice .note { margin-left: auto; font-size: var(--font-size-sm); font-weight: 600; white-space: nowrap; }
 .choice { cursor: pointer; transition: transform 120ms ease, background-color 120ms ease, border-color 120ms ease; }
