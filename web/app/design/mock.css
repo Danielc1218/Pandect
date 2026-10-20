@@ -188,6 +188,13 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .faq details { border-bottom: 1px solid var(--color-border); padding: var(--space-4) 0; }
 .faq summary { font-weight: 600; cursor: pointer; }
 .faq details p { margin-top: var(--space-2); }
+/* each question has a chevron at its right that turns when it opens, as in a results review */
+.faq summary { display: flex; justify-content: space-between; align-items: center; gap: var(--space-4); list-style: none; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: ""; flex: none; width: 8px; height: 8px; border: solid var(--color-text-muted); border-width: 0 2px 2px 0;
+                      transform: rotate(45deg); transition: transform 200ms ease; }
+.faq details[open] summary::after { transform: rotate(-135deg); }
+@media (prefers-reduced-motion: reduce) { .faq summary::after { transition: none; } }
 
 /* bar-chart: one count per row, every bar on the same scale; the number sits beside its bar */
 .bars { display: grid; grid-template-columns: max-content 1fr max-content; align-items: center; gap: var(--space-3) var(--space-4);
