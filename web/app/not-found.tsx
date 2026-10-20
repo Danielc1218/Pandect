@@ -5,7 +5,7 @@ export const metadata = { title: "Page not found" };
 /** Any address with no page, and any question, test or section that does not exist. */
 export default function NotFound() {
   return (
-    <main id="main" className="page">
+    <main id="main" tabIndex={-1} className="page">
       <section className="panel tinted stack">
         <h1>That page isn&rsquo;t here</h1>
         <p>The link may be old, or the question or test it pointed to has moved.</p>

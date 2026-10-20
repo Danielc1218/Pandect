@@ -146,7 +146,7 @@ export function SectionRunner({
         {/* the clock runs from when the section started, so leaving does not stop it; the button says so */}
         <Link className="btn" href="/practice" title="Your answers are saved. The clock keeps running while you are away.">Save and exit</Link>
       </header>
-      <div className={`reader${q.passage === null ? " single" : ""}`}>
+      <div id="main" tabIndex={-1} className={`reader${q.passage === null ? " single" : ""}`}>
         {q.passage !== null && (
           // keyed by passage, so a new passage starts at its top rather than where the last one was scrolled to
           <article key={q.passage} className="passage">
