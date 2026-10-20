@@ -94,6 +94,18 @@ export function Highlighter() {
     return () => { watch.disconnect(); cancelAnimationFrame(frame); CSS.highlights.delete(NAME); };
   }, []);
 
+  // H turns the highlighter on or off, unless something is being typed or a popup is open.
+  useEffect(() => {
+    if (!supported) return;
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.key !== "h" && e.key !== "H") || e.metaKey || e.ctrlKey || e.altKey || document.querySelector("dialog[open]") || (e.target as HTMLElement).closest("input, select, textarea")) return;
+      e.preventDefault();
+      setOn((v) => !v);
+    };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [supported]);
+
   /** The current selection as a box and character offsets, when it lies inside one box. */
   const selected = () => {
     const selection = getSelection();
@@ -162,7 +174,7 @@ export function Highlighter() {
   };
   return (
     <>
-      <button type="button" className="btn highlighter" aria-pressed={on} onClick={() => setOn(!on)}
+      <button type="button" className="btn highlighter" aria-pressed={on} onClick={() => setOn(!on)} aria-keyshortcuts="H"
         title="While on, select text in the passage or argument to highlight it; click a highlight to remove it">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M9 11l-6 6v3h9l3-3M22 12l-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />
