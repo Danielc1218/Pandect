@@ -50,6 +50,10 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
     setEliminated((list) => (list.includes(letter) ? list.filter((l) => l !== letter) : [...list, letter]));
     setSelected((s) => (s === letter ? null : s));
   };
+  const openList = () => {
+    list.current?.showModal();
+    list.current?.querySelector("[aria-current='true']")?.scrollIntoView({ block: "center" }); // open at this question
+  };
   // Keys: A–E or 1–5 choose, Enter submits and then moves on, ← and → step through the list. Ignored while typing,
   // with the question list open, or when a choice already used the key (its arrows move between choices).
   const onKey = useEffectEvent((e: KeyboardEvent) => {
@@ -57,6 +61,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
     const letter = "ABCDE"[Number(e.key) - 1] ?? (/^[a-e]$/i.test(e.key) ? e.key.toUpperCase() : null);
     if (letter && !result && question.options[letter]) { e.preventDefault(); if (e.shiftKey) toggle(letter); else pick(letter); }
     else if (e.key === "Enter") { e.preventDefault(); if (result) router.push(nextHref ?? listHref); else submit(); }
+    else if (e.key === "l" || e.key === "L") { e.preventDefault(); openList(); }
     else if (e.key === "ArrowLeft" && prevHref) { e.preventDefault(); router.push(prevHref); }
     else if (e.key === "ArrowRight" && skipHref) { e.preventDefault(); router.push(skipHref); }
   });
@@ -86,14 +91,11 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
         onEliminate={toggle}
       />
       <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> choose · <kbd>Enter</kbd> {result ? "next question" : "submit"} · <kbd>←</kbd> <kbd>→</kbd> previous and skip · <kbd>Shift</kbd>+letter, <kbd>✕</kbd> or right-click crosses a choice out · <kbd>?</kbd> all shortcuts</p>
-      <ShortcutsHelp keys={[["A–E or 1–5", "Choose an answer"], ["Shift+A–E", "Cross out a choice, or bring it back"], ["Enter", "Submit, then go to the next question"], ["↑ ↓", "Move between the choices"], ["← →", "Previous question, or skip to the next"], ["/", "Search the question list"]]} />
+      <ShortcutsHelp keys={[["A–E or 1–5", "Choose an answer"], ["Shift+A–E", "Cross out a choice, or bring it back"], ["Enter", "Submit, then go to the next question"], ["↑ ↓", "Move between the choices"], ["← →", "Previous question, or skip to the next"], ["L", "Open the question list"], ["/", "Search the question list"]]} />
       {failed && <p className="field invalid" role="alert"><span className="hint">Your answer couldn&rsquo;t be checked. Check your connection and submit again.</span></p>}
       {result && <div ref={explain} className={`explain ${result.correct ? "right" : "wrong"}`} role="status"><strong>{result.correct ? `Correct: ${result.correctAnswer}.` : `Not quite. You chose ${selected}; the answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{typeset(result.explanation)}</p>}</div>}
       <div className="actions spread">
-        <button className="btn" onClick={() => {
-          list.current?.showModal();
-          list.current?.querySelector("[aria-current='true']")?.scrollIntoView({ block: "center" }); // open at this question
-        }}>Question list</button>
+        <button className="btn" onClick={openList} aria-keyshortcuts="L">Question list</button>
         {result ? (
           <Link ref={next} className="btn primary" href={nextHref ?? listHref}>{nextHref ? "Next question" : "Back to question list"}</Link>
         ) : (
