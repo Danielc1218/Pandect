@@ -18,7 +18,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
           {signup && (
             <div className="field"><label htmlFor="name">Name</label><input id="name" name="name" type="text" autoComplete="name" defaultValue={state.name} required autoFocus /></div>
           )}
-          <div className="field"><label htmlFor="email">Email</label><input id="email" name="email" type="email" autoComplete="email" defaultValue={state.email} required autoFocus={!signup} /></div>
+          <div className="field"><label htmlFor="email">Email</label><input id="email" name="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} defaultValue={state.email} required autoFocus={!signup} /></div>
           <div className="field">
             <label htmlFor="password">Password</label>
             <div className="with-button">
