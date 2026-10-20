@@ -61,7 +61,7 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
           </div>
         )}
         <div className="actions">
-          {next && <Link className="btn primary" href={`${base}&q=${next}`}>{answered ? "Continue" : "Start"}</Link>}
+          {next && <Link className="btn primary" href={`${base}&q=${next}`}>{answered ? `Continue with question ${rows.find((r) => r.id === next)?.n}` : "Start with question 1"}</Link>}
           {!next && answered > solved && <Link className="btn primary" href={`${base}&show=missed`}>Review missed questions</Link>}
           <Link className="btn" href="/types">Back to question types</Link>
         </div>
