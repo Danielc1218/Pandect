@@ -24,7 +24,8 @@ export function SettingsForm({ profile }: { profile: Profile }) {
       <div className="field"><label htmlFor="test-date">Test date</label><input id="test-date" name="test_date" type="date" defaultValue={profile.test_date ?? ""} min={[today(), profile.test_date ?? ""].sort()[0] || today()} /></div>
       <div className="field">
         <label htmlFor="weekly-goal">Weekly goal</label>
-        <select id="weekly-goal" name="weekly_goal" defaultValue={profile.weekly_goal}>{[20, 40, 60, 100].map((n) => <option key={n} value={n}>{n} questions</option>)}</select>
+        <select id="weekly-goal" name="weekly_goal" defaultValue={profile.weekly_goal}>{/* a goal set some other way stays on the list, so saving doesn't change it */}
+          {[...new Set([20, 40, 60, 100, profile.weekly_goal])].sort((a, b) => a - b).map((n) => <option key={n} value={n}>{n} questions</option>)}</select>
       </div>
       {state.error && <p className="field invalid" role="alert"><span className="hint">{state.error}</span></p>}
       {state.saved && <p role="status">Saved.</p>}
