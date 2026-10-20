@@ -23,7 +23,8 @@ export function QuestionList({ rows, status, base, current, initialShow = "all" 
   const id = useId();
   const router = useRouter();
   const fresh = rows.filter((r) => !status[r.id] && r.id !== current);
-  const random = () => router.push(`${base}&q=${fresh[Math.floor(Math.random() * fresh.length)].id}`);
+  const missed = rows.filter((r) => status[r.id] === "missed" && r.id !== current);
+  const random = (from: QuestionRow[]) => router.push(`${base}&q=${from[Math.floor(Math.random() * from.length)].id}`);
   const [query, setQuery] = useState("");
   const search = useRef<HTMLInputElement>(null);
   // "/" jumps to the search box, as on most sites with one; only when this list is on screen and nothing is being typed.
@@ -59,7 +60,10 @@ export function QuestionList({ rows, status, base, current, initialShow = "all" 
             </button>
           ))}
         </div>
-        {fresh.length > 0 && <button type="button" className="btn" onClick={random}>Random unanswered question</button>}
+        <div className="actions">
+          {fresh.length > 0 && <button type="button" className="btn" onClick={() => random(fresh)}>Random unanswered question</button>}
+          {missed.length > 0 && <button type="button" className="btn" onClick={() => random(missed)}>Random missed question</button>}
+        </div>
       </div>
       <p className="muted" role="status">{matches.length === rows.length ? `${rows.length} questions` : `${matches.length} of ${rows.length} questions`}</p>
       {!shown.length && (
