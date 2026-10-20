@@ -121,7 +121,7 @@ export default async function Practice({ searchParams }: PageProps<"/practice">)
       <h1>Practice tests</h1>
       <form className="field" role="search">
         <label htmlFor="find-test">Find a test</label>
-        <input id="find-test" name="q" type="search" defaultValue={find} placeholder="A number like 72, or a year like 2015" />
+        <input id="find-test" name="q" type="search" enterKeyHint="search" defaultValue={find} placeholder="A number like 72, or a year like 2015" />
       </form>
       {find && <p className="muted">{rows.length} {rows.length === 1 ? "test matches" : "tests match"} “{find}”. <Link href="/practice">Show all</Link></p>}
       <Tabs labels={[`All (${rows.length})`, `In progress (${started.length})`, `Completed (${completed.length})`]} label="Filter practice tests">
