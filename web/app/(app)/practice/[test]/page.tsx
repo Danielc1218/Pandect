@@ -32,6 +32,8 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
       <section>
         <p className="muted crumbs"><Link href="/practice">Practice tests</Link> / {test.name}{test.year ? `, ${test.year}` : ""}</p>
         <h1>{test.name}</h1>
+        {/* how far through the test you are: sections finished at least once */}
+        <p className="muted">{new Set(past.map((s) => s.section_number)).size} of {sections.length} sections finished</p>
         <div className="list">
           {(sections ?? []).map((s) => {
             const running = open(s.section_number);
