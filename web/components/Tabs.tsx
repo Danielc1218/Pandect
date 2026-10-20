@@ -3,9 +3,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useSlide } from "./Nav";
 
-/** Tabs with one highlight that slides to the chosen tab. `children[i]` is the panel for `labels[i]`. */
-export function Tabs({ labels, children, label }: { labels: string[]; children: ReactNode[]; label: string }) {
-  const [current, setTab] = useState(0);
+/** Tabs with one highlight that slides to the chosen tab. `children[i]` is the panel for `labels[i]`; `initial` opens first. */
+export function Tabs({ labels, children, label, initial = 0 }: { labels: string[]; children: ReactNode[]; label: string; initial?: number }) {
+  const [current, setTab] = useState(initial);
   // The chosen tab is remembered for this browser tab, per page and tab list, so coming back keeps it.
   const key = `tab:${label}`;
   const setCurrent = (i: number) => { setTab(i); try { sessionStorage.setItem(key + location.pathname, String(i)); } catch {} };

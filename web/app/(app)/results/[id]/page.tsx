@@ -114,7 +114,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
       <section>
         <div className="actions spread" style={{ alignItems: "center" }}><h2>Review</h2><ExpandAll /></div>
         {/* the missed ones first; every question is one tab away */}
-        <Tabs labels={[`Missed (${missed.length})`, `All questions (${all.length})`]} label="Questions to review">
+        <Tabs labels={[`Missed (${missed.length})`, `All questions (${all.length})`]} label="Questions to review" initial={missed.length ? 0 : 1}>
           {[missed, all].map((list, i) => list.length ? (
             <div key={i} className="list">
               {list.map((q) => (
