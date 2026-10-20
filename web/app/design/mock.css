@@ -223,6 +223,8 @@ table.plain th { font-size: var(--font-size-sm); color: var(--color-text-muted);
 .calendar span[data-level="4"] { background: var(--color-primary); }
 .calendar span[data-today] { outline: 2px solid var(--color-text); outline-offset: 1px; } /* today, where the calendar ends */
 .calendar { padding: 3px; } /* room for that ring inside the scrolling box */
+.calendar-months { display: grid; grid-auto-flow: column; grid-auto-columns: 14px; gap: var(--space-1); padding: 0 3px;
+                   font-size: var(--font-size-xs); color: var(--color-text-muted); white-space: nowrap; overflow: visible; }
 .calendar-legend { display: inline-flex; align-items: center; gap: var(--space-1); }
 .calendar-legend span { width: 12px; height: 12px; border-radius: var(--radius-sm); background: var(--color-surface-muted); }
 .calendar-legend span[data-level="1"] { background: color-mix(in srgb, var(--color-primary) 30%, var(--color-surface)); }

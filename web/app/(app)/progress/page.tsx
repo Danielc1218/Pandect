@@ -18,6 +18,14 @@ function Calendar({ perDay, today }: { perDay: Record<number, number>; today: nu
   const total = days.reduce((n, d) => n + (perDay[d] ?? 0), 0);
   return (
     <div className="panel">
+      {/* the month's name over the first week that starts in it */}
+      <div className="calendar-months" aria-hidden="true">
+        {Array.from({ length: WEEKS }, (_, w) => {
+          const month = (d: number) => new Date(d * 86_400_000).getUTCMonth();
+          const start = first + w * 7;
+          return <span key={w}>{w === 0 || month(start) !== month(start - 7) ? new Date(start * 86_400_000).toLocaleDateString("en-US", { month: "short", timeZone: "UTC" }) : ""}</span>;
+        })}
+      </div>
       <div className="calendar" role="img" aria-label={`${total} questions answered in the last ${WEEKS} weeks`}>
         {days.map((d) => {
           const n = perDay[d] ?? 0;
