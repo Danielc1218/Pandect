@@ -88,7 +88,7 @@ export default async function Learn() {
       <section className="stats">
         <div className="stat"><div className="value">{stats.answered.toLocaleString()}</div><div className="label">questions answered</div></div>
         <div className="stat"><div className={`value ${stats.answered ? grade(stats.accuracy) : ""}`}>{stats.answered ? `${stats.accuracy}%` : "–"}</div><div className="label">accuracy, last 100</div></div>
-        <div className="stat"><div className="value">{stats.streak} {stats.streak === 1 ? "day" : "days"}</div><div className="label">current streak</div></div>
+        <div className="stat"><div className="value">{stats.streak} {stats.streak === 1 ? "day" : "days"}</div><div className="label">{stats.streak && !stats.perDay[stats.today] ? "streak: answer one today to keep it" : "current streak"}</div></div>
         {/* no date, or one that has passed, leads to where it is set */}
         <div className="stat">
           <div className="value">{daysLeft === null || daysLeft < 0 ? "–" : daysLeft === 0 ? "Today" : daysLeft}</div>
