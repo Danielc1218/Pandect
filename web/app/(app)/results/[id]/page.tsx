@@ -11,7 +11,14 @@ import { requireUser } from "@/lib/supabase";
 import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
 
-export const metadata = { title: "Results" };
+/** The tab names the sitting and its score, so several open results can be told apart. */
+export async function generateMetadata({ params }: PageProps<"/results/[id]">) {
+  const { id } = await params;
+  const { db } = await requireUser();
+  const { data } = await db.from("test_sessions").select(SESSION_FIELDS).eq("id", id).maybeSingle();
+  const s = data as unknown as Session | null;
+  return { title: s ? `${sessionLabel(s).title} results${s.score_total ? `, ${s.score_correct} of ${s.score_total}` : ""}` : "Results" };
+}
 
 type Key = Awaited<ReturnType<typeof sessionAnswerKey>>[number];
 type Text = Awaited<ReturnType<typeof sessionQuestions>>["questions"][number];
