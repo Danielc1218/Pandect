@@ -5,7 +5,7 @@ import { Highlighter } from "@/components/Highlighter";
 import { PassageText } from "@/components/PassageText";
 import { QuestionList } from "@/components/QuestionList";
 import { BANK_NAME, drillQuestion, typeQuestions } from "@/lib/bank";
-import { drillHref, pct, SECTIONS, type SectionKey } from "@/lib/data";
+import { drillHref, grade, pct, SECTIONS, type SectionKey } from "@/lib/data";
 import { latestStatus, nextUnanswered } from "@/lib/questions";
 import { requireUser } from "@/lib/supabase";
 import { describeType } from "@/lib/types";
@@ -52,7 +52,7 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
         <h1>{type}</h1>
         {describeType(section, type) && <p>{describeType(section, type)}</p>}
         <p className="muted">
-          {answered} of {rows.length} answered, {solved} solved{answered > 0 && ` (${pct(solved, answered)}% of those answered)`}
+          {answered} of {rows.length} answered, {solved} solved{answered > 0 && <> (<span className={`score ${grade(pct(solved, answered))}`}>{pct(solved, answered)}%</span> of those answered)</>}
         </p>
         <div className="progress" style={{ maxWidth: 480 }}><span style={{ width: `${pct(answered, rows.length)}%` }} /></div>
         {!next && (
