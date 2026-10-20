@@ -97,13 +97,15 @@ export function SectionRunner({
     if (card.current && card.current.getBoundingClientRect().top < 0) card.current.scrollIntoView({ block: "start" });
   }, [index]);
   const flag = () => setFlagged((f) => (f.includes(q.id) ? f.filter((x) => x !== q.id) : [...f, q.id]));
-  // Keys: A–E or 1–5 answer, ← and → move between questions, F flags. Not while a dialog is open or a key was handled.
+  // Keys: A–E or 1–5 answer, ← and → move between questions (Home and End to the first and last), F flags. Not while a dialog is open or a key was handled.
   const onKey = useEffectEvent((e: KeyboardEvent) => {
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || document.querySelector("dialog[open]") || (e.target as HTMLElement).closest("input, select, textarea")) return;
     const letter = "ABCDE"[Number(e.key) - 1] ?? (/^[a-e]$/i.test(e.key) ? e.key.toUpperCase() : null);
     if (letter && q.options[letter]) (e.shiftKey ? eliminate : select)(letter);
     else if (e.key === "ArrowRight" && index < questions.length - 1) setIndex(index + 1);
     else if (e.key === "ArrowLeft" && index > 0) setIndex(index - 1);
+    else if (e.key === "Home") setIndex(0);
+    else if (e.key === "End") setIndex(questions.length - 1);
     else if (e.key === "f" || e.key === "F") flag();
     else return;
     e.preventDefault();
@@ -165,7 +167,7 @@ export function SectionRunner({
           <h3>{typeset(q.prompt)}</h3>
           <Choices options={q.options} selected={answers[q.id] ?? null} eliminated={eliminated[q.id] ?? []} onSelect={select} onEliminate={eliminate} />
           <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> answer · <kbd>←</kbd> <kbd>→</kbd> previous and next · <kbd>F</kbd> flag · <kbd>Shift</kbd>+letter or <kbd>✕</kbd> crosses a choice out · <kbd>?</kbd> all shortcuts</p>
-          <ShortcutsHelp keys={[["A–E or 1–5", "Answer"], ["Shift+A–E", "Cross out a choice, or bring it back"], ["← →", "Previous and next question"], ["F", "Flag or unflag for review"], ["H", "Turn the highlighter on or off"]]} />
+          <ShortcutsHelp keys={[["A–E or 1–5", "Answer"], ["Shift+A–E", "Cross out a choice, or bring it back"], ["← →", "Previous and next question"], ["Home End", "First and last question"], ["F", "Flag or unflag for review"], ["H", "Turn the highlighter on or off"]]} />
           <div className="actions spread">
             <button className="btn" onClick={flag} aria-pressed={flagged.includes(q.id)} aria-keyshortcuts="F">
               {flagged.includes(q.id) ? "Remove flag" : "Flag for review"}
