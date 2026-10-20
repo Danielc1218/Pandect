@@ -27,6 +27,12 @@ export async function typeStats(db: SupabaseClient): Promise<TypeStat[]> {
 const DAY = 86_400_000;
 const dayOf = (iso: string) => Math.floor(new Date(iso).getTime() / DAY);
 
+/** "October 19", with the year added when it is not this year's. */
+export const formatDay = (iso: string) => {
+  const date = new Date(iso);
+  return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: date.getFullYear() === new Date().getFullYear() ? undefined : "numeric" });
+};
+
 export const daysUntil = (date: string) => Math.ceil((new Date(date).getTime() - Date.now()) / DAY);
 
 /** Headline numbers for the dashboard and progress pages. */

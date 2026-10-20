@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { SubmitButton } from "@/components/SubmitButton";
 import { startSection } from "@/lib/actions";
 import { allSections, allTests } from "@/lib/bank";
+import { formatDay } from "@/lib/data";
 import { requireUser } from "@/lib/supabase";
 
 export default async function TestPage({ params }: PageProps<"/practice/[test]">) {
@@ -61,7 +62,7 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
               <Link key={s.id} className="row" href={`/results/${s.id}`}>
                 <div className="grow">
                   <div className="title">Section {s.section_number}</div>
-                  <div className="muted">Finished {new Date(s.finished_at!).toLocaleDateString("en-US", { day: "numeric", month: "long" })}</div>
+                  <div className="muted">Finished {formatDay(s.finished_at!)}</div>
                 </div>
                 <span className="tag">Results</span>
               </Link>

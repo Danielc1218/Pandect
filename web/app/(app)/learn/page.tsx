@@ -2,13 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { Tabs } from "@/components/Tabs";
 import { BANK_NAME } from "@/lib/bank";
-import { activity, daysUntil, drillHref, grade, pct, SECTIONS, typeStats, type TypeStat } from "@/lib/data";
+import { activity, daysUntil, drillHref, formatDay, grade, pct, SECTIONS, typeStats, type TypeStat } from "@/lib/data";
 import { SESSION_FIELDS, sessionHome, sessionLabel, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
 
 export const metadata = { title: "Learning" };
-
-const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric" });
 
 /** How many questions of each type the user has answered: one bar per type on a shared scale, most answered first. */
 function AnsweredBars({ types }: { types: TypeStat[] }) {
@@ -63,7 +61,7 @@ export default async function Learn() {
                 <div><span className="tag accent">Where you left off</span> <span className="tag">{session.finished_at ? "Finished" : "In progress"}</span></div>
                 <h3>{sessionLabel(session).title}</h3>
                 <p className="muted">{sessionLabel(session).subtitle}</p>
-                <p className="muted">{session.finished_at ? `Finished ${day(session.finished_at)}` : `Started ${day(session.started_at)}`}</p>
+                <p className="muted">{session.finished_at ? `Finished ${formatDay(session.finished_at)}` : `Started ${formatDay(session.started_at)}`}</p>
                 <span className="btn primary">{session.finished_at ? "Next section" : "Resume section"} →</span>
               </div>
             </Link>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BANK_NAME } from "@/lib/bank";
-import { activity, drillHref, grade, pct, typeStats } from "@/lib/data";
+import { activity, drillHref, formatDay, grade, pct, typeStats } from "@/lib/data";
 import { SESSION_FIELDS, sessionLabel, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
 
@@ -83,7 +83,7 @@ export default async function Progress() {
                   <tr key={s.id}>
                     <td><Link href={`/results/${s.id}`}>{label.title}</Link></td>
                     <td>{label.subtitle}</td>
-                    <td>{new Date(s.finished_at!).toLocaleDateString("en-US", { day: "numeric", month: "long" })}</td>
+                    <td>{formatDay(s.finished_at!)}</td>
                     <td><span className={`score ${grade(pct(s.score_correct ?? 0, s.score_total ?? 0))}`}>{s.score_correct} of {s.score_total} ({pct(s.score_correct ?? 0, s.score_total ?? 0)}%)</span></td>
                   </tr>
                 );
