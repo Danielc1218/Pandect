@@ -11,8 +11,8 @@ export const metadata = { title: "Practice tests" };
 
 type Row = { id: string; name: string; year: number | null; sections: number; done: number; started: boolean };
 
-function TestList({ tests }: { tests: Row[] }) {
-  if (!tests.length) return <div className="panel"><p>No tests here yet.</p></div>;
+function TestList({ tests, empty }: { tests: Row[]; empty: string }) {
+  if (!tests.length) return <div className="panel"><p>{empty}</p></div>;
   return (
     <div className="list">
       {tests.map((t) => (
@@ -119,9 +119,9 @@ export default async function Practice({ searchParams }: PageProps<"/practice">)
       </form>
       {find && <p className="muted">{rows.length} {rows.length === 1 ? "test matches" : "tests match"} “{find}”. <Link href="/practice">Show all</Link></p>}
       <Tabs labels={["All", "In progress", "Completed"]} label="Filter practice tests">
-        <TestList tests={rows} />
-        <TestList tests={started} />
-        <TestList tests={rows.filter((t) => t.done >= t.sections)} />
+        <TestList tests={rows} empty={find ? "No tests match that search." : "No tests here yet."} />
+        <TestList tests={started} empty={find ? "None of the matching tests is in progress." : "Tests you have started but not finished will show here."} />
+        <TestList tests={rows.filter((t) => t.done >= t.sections)} empty={find ? "None of the matching tests is completed." : "Tests with every section finished will show here."} />
       </Tabs>
     </section>
   );
