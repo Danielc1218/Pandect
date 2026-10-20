@@ -116,7 +116,9 @@ export function SectionRunner({
   // Hours appear once a clock passes an hour (a section left open over days counts up a long way).
   const hms = [Math.floor(shown / 3600), Math.floor(shown / 60) % 60, shown % 60];
   const time = hms[0] ? `${hms[0]}:${String(hms[1]).padStart(2, "0")}:${String(hms[2]).padStart(2, "0")}` : `${hms[1]}:${String(hms[2]).padStart(2, "0")}`;
-  const clock = prefs.hideTimer && !low ? "Hidden" : `${expired ? "+" : ""}${time}`;
+  // A hidden timer can be peeked at, and hidden again, with the button beside it.
+  const [peek, setPeek] = useState(false);
+  const clock = prefs.hideTimer && !low && !peek ? "Hidden" : `${expired ? "+" : ""}${time}`;
   // The browser tab shows the clock too, so it can be watched from another tab (not while it is hidden).
   useEffect(() => {
     if (left === null) return;
@@ -134,6 +136,7 @@ export function SectionRunner({
         <span className="muted">{expired ? "Over time" : low ? "Under 5 minutes left" : "Time left"}</span>
         <span className={`timer${low ? " low" : ""}`} role="timer">{clock}</span>
         {/* a timer is not read out as it ticks, so the two moments that matter are announced */}
+        {prefs.hideTimer && !low && <button type="button" className="btn" aria-pressed={peek} onClick={() => setPeek(!peek)}>{peek ? "Hide time" : "Show time"}</button>}
         <span className="sr-only" aria-live="assertive">{expired ? "Time is up." : low ? "Five minutes left." : ""}</span>
         <Highlighter />
         <ThemeToggle />
