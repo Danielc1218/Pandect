@@ -58,8 +58,20 @@ export function SectionRunner({
   const select = (letter: string) => {
     setAnswers((a) => ({ ...a, [q.id]: letter }));
     setEliminated((e) => ({ ...e, [q.id]: (e[q.id] ?? []).filter((l) => l !== letter) }));
-    startSave(() => saveAnswer(sessionId, q.id, letter));
+    store(q.id, letter);
   };
+  // Answers that failed to save (a dropped connection), kept to try again; the newest choice per question wins.
+  const [unsaved, setUnsaved] = useState<Record<string, string>>({});
+  const store = (id: string, letter: string) => startSave(async () => {
+    try {
+      await saveAnswer(sessionId, id, letter);
+      setUnsaved((u) => (u[id] === letter ? Object.fromEntries(Object.entries(u).filter(([k]) => k !== id)) : u));
+    } catch {
+      setUnsaved((u) => ({ ...u, [id]: letter }));
+    }
+  });
+  const retry = () => Object.entries(unsaved).forEach(([id, letter]) => store(id, letter));
+  const failed = Object.keys(unsaved).length;
   // Closing the tab while an answer is on its way would lose it: the browser asks first.
   useEffect(() => {
     if (!saving) return;
@@ -172,8 +184,9 @@ export function SectionRunner({
         <span className="spacer" />
         <span className="muted" aria-live="polite">
           {questions.length - blank.length} of {questions.length} answered{unsure.length ? `, ${unsure.length} flagged` : ""}
-          {Object.keys(answers).length > 0 && (saving ? " · Saving…" : " · Answers saved")}
+          {Object.keys(answers).length > 0 && (saving ? " · Saving…" : failed ? ` · ${failed} not saved` : " · Answers saved")}
         </span>
+        {failed > 0 && !saving && <button className="btn" onClick={retry}>Try saving again</button>}
         <button className="btn primary" disabled={pending || saving} onClick={askFinish}>Finish section</button>
       </nav>
       <dialog ref={check} className="modal" aria-labelledby="finish-check-title">
