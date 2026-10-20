@@ -104,8 +104,8 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
         <h2>By question type</h2>
         <div className="list">
           {byType.map((t) => (
-            // each type leads to its drill, to practice what this section showed up
-            <Link key={t.type} className="row" href={drillHref(t.section, t.type)} title={`Drill ${t.type}`}>
+            // each type leads to its drill, opened on the questions of that type you have missed, if any
+            <Link key={t.type} className="row" href={drillHref(t.section, t.type) + (t.right < t.total ? "&show=missed" : "")} title={t.right < t.total ? `Your missed ${t.type} questions` : `Drill ${t.type}`}>
               <div className="grow"><div className="title">{t.type}</div><div className="muted">{t.right} of {t.total} correct</div></div>
               <div className={`progress ${grade(pct(t.right, t.total))}`}><span style={{ width: `${pct(t.right, t.total)}%` }} /></div>
               <div className="figure">{pct(t.right, t.total)}%</div>
