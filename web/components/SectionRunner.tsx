@@ -147,7 +147,11 @@ export function SectionRunner({
         {q.passage !== null && (
           // keyed by passage, so a new passage starts at its top rather than where the last one was scrolled to
           <article key={q.passage} className="passage">
-            <div><span className="tag">Passage {q.passage + 1} of {passages.length}</span></div>
+            <div>
+              <span className="tag">Passage {q.passage + 1} of {passages.length}</span>{" "}
+              {/* which questions go with this passage */}
+              <span className="muted">Questions {questions.findIndex((x) => x.passage === q.passage) + 1}–{questions.findLastIndex((x) => x.passage === q.passage) + 1}</span>
+            </div>
             <PassageText text={passages[q.passage]} />
           </article>
         )}
