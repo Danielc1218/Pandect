@@ -90,6 +90,11 @@ export function SectionRunner({
     const row = items.current, el = row?.querySelector<HTMLElement>("[aria-current]");
     if (row && el && row.scrollWidth > row.clientWidth) row.scrollLeft = el.offsetLeft - row.offsetLeft - (row.clientWidth - el.offsetWidth) / 2;
   }, [index]);
+  // Moving on from far down a long question (on a phone, under the passage) starts the next one at its top.
+  const card = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (card.current && card.current.getBoundingClientRect().top < 0) card.current.scrollIntoView({ block: "start" });
+  }, [index]);
   const flag = () => setFlagged((f) => (f.includes(q.id) ? f.filter((x) => x !== q.id) : [...f, q.id]));
   // Keys: A–E or 1–5 answer, ← and → move between questions, F flags. Not while a dialog is open or a key was handled.
   const onKey = useEffectEvent((e: KeyboardEvent) => {
@@ -141,7 +146,7 @@ export function SectionRunner({
             <PassageText text={passages[q.passage]} />
           </article>
         )}
-        <div className="question">
+        <div className="question" ref={card}>
           <div className="meta"><span className="muted">Question {index + 1} of {questions.length}</span>{flagged.includes(q.id) && <span className="tag accent">Flagged</span>}</div>
           <div className="progress" role="img" aria-label={`${questions.length - blank.length} of ${questions.length} answered`} title={`${questions.length - blank.length} of ${questions.length} answered`}>
             <span style={{ width: `${Math.round((100 * (questions.length - blank.length)) / questions.length)}%` }} />
