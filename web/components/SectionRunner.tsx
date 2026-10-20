@@ -31,11 +31,11 @@ export function SectionRunner({
   const prefs = usePrefs(); // extended time and a hidden timer, from the settings page
   const limit = Math.round(sectionMinutes(questions.length) * prefs.extraTime * 60);
   const finish = () => start(() => finishSection(sessionId));
-  // Finishing with questions left blank or flagged asks first, and offers the first of them.
+  // Finishing always asks first (the button sits where Next was), and offers the first blank or flagged question.
   const check = useRef<HTMLDialogElement>(null);
   const blank = questions.filter((x) => !answers[x.id]);
   const unsure = questions.filter((x) => flagged.includes(x.id));
-  const askFinish = () => (blank.length || unsure.length ? check.current?.showModal() : finish());
+  const askFinish = () => check.current?.showModal();
   const goTo = (id: string) => { setIndex(questions.findIndex((x) => x.id === id)); check.current?.close(); };
 
   useEffect(() => {
@@ -171,15 +171,18 @@ export function SectionRunner({
       </nav>
       <dialog ref={check} className="modal" aria-labelledby="finish-check-title">
         <h2 id="finish-check-title">Finish this section?</h2>
-        <p>
-          {[blank.length && `${blank.length} ${blank.length === 1 ? "question is" : "questions are"} unanswered`,
-            unsure.length && `${unsure.length} flagged for review`].filter(Boolean).join(" and ")}.
-          Unanswered questions count as wrong.
-        </p>
+        {blank.length || unsure.length ? (
+          <p>
+            {[blank.length && `${blank.length} ${blank.length === 1 ? "question is" : "questions are"} unanswered`,
+              unsure.length && `${unsure.length} flagged for review`].filter(Boolean).join(" and ")}.
+            Unanswered questions count as wrong.
+          </p>
+        ) : <p>All {questions.length} questions are answered. Once you finish, your answers can&rsquo;t be changed.</p>}
         <div className="actions">
-          <button className="btn primary" disabled={pending || saving} onClick={finish}>Finish anyway</button>
+          <button className="btn primary" disabled={pending || saving} onClick={finish}>{blank.length || unsure.length ? "Finish anyway" : "Finish section"}</button>
           {blank.length > 0 && <button className="btn" onClick={() => goTo(blank[0].id)}>Go to question {questions.indexOf(blank[0]) + 1}</button>}
           {unsure.length > 0 && <button className="btn" onClick={() => goTo(unsure[0].id)}>Go to flagged question {questions.indexOf(unsure[0]) + 1}</button>}
+          <button className="btn" onClick={() => check.current?.close()}>Keep working</button>
         </div>
       </dialog>
       {/* Escape would dismiss it without a choice, so it is ignored. */}
