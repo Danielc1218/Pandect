@@ -5,7 +5,8 @@ import { useActionState, useState } from "react";
 import { logIn, signUp, type AuthState } from "@/lib/auth";
 import { today } from "./SettingsForm";
 
-export function AuthForm({ mode }: { mode: "signup" | "login" }) {
+/** `next` is the page a signed-out visitor asked for, where logging in takes them. */
+export function AuthForm({ mode, next }: { mode: "signup" | "login"; next?: string }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(mode === "signup" ? signUp : logIn, {});
   const signup = mode === "signup";
   const [reveal, setReveal] = useState(false);
@@ -16,6 +17,7 @@ export function AuthForm({ mode }: { mode: "signup" | "login" }) {
       <div className="panel">
         <h1>{signup ? "Create your account" : "Log in"}</h1>
         <form className="stack" action={action}>
+          {next && <input type="hidden" name="next" value={next} />}
           {state.error && <p className="field invalid" role="alert"><span className="hint">{state.error}</span></p>}
           {/* not a mistake, just the next step, so it isn't shown in red */}
           {state.notice && <p className="explain" role="status">{state.notice}</p>}

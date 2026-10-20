@@ -28,7 +28,9 @@ export async function logIn(_: AuthState, form: FormData): Promise<AuthState> {
   const db = await supabase();
   const { error } = await db.auth.signInWithPassword({ email, password: String(form.get("password") ?? "") });
   if (error) return { error: "That email and password do not match an account.", email };
-  redirect("/learn");
+  // Only a path on this site: "//host" or a full URL would send the visitor elsewhere.
+  const next = String(form.get("next") ?? "");
+  redirect(next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\") ? next : "/learn");
 }
 
 export async function logOut() {

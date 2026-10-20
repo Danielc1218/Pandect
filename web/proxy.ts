@@ -22,7 +22,10 @@ export async function proxy(request: NextRequest) {
   // instead of a round trip to Supabase Auth on every request.
   const { data } = await db.auth.getClaims();
   if (!data?.claims && !OPEN.includes(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    // after logging in, the visitor goes on to the page they asked for
+    const login = new URL("/login", request.url);
+    if (request.nextUrl.pathname !== "/") login.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search);
+    return NextResponse.redirect(login);
   }
   return response;
 }
