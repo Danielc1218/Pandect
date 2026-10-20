@@ -125,6 +125,7 @@ export default async function Learn() {
         </Tabs>
         <div className="actions">
           <Link className="btn" href="/types">All question types</Link>
+          <Link className="btn" href="/progress#by-type">Accuracy by type</Link>
           <Link className="btn" href="/practice">Timed sections</Link>
         </div>
       </section>
