@@ -208,10 +208,15 @@ export function SectionRunner({
             Unanswered questions count as wrong.
           </p>
         ) : <p>All {questions.length} questions are answered. Once you finish, your answers can&rsquo;t be changed.</p>}
+        {/* every blank and flagged question, one button each, to go straight to it */}
+        {([["Unanswered", blank], ["Flagged", unsure]] as const).map(([name, list]) => list.length > 0 && (
+          <div key={name} className="actions jump-list" role="group" aria-label={`${name} questions`}>
+            <span className="muted">{name}:</span>
+            {list.map((x) => <button key={x.id} className="btn" onClick={() => goTo(x.id)} aria-label={`Go to question ${questions.indexOf(x) + 1}`}>{questions.indexOf(x) + 1}</button>)}
+          </div>
+        ))}
         <div className="actions">
           <button className="btn primary" disabled={pending || saving} onClick={finish}>{blank.length || unsure.length ? "Finish anyway" : "Finish section"}</button>
-          {blank.length > 0 && <button className="btn" onClick={() => goTo(blank[0].id)}>Go to question {questions.indexOf(blank[0]) + 1}</button>}
-          {unsure.length > 0 && <button className="btn" onClick={() => goTo(unsure[0].id)}>Go to flagged question {questions.indexOf(unsure[0]) + 1}</button>}
           <button className="btn" onClick={() => check.current?.close()}>Keep working</button>
         </div>
       </dialog>

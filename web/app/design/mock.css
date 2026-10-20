@@ -450,6 +450,9 @@ body.test .theme-switch { bottom: auto; top: 72px; }
 .modal-head { position: sticky; top: calc(-1 * var(--space-6)); z-index: 2; align-items: center;
               margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-6)) 0; padding: var(--space-6) var(--space-6) var(--space-3);
               background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+/* small numbered buttons, as in the finish check's list of blank and flagged questions */
+.jump-list { align-items: center; gap: var(--space-2); }
+.jump-list .btn { min-width: 40px; padding: var(--space-1) var(--space-2); text-align: center; font-variant-numeric: tabular-nums; }
 .modal::backdrop { background: color-mix(in srgb, var(--color-text) 45%, transparent); }
 
 /* sliding highlight: one indicator per nav, moved by mock.js to the active item */
