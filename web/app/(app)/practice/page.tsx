@@ -3,7 +3,7 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { Tabs } from "@/components/Tabs";
 import { startRandomSection } from "@/lib/actions";
 import { allSections, allTests, BANK_NAME } from "@/lib/bank";
-import { formatDay, pct, testNumber } from "@/lib/data";
+import { formatDay, grade, pct, testNumber } from "@/lib/data";
 import { SESSION_FIELDS, sessionLabel, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
 
@@ -75,7 +75,7 @@ async function RandomSections() {
               <Link key={s.id} className="row" href={`/results/${s.id}`}>
                 <div className="grow"><div className="title">{sessionLabel(s).subtitle}</div><div className="muted">Finished {formatDay(s.finished_at!)}</div></div>
                 <span className="tag">{s.score_correct} of {s.score_total}</span>
-                <div className="figure">{pct(s.score_correct ?? 0, s.score_total ?? 0)}%</div>
+                <div className={`figure score ${grade(pct(s.score_correct ?? 0, s.score_total ?? 0))}`}>{pct(s.score_correct ?? 0, s.score_total ?? 0)}%</div>
               </Link>
             ))}
           </div>
