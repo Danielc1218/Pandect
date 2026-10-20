@@ -109,7 +109,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
           const box = e.currentTarget.getBoundingClientRect();
           if (e.clientX < box.left || e.clientX > box.right || e.clientY < box.top || e.clientY > box.bottom) e.currentTarget.close();
         }}>
-        <div className="actions spread">
+        <div className="actions spread modal-head">
           <h2 id="question-list-title">{type}</h2>
           <form method="dialog"><button className="btn">Close</button></form>
         </div>

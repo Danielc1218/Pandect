@@ -446,6 +446,10 @@ body.test .theme-switch { bottom: auto; top: 72px; }
 .modal { max-width: 440px; padding: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-lg);
          background: var(--color-surface); color: var(--color-text); box-shadow: var(--shadow-card); }
 .modal > * + * { margin-top: var(--space-4); }
+/* a long modal (the question list) keeps its title and Close in view while it scrolls */
+.modal-head { position: sticky; top: calc(-1 * var(--space-6)); z-index: 2; align-items: center;
+              margin: calc(-1 * var(--space-6)) calc(-1 * var(--space-6)) 0; padding: var(--space-6) var(--space-6) var(--space-3);
+              background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
 .modal::backdrop { background: color-mix(in srgb, var(--color-text) 45%, transparent); }
 
 /* sliding highlight: one indicator per nav, moved by mock.js to the active item */
