@@ -7,7 +7,7 @@ import { closeOnBackdrop } from "@/lib/dialog";
 import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
 import { Choices } from "./Choices";
-import { Highlighter } from "./Highlighter";
+import { clearHighlights, Highlighter } from "./Highlighter";
 import { PassageText } from "./PassageText";
 import { ThemeToggle } from "./Nav";
 import { usePrefs } from "./Prefs";
@@ -31,7 +31,7 @@ export function SectionRunner({
   const q = questions[index];
   const prefs = usePrefs(); // extended time and a hidden timer, from the settings page
   const limit = Math.round(sectionMinutes(questions.length) * prefs.extraTime * 60);
-  const finish = () => start(() => finishSection(sessionId));
+  const finish = () => start(() => { clearHighlights(sessionId); return finishSection(sessionId); });
   // Finishing always asks first (the button sits where Next was), and offers the first blank or flagged question.
   const check = useRef<HTMLDialogElement>(null);
   const blank = questions.filter((x) => !answers[x.id]);
@@ -141,7 +141,7 @@ export function SectionRunner({
         {/* a timer is not read out as it ticks, so the two moments that matter are announced */}
         {prefs.hideTimer && !low && <button type="button" className="btn" aria-pressed={peek} onClick={() => setPeek(!peek)}>{peek ? "Hide time" : "Show time"}</button>}
         <span className="sr-only" aria-live="assertive">{expired ? "Time is up." : low ? "Five minutes left." : ""}</span>
-        <Highlighter />
+        <Highlighter sessionId={sessionId} />
         <ThemeToggle />
         {/* the clock runs from when the section started, so leaving does not stop it; the button says so */}
         <Link className="btn" href={exitHref} title="Your answers are saved. The clock keeps running while you are away.">Save and exit</Link>

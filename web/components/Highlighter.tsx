@@ -1,20 +1,32 @@
 "use client";
 
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 
 const NAME = "user-mark";
 const BOXES = ".passage, .question > p"; // the text that can be marked: passages and arguments
 
-/** A short stable key for a block of text, so its highlights come back wherever the same text is shown. */
+/** A short stable key for a block of text, so its highlights come back whenever the same text is shown again. */
 function keyOf(text: string) {
   let h = 5381;
   for (let i = 0; i < text.length; i++) h = ((h << 5) + h + text.charCodeAt(i)) | 0;
-  return `hl:${text.length}:${(h >>> 0).toString(36)}`;
+  return `${text.length}:${(h >>> 0).toString(36)}`;
 }
-const load = (key: string): [number, number][] => { try { return JSON.parse(localStorage.getItem(key) ?? "[]"); } catch { return []; } };
-const save = (key: string, marks: [number, number][]) => {
-  try { if (marks.length) localStorage.setItem(key, JSON.stringify(marks)); else localStorage.removeItem(key); } catch {}
+// Where marks live: a timed section's stay in this browser under its id until it is finished (clearHighlights);
+// anywhere else they live in memory and go when the page does. One highlighter is on screen at a time.
+let section: string | undefined;
+const memory = new Map<string, [number, number][]>();
+const load = (key: string): [number, number][] => {
+  if (!section) return memory.get(key) ?? [];
+  try { return JSON.parse(localStorage.getItem(`hl:${section}:${key}`) ?? "[]"); } catch { return []; }
 };
+const save = (key: string, marks: [number, number][]) => {
+  if (!section) return void (marks.length ? memory.set(key, marks) : memory.delete(key));
+  try { if (marks.length) localStorage.setItem(`hl:${section}:${key}`, JSON.stringify(marks)); else localStorage.removeItem(`hl:${section}:${key}`); } catch {}
+};
+/** Forgets every highlight made in a timed section, once it is finished. */
+export function clearHighlights(sessionId: string) {
+  try { for (const key of Object.keys(localStorage)) if (key.startsWith(`hl:${sessionId}:`)) localStorage.removeItem(key); } catch {}
+}
 
 /** The character offset of (node, offset) within `box`'s text. */
 function offsetIn(box: Element, node: Node, offset: number) {
@@ -71,10 +83,10 @@ function store(box: Element, start: number, end: number, remove = false) {
 /**
  * A highlighter for passages and arguments, using the CSS Custom Highlight API (the text itself is never changed).
  * While it is on: selecting text marks it (on a touch screen, through the Highlight button that appears by the
- * selection), and clicking a mark removes it. Marks are kept in this browser against the text they belong to, so
- * they come back whenever that passage or argument is shown again. Without the API (old browsers) nothing shows.
+ * selection), and clicking a mark removes it. Marks stay until removed: in a timed section (`sessionId`) until it is
+ * finished, even across leaving and coming back; elsewhere until the page is left. Without the API nothing shows.
  */
-export function Highlighter() {
+export function Highlighter({ sessionId }: { sessionId?: string }) {
   const [supported, setSupported] = useState(false);
   const [on, setOn] = useState(false);
   const [count, setCount] = useState(0);
@@ -82,6 +94,8 @@ export function Highlighter() {
 
   useEffect(() => {
     if (!("highlights" in CSS)) return;
+    section = sessionId;
+    memory.clear();
     CSS.highlights.set(NAME, new Highlight());
     setSupported(true); // eslint-disable-line react-hooks/set-state-in-effect -- known only in the browser
     const update = () => { paint(); setCount(CSS.highlights.get(NAME)?.size ?? 0); };
@@ -91,8 +105,8 @@ export function Highlighter() {
     let frame = 0;
     const watch = new MutationObserver(() => { cancelAnimationFrame(frame); frame = requestAnimationFrame(update); });
     watch.observe(document.body, { childList: true, subtree: true, characterData: true });
-    return () => { watch.disconnect(); cancelAnimationFrame(frame); CSS.highlights.delete(NAME); };
-  }, []);
+    return () => { watch.disconnect(); cancelAnimationFrame(frame); CSS.highlights.delete(NAME); memory.clear(); };
+  }, [sessionId]);
 
   // H turns the highlighter on or off, unless something is being typed or a popup is open.
   useEffect(() => {
@@ -118,15 +132,22 @@ export function Highlighter() {
   };
   const markSelection = () => {
     const s = selected();
-    if (!s || s.end <= s.start) return;
+    if (!s || s.end <= s.start) return false;
     store(s.box, s.start, s.end);
     getSelection()?.removeAllRanges();
     setTouchAt(null);
     setCount(CSS.highlights.get(NAME)?.size ?? 0);
+    return true;
   };
   // A pointer marks when it lets go; a touch screen offers a button by the selection instead, since the phone
   // keeps adjusting the selection (its handles) after the finger lifts.
-  const release = useEffectEvent(() => { if (!matchMedia("(pointer: coarse)").matches) markSelection(); });
+  // The click that follows the same release lands on the new mark: it must not remove it.
+  const justMarked = useRef(false);
+  const release = useEffectEvent((e: Event) => {
+    if (matchMedia("(pointer: coarse)").matches) return;
+    const marked = markSelection();
+    if (e.type === "pointerup") justMarked.current = marked;
+  });
 
   useEffect(() => {
     if (!on) return;
@@ -141,6 +162,7 @@ export function Highlighter() {
     };
     // A click (or tap) on a mark, with nothing selected, removes it.
     const click = (e: MouseEvent) => {
+      if (justMarked.current) return void (justMarked.current = false);
       if (!getSelection()?.isCollapsed) return;
       const at = document.caretPositionFromPoint?.(e.clientX, e.clientY);
       const box = at && (at.offsetNode instanceof Element ? at.offsetNode : at.offsetNode.parentElement)?.closest(BOXES);
@@ -151,12 +173,15 @@ export function Highlighter() {
         setCount(CSS.highlights.get(NAME)?.size ?? 0);
       }
     };
+    const press = () => { justMarked.current = false; };
+    document.addEventListener("pointerdown", press);
     document.addEventListener("pointerup", release);
     document.addEventListener("keyup", release); // a selection made with Shift and the arrow keys
     document.addEventListener("selectionchange", changed);
     addEventListener("scroll", changed, { capture: true, passive: true }); // the passage scrolls on its own too
     document.addEventListener("click", click);
     return () => {
+      document.removeEventListener("pointerdown", press);
       document.removeEventListener("pointerup", release);
       document.removeEventListener("keyup", release);
       document.removeEventListener("selectionchange", changed);
