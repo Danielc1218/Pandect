@@ -44,7 +44,8 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
                   <div className="title">Section {s.section_number}, {s.section_type}</div>
                   <div className="muted">
                     {s.questions} questions, {sectionMinutes(s.questions)} minutes
-                    {done && `, last score ${done.score_correct} of ${done.score_total}`}
+                    {running && `, started ${formatDay(running.started_at)}`}
+                    {done && <>, last score <span className={`score ${grade(pct(done.score_correct ?? 0, done.score_total ?? 0))}`}>{done.score_correct} of {done.score_total}</span></>}
                   </div>
                 </div>
                 <span className={`btn${running || !done ? " primary" : ""}`}>{running ? "Resume" : done ? "Retake" : "Start"}</span>
