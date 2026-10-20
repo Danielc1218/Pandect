@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { TopNav } from "@/components/Nav";
 import { PrefsSync } from "@/components/Prefs";
@@ -14,6 +14,11 @@ import "./prefs.css";
 export const metadata: Metadata = {
   title: { default: "LSAT Prep", template: "%s · LSAT Prep" },
   description: `Practice on ${"LSAT-style"} questions, sorted by type, with your accuracy tracked.`,
+};
+
+// A phone's browser bar takes the top bar's color (the surface tokens), following the device's light or dark setting.
+export const viewport: Viewport = {
+  themeColor: [{ media: "(prefers-color-scheme: light)", color: "#ffffff" }, { media: "(prefers-color-scheme: dark)", color: "#1b221e" }],
 };
 
 // Only the nav's buttons depend on the session, so only they wait for it; the rest of the page prerenders.
