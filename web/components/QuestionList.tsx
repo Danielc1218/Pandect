@@ -49,7 +49,9 @@ export function QuestionList({ rows, status, base, current, initialShow = "all" 
       <div className="actions">
         <div className="field" style={{ flex: 1, minWidth: 200 }}>
           <label htmlFor={id + "q"}>Search <kbd className="keys-hint" title="Press / to jump here">/</kbd></label>
-          <input ref={search} id={id + "q"} type="search" placeholder="Words from the question, or its source" aria-keyshortcuts="/" value={query} onChange={(e) => filter(() => setQuery(e.target.value))} />
+          <input ref={search} id={id + "q"} type="search" placeholder="Words from the question, or its source" aria-keyshortcuts="/" value={query} onChange={(e) => filter(() => setQuery(e.target.value))}
+            // Escape empties a filled box first (in the popup, a second Escape then closes it)
+            onKeyDown={(e) => { if (e.key === "Escape" && query) { e.preventDefault(); filter(() => setQuery("")); } }} />
         </div>
       </div>
       <div className="actions spread">
