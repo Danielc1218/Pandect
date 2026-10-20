@@ -69,6 +69,11 @@ async function RandomSections() {
       )}
       <section>
         <h2>Completed</h2>
+        {done.length > 1 && (() => {
+          // the share of all their questions answered correctly, so longer sections count for more
+          const avg = pct(done.reduce((n, s) => n + (s.score_correct ?? 0), 0), done.reduce((n, s) => n + (s.score_total ?? 0), 0));
+          return <p className="muted">Average <span className={`score ${grade(avg)}`}>{avg}%</span> over these {done.length} sections</p>;
+        })()}
         {done.length ? (
           <div className="list">
             {done.map((s) => (
