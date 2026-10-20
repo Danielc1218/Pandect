@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { sectionMinutes } from "@/lib/timing";
 import { notFound } from "next/navigation";
+import { SubmitButton } from "@/components/SubmitButton";
 import { startSection } from "@/lib/actions";
 import { allSections, allTests } from "@/lib/bank";
 import { requireUser } from "@/lib/supabase";
@@ -46,7 +47,7 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
               <form key={s.section_number} action={startSection}>
                 <input type="hidden" name="test_id" value={test.id} />
                 <input type="hidden" name="section_number" value={s.section_number} />
-                <button className="row">{info}</button>
+                <SubmitButton className="row">{info}</SubmitButton>
               </form>
             );
           })}

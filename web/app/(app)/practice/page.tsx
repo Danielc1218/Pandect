@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SubmitButton } from "@/components/SubmitButton";
 import { Tabs } from "@/components/Tabs";
 import { startRandomSection } from "@/lib/actions";
 import { allSections, allTests, BANK_NAME } from "@/lib/bank";
@@ -46,13 +47,13 @@ async function RandomSections() {
         <form className="panel" action={startRandomSection}>
           <h3>Timed Logical Reasoning section</h3>
           <p className="muted">25 questions, 35 minutes</p>
-          <div className="actions"><button className="btn primary">Start a section</button></div>
+          <div className="actions"><SubmitButton className="btn primary" busy="Starting…">Start a section</SubmitButton></div>
         </form>
         <form className="panel" action={startRandomSection}>
           <input type="hidden" name="section_type" value="Reading Comprehension" />
           <h3>Timed Reading Comprehension section</h3>
           <p className="muted">4 passages, about 27 questions, 35 minutes</p>
-          <div className="actions"><button className="btn primary">Start a section</button></div>
+          <div className="actions"><SubmitButton className="btn primary" busy="Starting…">Start a section</SubmitButton></div>
         </form>
       </section>
       {open.length > 0 && (
