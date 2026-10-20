@@ -23,7 +23,7 @@ export function AuthForm({ mode, next }: { mode: "signup" | "login"; next?: stri
           {/* not a mistake, just the next step, so it isn't shown in red */}
           {state.notice && <p className="explain" role="status">{state.notice}</p>}
           {signup && (
-            <div className="field"><label htmlFor="name">Name</label><input id="name" name="name" type="text" autoComplete="name" defaultValue={state.name} required autoFocus /></div>
+            <div className="field"><label htmlFor="name">Name</label><input id="name" name="name" type="text" autoComplete="name" maxLength={50} defaultValue={state.name} required autoFocus /></div>
           )}
           <div className="field"><label htmlFor="email">Email</label><input id="email" name="email" type="email" autoComplete="email" autoCapitalize="none" spellCheck={false} defaultValue={state.email} required autoFocus={!signup} /></div>
           <div className="field">

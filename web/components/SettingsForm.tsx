@@ -38,7 +38,7 @@ export function ProfileForm({ name }: { name: string }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveProfile, {});
   return (
     <form className="panel stack" action={action}>
-      <div className="field"><label htmlFor="display-name">Display name</label><input id="display-name" name="display_name" type="text" defaultValue={name} required /></div>
+      <div className="field"><label htmlFor="display-name">Display name</label><input id="display-name" name="display_name" type="text" autoComplete="nickname" maxLength={50} defaultValue={name} required /></div>
       {state.error && <p className="field invalid" role="alert"><span className="hint">{state.error}</span></p>}
       {state.saved && <p role="status">Saved.</p>}
       <div className="actions"><button className="btn primary" disabled={pending}>Save changes</button></div>
