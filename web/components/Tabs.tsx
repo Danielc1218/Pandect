@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { useSlide } from "./Nav";
 
 /** Tabs with one highlight that slides to the chosen tab. `children[i]` is the panel for `labels[i]`; `initial` opens first. */
@@ -15,12 +15,13 @@ export function Tabs({ labels, children, label, initial = 0 }: { labels: string[
     if (saved > 0 && saved < labels.length) setTab(saved); // eslint-disable-line react-hooks/set-state-in-effect -- storage is read only in the browser
   }, [key, labels.length]);
   const { ref, style } = useSlide<HTMLDivElement>(current);
+  const id = useId(); // ties each tab to the panel it shows, for screen readers
   return (
     <>
       <div ref={ref} className={`tabs${style ? " has-ind" : ""}`} role="tablist" aria-label={label}>
         {style && <span className="nav-ind" style={style} />}
         {labels.map((text, i) => (
-          <button key={text} type="button" role="tab" aria-selected={i === current} tabIndex={i === current ? 0 : -1}
+          <button key={text} type="button" role="tab" id={`${id}-${i}`} aria-controls={`${id}-panel`} aria-selected={i === current} tabIndex={i === current ? 0 : -1}
             className={i === current ? "active" : undefined} onClick={() => setCurrent(i)}
             onKeyDown={(e) => {
               // Arrow keys, Home and End move between tabs, as in any tab list; focus follows.
@@ -35,7 +36,7 @@ export function Tabs({ labels, children, label, initial = 0 }: { labels: string[
           </button>
         ))}
       </div>
-      <div role="tabpanel" className="stack">{children[current]}</div>
+      <div role="tabpanel" id={`${id}-panel`} aria-labelledby={`${id}-${current}`} className="stack">{children[current]}</div>
     </>
   );
 }
