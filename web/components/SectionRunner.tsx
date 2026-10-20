@@ -188,7 +188,7 @@ export function SectionRunner({
       {/* Escape would dismiss it without a choice, so it is ignored. */}
       <dialog ref={timeUp} className="modal" aria-labelledby="time-up-title" onCancel={(e) => e.preventDefault()}>
         <h2 id="time-up-title">Time is up</h2>
-        <p>The {limit / 60} minutes for this section have run out. You can finish now, or keep going: the clock will count up and your results will show the total time.</p>
+        <p>The {Math.floor(limit / 60)}{limit % 60 ? "\u00bd" : ""} minutes for this section have run out. You can finish now, or keep going: the clock will count up and your results will show the total time.</p>
         <div className="actions">
           <button className="btn primary" disabled={pending || saving} onClick={finish}>Finish section</button>
           <button className="btn" disabled={pending || saving} onClick={keepGoing}>Keep going</button>
