@@ -46,6 +46,7 @@ function ReviewRow({ q, text, passages, chosen }: { q: Key; text?: Text; passage
             <strong>Reasoning</strong>
             <p>{q.explanation ? typeset(q.explanation) : "No written reasoning for this question yet."}</p>
           </div>
+          <p><Link href={drillHref(q.section_type, q.question_type)}>Drill more {q.question_type} questions</Link></p>
         </div>
       )}
     </details>
