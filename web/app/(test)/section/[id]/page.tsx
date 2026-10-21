@@ -25,6 +25,8 @@ export default async function SectionPage({ params }: PageProps<"/section/[id]">
       title={label.title}
       subtitle={label.subtitle}
       startedAt={session.started_at}
+      pausedAt={session.paused_at}
+      pausedSeconds={session.paused_seconds}
       exitHref={sessionHome(session)}
       passages={section.passages}
       saved={Object.fromEntries((attempts ?? []).map((a) => [a.question_id, a.chosen]))}

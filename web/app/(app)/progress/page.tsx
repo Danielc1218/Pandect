@@ -45,9 +45,9 @@ function Calendar({ perDay, today }: { perDay: Record<number, number>; today: nu
   );
 }
 
-/** How long a sitting took, as m:ss, or h:mm:ss for one left open a long time. */
+/** How long a sitting took, leaving out time away after Save and exit, as m:ss, or h:mm:ss for one left open a long time. */
 function duration(s: Session) {
-  const t = Math.round((new Date(s.finished_at!).getTime() - new Date(s.started_at).getTime()) / 1000);
+  const t = Math.round((new Date(s.finished_at!).getTime() - new Date(s.started_at).getTime()) / 1000) - s.paused_seconds;
   const [h, m, sec] = [Math.floor(t / 3600), Math.floor(t / 60) % 60, t % 60].map((n, i) => (i ? String(n).padStart(2, "0") : String(n)));
   return h === "0" ? `${Number(m)}:${sec}` : `${h}:${m}:${sec}`;
 }

@@ -47,6 +47,22 @@ export async function saveAnswer(sessionId: string, questionId: string, chosen: 
   if (error) throw new Error(error.message);
 }
 
+/** Save and exit: stops a timed section's clock until it is opened again (resumeSection). */
+export async function pauseSection(sessionId: string) {
+  const { db } = await requireUser();
+  await db.from("test_sessions").update({ paused_at: new Date().toISOString() }).eq("id", sessionId).is("finished_at", null).is("paused_at", null);
+}
+
+/** Opening a paused section starts its clock again, adding the time away to paused_seconds. */
+export async function resumeSection(sessionId: string) {
+  const { db } = await requireUser();
+  const { data } = await db.from("test_sessions").select("paused_at, paused_seconds").eq("id", sessionId).is("finished_at", null).maybeSingle();
+  if (!data?.paused_at) return;
+  const away = Math.max(0, Math.round((Date.now() - new Date(data.paused_at).getTime()) / 1000));
+  // matching paused_at keeps a second call (development runs effects twice) from counting the time twice
+  await db.from("test_sessions").update({ paused_at: null, paused_seconds: data.paused_seconds + away }).eq("id", sessionId).eq("paused_at", data.paused_at);
+}
+
 export async function finishSection(sessionId: string) {
   const { db } = await requireUser();
   await db.from("test_sessions").update({ finished_at: new Date().toISOString() }).eq("id", sessionId).is("finished_at", null);

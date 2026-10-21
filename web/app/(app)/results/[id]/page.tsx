@@ -73,7 +73,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
   const mine = new Map((attempts ?? []).map((a) => [a.question_id, a]));
   // The score the database stored when the section was finished: the user's history of this sitting.
   const right = session.score_correct ?? all.filter((q) => mine.get(q.id)?.correct).length;
-  const seconds = Math.round((new Date(session.finished_at).getTime() - new Date(session.started_at).getTime()) / 1000);
+  const seconds = Math.round((new Date(session.finished_at).getTime() - new Date(session.started_at).getTime()) / 1000) - session.paused_seconds;
   const perQuestion = Math.round(seconds / Math.max(1, all.length));
   // Today's extended-time setting, not the one in force during the sitting; store it on test_sessions if that matters
   const allowed = Math.round(sectionMinutes(all.length) * sanitize(profile?.preferences).extraTime * 60);

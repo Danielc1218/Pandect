@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { Fragment, useEffect, useEffectEvent, useRef, useState, useTransition } from "react";
-import { finishSection, saveAnswer } from "@/lib/actions";
+import { useRouter } from "next/navigation";
+import { finishSection, pauseSection, resumeSection, saveAnswer } from "@/lib/actions";
 import { closeOnBackdrop } from "@/lib/dialog";
 import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
@@ -16,9 +16,9 @@ import { ShortcutsHelp } from "./ShortcutsHelp";
 export type SectionQuestion = { id: string; number: number; stimulus: string | null; prompt: string; options: Record<string, string>; passage: number | null };
 
 export function SectionRunner({
-  sessionId, title, subtitle, startedAt, questions, passages, saved, exitHref,
+  sessionId, title, subtitle, startedAt, pausedAt, pausedSeconds, questions, passages, saved, exitHref,
 }: {
-  sessionId: string; title: string; subtitle: string; startedAt: string; exitHref: string;
+  sessionId: string; title: string; subtitle: string; startedAt: string; pausedAt: string | null; pausedSeconds: number; exitHref: string;
   questions: SectionQuestion[]; passages: string[]; saved: Record<string, string>;
 }) {
   const [index, setIndex] = useState(() => Math.max(0, questions.findIndex((q) => !saved[q.id])));
@@ -32,6 +32,12 @@ export function SectionRunner({
   const prefs = usePrefs(); // extended time and a hidden timer, from the settings page
   const limit = Math.round(sectionMinutes(questions.length) * prefs.extraTime * 60);
   const finish = () => start(() => { clearHighlights(sessionId); return finishSection(sessionId); });
+  // Save and exit stops the clock; coming back starts it again. `away` is all the time spent away, this return included.
+  const router = useRouter();
+  const [leaving, startLeave] = useTransition();
+  const [away] = useState(() => pausedSeconds + (pausedAt ? Math.max(0, Math.round((Date.now() - Date.parse(pausedAt)) / 1000)) : 0));
+  useEffect(() => { if (pausedAt) resumeSection(sessionId); }, [pausedAt, sessionId]);
+  const exit = () => startLeave(async () => { await pauseSection(sessionId).catch(() => {}); router.push(exitHref); });
   // Finishing always asks first (the button sits where Next was), and offers the first blank or flagged question.
   const check = useRef<HTMLDialogElement>(null);
   const blank = questions.filter((x) => !answers[x.id]);
@@ -41,11 +47,11 @@ export function SectionRunner({
 
   useEffect(() => {
     document.body.classList.add("test");
-    const tick = () => setLeft(limit - Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000)); // negative once over time
+    const tick = () => setLeft(limit - (Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000) - away)); // negative once over time
     tick();
     const timer = setInterval(tick, 1000);
     return () => { clearInterval(timer); document.body.classList.remove("test"); };
-  }, [startedAt, limit]);
+  }, [startedAt, limit, away]);
   // When time runs out the learner is asked once: stop here, or keep going with the clock counting up.
   // The choice is remembered for this section, so reloading or resuming does not ask again.
   const timeUp = useRef<HTMLDialogElement>(null);
@@ -143,8 +149,7 @@ export function SectionRunner({
         <span className="sr-only" aria-live="assertive">{expired ? "Time is up." : low ? "Five minutes left." : ""}</span>
         <Highlighter sessionId={sessionId} />
         <ThemeToggle />
-        {/* the clock runs from when the section started, so leaving does not stop it; the button says so */}
-        <Link className="btn" href={exitHref} title="Your answers are saved. The clock keeps running while you are away.">Save and exit</Link>
+        <button type="button" className="btn" onClick={exit} disabled={leaving} title="Your answers are saved, and the clock stops until you come back.">{leaving ? "Saving…" : "Save and exit"}</button>
       </header>
       <div id="main" tabIndex={-1} className={`reader${q.passage === null ? " single" : ""}`}>
         {q.passage !== null && (
