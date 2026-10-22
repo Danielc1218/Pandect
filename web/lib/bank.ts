@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
+import { sourceOf } from "./cdn";
 import { snippet, type QuestionRow } from "./questions";
 import { SUPABASE_URL } from "./supabase";
 import { typeset } from "./text";
@@ -65,9 +66,6 @@ async function allSectionsIn(bank: BankName) {
     admin().from("bank_test_sections").select("test_id, section_number, section_type, questions").eq("bank", bank).order("section_number"));
 }
 
-const sourceOf = (q: { tests: unknown; section_number: unknown; question_number: unknown }) =>
-  `${(q.tests as { name: string }).name}, section ${q.section_number}, question ${q.question_number}`;
-
 /** Every question of one type for the drill list, in the order drills step through them. */
 export const typeQuestions = (section: string, type: string) => typeQuestionsIn(BANK_NAME, section, type);
 async function typeQuestionsIn(bank: BankName, section: string, type: string): Promise<QuestionRow[]> {
@@ -84,7 +82,8 @@ async function typeQuestionsIn(bank: BankName, section: string, type: string): P
     for (const q of page) {
       const passage = (q.passages as unknown as { passage_text: string } | null)?.passage_text;
       // Reading Comprehension prompts repeat ("…the main point of the passage?"), so those rows also carry how the passage opens.
-      all.push({ id: q.id as string, n: all.length + 1, source: sourceOf(q), snippet: snippet(typeset((q.stimulus ?? q.prompt) as string)), ...(passage && { passage: snippet(typeset(passage), 90) }) });
+      const source = sourceOf({ test_name: (q.tests as unknown as { name: string }).name, section_number: q.section_number as number, question_number: q.question_number as number });
+      all.push({ id: q.id as string, n: all.length + 1, source, snippet: snippet(typeset((q.stimulus ?? q.prompt) as string)), ...(passage && { passage: snippet(typeset(passage), 90) }) });
     }
     if (page.length < 1000) return all;
   }
@@ -101,6 +100,7 @@ async function drillQuestionIn(bank: BankName, id: string) {
   const passage = q.passages as unknown as { passage_text: string } | null;
   return {
     id: q.id as string, stimulus: q.stimulus as string | null, prompt: q.prompt as string, options: q.options as Record<string, string>,
-    source: sourceOf(q), testId: q.test_id as string, passage: passage?.passage_text ?? null,
+    source: sourceOf({ test_name: (q.tests as unknown as { name: string }).name, section_number: q.section_number as number, question_number: q.question_number as number }),
+    testId: q.test_id as string, passage: passage?.passage_text ?? null,
   };
 }
