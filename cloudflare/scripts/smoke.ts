@@ -101,9 +101,11 @@ await step("timed sections", async () => {
   const theirs = await startSection(other.db);
   const [q] = mine.questions;
   const save = (sessionId: string, questionId: string, chosen = "B") => call("/api/section-answer", me.token, { sessionId, questionId, chosen });
+  // the answer key comes in pages of at most 25 positions; a random section is 25 questions, so 1-25 is all of it
+  const answerKey = (sessionId: string, range = "&from=1&to=25") => call(`/api/answer-key?session=${sessionId}${range}`, me.token);
 
   expectStatus("section-answer on another account's session", await save(theirs.id, theirs.questions[0]), 403);
-  expectStatus("answer-key on another account's session", await call(`/api/answer-key?session=${theirs.id}`, me.token), 403);
+  expectStatus("answer-key on another account's session", await answerKey(theirs.id), 403);
 
   const saved = await save(mine.id, q);
   expectStatus("section-answer on own running session", saved, 200);
@@ -118,13 +120,13 @@ await step("timed sections", async () => {
   expectStatus("section-answer for a question not in the section", await save(mine.id, theirs.questions.find((x) => !mine.questions.includes(x))!), 404);
   expectStatus("section-answer with a non-UUID session", await save("nope", q), 404);
   expectStatus("section-answer malformed JSON", await call("/api/section-answer", me.token, "["), 400);
-  expectStatus("answer-key on own unfinished session", await call(`/api/answer-key?session=${mine.id}`, me.token), 409);
+  expectStatus("answer-key on own unfinished session", await answerKey(mine.id), 409);
 
   await finish(me.db, mine.id);
   await finish(other.db, theirs.id);
   expectStatus("section-answer on own finished session", await save(mine.id, q), 409);
 
-  const key = await call(`/api/answer-key?session=${mine.id}`, me.token);
+  const key = await answerKey(mine.id);
   expectStatus("answer-key on own finished session", key, 200);
   check("answer-key has no-store", key.cache === "no-store", key.cache);
   const rows: any[] = Array.isArray(key.json) ? key.json : [];
@@ -136,7 +138,15 @@ await step("timed sections", async () => {
   const { data: settled } = await me.db.from("attempts").select("chosen, correct").eq("session_id", mine.id);
   const keyed = rows.find((r) => r.id === q)?.correct_answer;
   check("the saved grade matches the key", settled?.length === 1 && settled[0].correct === (keyed === "C"), { settled, keyed });
-  expectStatus("answer-key with a non-UUID session", await call("/api/answer-key?session=nope", me.token), 404);
+  expectStatus("answer-key with a non-UUID session", await answerKey("nope"), 404);
+  expectStatus("answer-key over 26 positions", await answerKey(mine.id, "&from=1&to=26"), 400);
+  expectStatus("answer-key with no range", await answerKey(mine.id, ""), 400);
+  expectStatus("answer-key with a backwards range", await answerKey(mine.id, "&from=5&to=3"), 400);
+  expectStatus("answer-key from position 0", await answerKey(mine.id, "&from=0&to=3"), 400);
+  const chunk = await answerKey(mine.id, "&from=3&to=5");
+  const part: any[] = Array.isArray(chunk.json) ? chunk.json : [];
+  check("answer-key 3-5 lists only those positions", part.map((r) => r.number).join() === "3,4,5" && part.every((r, i) => r.id === mine.questions[i + 2]),
+    part.map((r) => r.number));
 });
 
 console.log(failed ? `\n${failed} check(s) failed` : "\nall checks passed");

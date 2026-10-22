@@ -1,5 +1,5 @@
 // The site's routes, each one a page file from web/app inside its layout, as Next would nest them.
-import { Component, isValidElement, startTransition, Suspense, use, useContext, useEffect, useState, type ComponentType, type ReactNode } from "react";
+import { Component, createContext, startTransition, Suspense, use, useContext, useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { createBrowserRouter, Navigate, Outlet, UNSAFE_DataRouterStateContext, useLocation, useParams } from "react-router";
 import AppLayout from "@/app/(app)/layout";
 import DrillLoading from "@/app/(app)/drill/loading";
@@ -62,6 +62,28 @@ supabase().then((db) => db.auth.onAuthStateChange((event) => {
   if (event === "SIGNED_IN" || event === "SIGNED_OUT") runs = new WeakMap();
 }));
 
+/** The page run (one per visit and refresh) an async component inside the page belongs to. */
+const PageRun = createContext<object>({});
+
+/**
+ * An async server component used inside a page, as one the browser can render (vite.config.ts rebinds each to
+ * this): called once per page run and set of props, its promise read with use() under the nearest Suspense.
+ * A page refresh calls it again, as Next re-renders it.
+ */
+export function clientAsync<P extends object>(component: (props: P) => Promise<ReactNode>) {
+  const calls = new WeakMap<object, Map<string, Promise<ReactNode>>>();
+  return function ClientAsync(props: P) {
+    const run = useContext(PageRun);
+    let mine = calls.get(run);
+    if (!mine) calls.set(run, (mine = new Map()));
+    // Props keyed by JSON; today's async components take none. Key on identity if one takes elements.
+    const key = JSON.stringify(props);
+    let call = mine.get(key);
+    if (!call) mine.set(key, (call = component(props)));
+    return use(call);
+  };
+}
+
 /**
  * A server-component page run in the browser: called once per visit (and again on router.refresh() or "Try
  * again"), its promise read with use() under the route's loading.tsx. A thrown redirect() navigates, notFound()
@@ -84,11 +106,7 @@ export function page(mod: () => Promise<PageModule>, Loading: ComponentType = ()
         const meta = Promise.resolve(m.generateMetadata?.(props) ?? m.metadata);
         meta.catch(() => {}); // left unread when the page redirects or fails
         try {
-          let node = await m.default(props);
-          // A page may return an async server component (practice's <RandomSections />), which the browser can't render: run it here.
-          while (isValidElement<object>(node) && typeof node.type === "function" && node.type.constructor.name === "AsyncFunction") {
-            node = await (node.type as (p: object) => Promise<ReactNode>)(node.props);
-          }
+          const node = await m.default(props);
           return { node, title: (await meta)?.title };
         } catch (error) {
           // notFound(): Next shows not-found.tsx inside the page's layouts, under the page's own title if it has one.
@@ -99,7 +117,7 @@ export function page(mod: () => Promise<PageModule>, Loading: ComponentType = ()
     }
     const { node, title } = use(result);
     useEffect(() => setTitle(title), [title]);
-    return node;
+    return <PageRun value={result}>{node}</PageRun>;
   }
 
   function Page() {
@@ -109,6 +127,7 @@ export function page(mod: () => Promise<PageModule>, Loading: ComponentType = ()
     const retry = () => setCount((n) => n + 1);
     const fallback = (error: unknown) => {
       if (error instanceof Redirect) return <Navigate to={error.href} replace />;
+      if (error instanceof NotFound) return <NotFoundPage />; // from an async component inside the page
       return <ErrorPage error={error as Error} retry={retry} />;
     };
     return (

@@ -6,16 +6,15 @@ import { applyPrefs } from "../web/lib/prefs";
 const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 const web = here("../web/");
 
-// next/* modules the shared files import, and web's server-only modules, swapped for browser versions.
+// next/* modules the shared files import, and the server-only web/lib modules, swapped for browser versions.
 const SHIMS: Record<string, string> = {
   "next/link": here("src/shims/link.tsx"),
   "next/navigation": here("src/shims/navigation.ts"),
   "next/cache": here("src/shims/cache.ts"),
 };
-// components/StartButton.tsx renders an async server component inside the page, which the browser can't run.
-const SWAPS = new Map(["lib/supabase.ts", "lib/bank.ts", "lib/auth.ts", "lib/actions.ts", "lib/answerKey.ts", "components/StartButton.tsx"]
-  .map((path) => [web + path, here(`src/${path}`)]));
+const SWAPS = new Map(["supabase", "bank", "auth", "actions", "answerKey"].map((name) => [`${web}lib/${name}.ts`, here(`src/lib/${name}.ts`)]));
 const EMPTY = "\0empty";
+const ROUTER = here("src/router.tsx");
 
 // web/app/layout.tsx's pre-paint scripts: the theme, then this device's display preferences.
 const THEME_SCRIPT = `try{var t=localStorage.getItem("theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")`;
@@ -34,6 +33,15 @@ function nextShims(): Plugin {
       return resolved && SWAPS.has(resolved.id) ? SWAPS.get(resolved.id) : resolved;
     },
     load: (id) => (id === EMPTY ? "export {}" : null),
+    // An async server component used inside a page (components/StartButton.tsx's StartButton, practice's
+    // RandomSections) can't render in the browser: rebind each one to clientAsync's wrapper (src/router.tsx).
+    // Callers read the binding at render time, after the module has run.
+    transform(code, id) {
+      if (!id.startsWith(web) || !id.endsWith(".tsx")) return null;
+      const names = [...code.matchAll(/^async function ([A-Z]\w*)\s*[(<]/gm)].map((m) => m[1]);
+      if (!names.length) return null;
+      return `${code}\nimport { clientAsync as __clientAsync } from ${JSON.stringify(ROUTER)};\n${names.map((n) => `${n} = __clientAsync(${n});`).join("\n")}\n`;
+    },
     transformIndexHtml: () => [THEME_SCRIPT, PREFS_SCRIPT].map((children) => ({ tag: "script", children, injectTo: "head-prepend" as const })),
   };
 }

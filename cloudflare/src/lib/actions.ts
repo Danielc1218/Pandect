@@ -1,6 +1,6 @@
 // Browser version of web/lib/actions.ts. Grading needs the answer files, so answer and saveAnswer call the Pages
 // Functions with the session's token. The rest are web's own actions (their supabase() is the browser client here,
-// and their revalidatePath does nothing), with the redirect they may end with followed through the router.
+// and their revalidatePath refreshes the page and Root), with the redirect they may end with followed through the router.
 import * as web from "@/lib/actions";
 import { follow } from "./auth";
 import { requireUser } from "./supabase";
