@@ -3,9 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { questionAnswer } from "./answerKey";
-import { admin, allSections, BANK_NAME } from "./bank";
-import { canStartSection } from "./practiceTests";
-import { changed, sanitize } from "./prefs";
+import { admin } from "./bank";
+import { op } from "./run";
 import { requireUser } from "./supabase";
 
 /** Records a drill answer. The server grades it with the secret key; the correct letter is only returned afterwards. */
@@ -21,28 +20,11 @@ export async function answer(questionId: string, chosen: string) {
 }
 
 export async function startSection(form: FormData) {
-  const { db } = await requireUser();
-  const testId = String(form.get("test_id"));
-  const sectionNumber = Number(form.get("section_number"));
-  // Only a section of this bank with ready questions, and in the generated bank only from a complete test.
-  if (!canStartSection(await allSections(), BANK_NAME, testId, sectionNumber)) throw new Error("That section is not available.");
-  const { data, error } = await db
-    .from("test_sessions")
-    .insert({ test_id: testId, section_number: sectionNumber })
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
-  redirect(`/section/${data.id}`);
+  redirect(`/section/${await op("startSection", String(form.get("test_id")), Number(form.get("section_number")))}`);
 }
 
-/** A timed random section from this deployment's bank, unanswered questions first: 25 Logical Reasoning
- * questions, or four whole Reading Comprehension passages (the database builds those like a real section). */
 export async function startRandomSection(form: FormData) {
-  const { db } = await requireUser();
-  const section = form.get("section_type") === "Reading Comprehension" ? "Reading Comprehension" : "Logical Reasoning";
-  const { data, error } = await db.rpc("start_random_section", { p_bank: BANK_NAME, p_section_type: section, p_size: 25 });
-  if (error) throw new Error(error.message);
-  redirect(`/section/${data}`);
+  redirect(`/section/${await op("startRandomSection", form.get("section_type"))}`);
 }
 
 /** Saves or changes one answer in a timed section. */
@@ -64,58 +46,37 @@ export async function saveAnswer(sessionId: string, questionId: string, chosen: 
 
 /** Save and exit: stops a timed section's clock until it is opened again (resumeSection). */
 export async function pauseSection(sessionId: string) {
-  const { db } = await requireUser();
-  await db.from("test_sessions").update({ paused_at: new Date().toISOString() }).eq("id", sessionId).is("finished_at", null).is("paused_at", null);
+  await op("pauseSection", sessionId);
 }
 
 /** Opening a paused section starts its clock again, adding the time away to paused_seconds. */
 export async function resumeSection(sessionId: string) {
-  const { db } = await requireUser();
-  const { data } = await db.from("test_sessions").select("paused_at, paused_seconds").eq("id", sessionId).is("finished_at", null).maybeSingle();
-  if (!data?.paused_at) return;
-  const away = Math.max(0, Math.round((Date.now() - new Date(data.paused_at).getTime()) / 1000));
-  // matching paused_at keeps a second call (development runs effects twice) from counting the time twice
-  await db.from("test_sessions").update({ paused_at: null, paused_seconds: data.paused_seconds + away }).eq("id", sessionId).eq("paused_at", data.paused_at);
+  await op("resumeSection", sessionId);
 }
 
 export async function finishSection(sessionId: string) {
-  const { db } = await requireUser();
-  await db.from("test_sessions").update({ finished_at: new Date().toISOString() }).eq("id", sessionId).is("finished_at", null);
+  await op("finishSection", sessionId);
   redirect(`/results/${sessionId}`);
 }
 
 export type SettingsState = { saved?: boolean; error?: string };
 
-export async function saveSettings(_: SettingsState, form: FormData): Promise<SettingsState> {
-  const { db, user } = await requireUser();
-  const number = (key: string) => (form.get(key) ? Number(form.get(key)) : null);
-  const { error } = await db
-    .from("profiles")
-    .update({
-      target_score: number("target_score"),
-      curr_score: number("curr_score"),
-      test_date: String(form.get("test_date") ?? "") || null,
-      weekly_goal: number("weekly_goal") ?? 60,
-    })
-    .eq("id", user.id);
-  if (error) return { error: "Scores must be between 120 and 180." };
+/** What a settings form's error message, or its absence, means to the form; the layout re-reads the profile. */
+function settled(error: string | null): SettingsState {
+  if (error) return { error };
   revalidatePath("/", "layout");
   return { saved: true };
+}
+
+export async function saveSettings(_: SettingsState, form: FormData): Promise<SettingsState> {
+  return settled(await op("saveSettings", Object.fromEntries(["target_score", "curr_score", "test_date", "weekly_goal"].map((k) => [k, form.get(k)]))));
 }
 
 export async function saveProfile(_: SettingsState, form: FormData): Promise<SettingsState> {
-  const { db, user } = await requireUser();
-  const name = String(form.get("display_name") ?? "").trim();
-  if (!name) return { error: "Enter a display name." };
-  const { error } = await db.from("profiles").update({ display_name: name }).eq("id", user.id);
-  if (error) return { error: error.message };
-  revalidatePath("/", "layout");
-  return { saved: true };
+  return settled(await op("saveProfile", form.get("display_name")));
 }
 
 /** Saves display preferences to the account; they are already applied on this device (lib/prefs.ts). */
-export async function savePreferences(prefs: unknown) {
-  const { db, user } = await requireUser();
-  const { error } = await db.from("profiles").update({ preferences: changed(sanitize(prefs)) }).eq("id", user.id);
-  if (error) throw new Error(error.message);
+export async function savePreferences(prefs: unknown, accountId?: string) {
+  await op("savePreferences", prefs, accountId);
 }

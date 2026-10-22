@@ -6,22 +6,21 @@ import { PassageText } from "@/components/PassageText";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Tabs } from "@/components/Tabs";
 import { startSection } from "@/lib/actions";
-import { allSections, BANK_NAME } from "@/lib/bank";
+import { BANK_NAME } from "@/lib/bank";
 import { drillHref, formatDay, grade, pct } from "@/lib/data";
 import { canStartSection } from "@/lib/practiceTests";
 import { sanitize } from "@/lib/prefs";
 import { sessionAnswerKey } from "@/lib/answerKey";
-import { SESSION_FIELDS, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
-import { requireUser } from "@/lib/supabase";
+import { op } from "@/lib/run";
+import { sessionHome, sessionLabel } from "@/lib/sessions";
+import { sessionQuestions } from "@/lib/wording";
 import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
 
 /** The tab names the sitting and its score, so several open results can be told apart. */
 export async function generateMetadata({ params }: PageProps<"/results/[id]">) {
   const { id } = await params;
-  const { db } = await requireUser();
-  const { data } = await db.from("test_sessions").select(SESSION_FIELDS).eq("id", id).maybeSingle();
-  const s = data as unknown as Session | null;
+  const s = await op("session", id);
   return { title: s ? `${sessionLabel(s).title} results${s.score_total ? `, ${s.score_correct} of ${s.score_total}` : ""}` : "Results" };
 }
 
@@ -60,19 +59,11 @@ function ReviewRow({ q, text, passages, chosen }: { q: Key; text?: Text; passage
 
 export default async function Results({ params }: PageProps<"/results/[id]">) {
   const { id } = await params;
-  const { db, user } = await requireUser();
-  const { data } = await db.from("test_sessions").select(SESSION_FIELDS).eq("id", id).maybeSingle();
-  const session = data as unknown as Session | null;
+  const { session, questions, attempts, preferences, sections } = await op("results", id);
   if (!session) notFound();
   if (!session.finished_at) redirect(`/section/${id}`);
 
-  const [all, section, { data: attempts }, { data: profile }, sections] = await Promise.all([
-    sessionAnswerKey(db, id),
-    sessionQuestions(db, id),
-    db.from("attempts").select("question_id, chosen, correct").eq("session_id", id),
-    db.from("profiles").select("preferences").eq("id", user.id).maybeSingle(),
-    allSections(),
-  ]);
+  const [all, section] = await Promise.all([sessionAnswerKey(id), sessionQuestions(questions)]);
   const text = new Map(section.questions.map((q) => [q.id, q]));
   const mine = new Map((attempts ?? []).map((a) => [a.question_id, a]));
   // The score the database stored when the section was finished: the user's history of this sitting.
@@ -80,7 +71,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
   const seconds = Math.round((new Date(session.finished_at).getTime() - new Date(session.started_at).getTime()) / 1000) - session.paused_seconds;
   const perQuestion = Math.round(seconds / Math.max(1, all.length));
   // Today's extended-time setting, not the one in force during the sitting; store it on test_sessions if that matters
-  const allowed = Math.round(sectionMinutes(all.length) * sanitize(profile?.preferences).extraTime * 60);
+  const allowed = Math.round(sectionMinutes(all.length) * sanitize(preferences).extraTime * 60);
   const over = seconds - allowed;
   const pace = Math.floor(allowed / Math.max(1, all.length)); // the time per question that just fits the limit
   const byType = Object.entries(Object.groupBy(all, (q) => q.question_type))

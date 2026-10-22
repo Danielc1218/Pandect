@@ -10,6 +10,7 @@ import "./design/dark.css";
 import "./design/mock.css";
 import "./skeleton.css";
 import "./prefs.css";
+import "./mascot.css";
 
 export const metadata: Metadata = {
   title: { default: "LSAT Prep", template: "%s · LSAT Prep" },
@@ -27,7 +28,7 @@ async function SessionNav() {
   const db = await supabase();
   const { data } = await db.auth.getClaims();
   const prefs = data?.claims ? (await db.from("profiles").select("preferences").eq("id", data.claims.sub).maybeSingle()).data : null;
-  return <>{prefs && <PrefsSync account={prefs.preferences} />}<TopNav signedIn={!!data?.claims} /></>;
+  return <><PrefsSync account={prefs?.preferences} accountId={data?.claims?.sub ?? null} /><TopNav signedIn={!!data?.claims} /></>;
 }
 
 const THEME_SCRIPT = `try{var t=localStorage.getItem("theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")`;

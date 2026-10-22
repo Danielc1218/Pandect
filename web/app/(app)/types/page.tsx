@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Tabs } from "@/components/Tabs";
-import { drillHref, grade, pct, SECTIONS, typeStats, type TypeStat } from "@/lib/data";
-import { requireUser } from "@/lib/supabase";
+import { drillHref, grade, pct, SECTIONS } from "@/lib/data";
+import type { TypeStat } from "@/lib/ops";
+import { op } from "@/lib/run";
 import { describeType } from "@/lib/types";
 
 export const metadata = { title: "Question types" };
@@ -26,8 +27,7 @@ function TypeList({ types }: { types: TypeStat[] }) {
 }
 
 export default async function Types() {
-  const { db } = await requireUser();
-  const types = await typeStats(db);
+  const types = await op("types");
   const of = (section: string) => types.filter((t) => t.section_type === section);
   const sum = (list: TypeStat[]) => list.reduce((n, t) => n + t.total, 0);
   const lr = of(SECTIONS.lr);

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { updatePreferences } from "./Prefs";
 
 /** `icon` is the path data of a 24×24 outline icon drawn before the label. */
 type Item = { href: string; label: string; match?: string[]; icon?: string };
@@ -79,14 +80,12 @@ const SITE: Item[] = [
 ];
 
 /**
- * The light/dark switch: moon on the left, sun on the right, a knob under the current one. The theme lives on
- * <html> (set before paint by the script in app/layout.tsx) and CSS places the knob, so there is no state here.
+ * The light/dark switch saves the same profile preference as the settings page.
  */
-export function ThemeToggle() {
+export function ThemeToggle({ signedIn }: { signedIn?: boolean }) {
   const flip = () => {
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
-    try { localStorage.setItem("theme", next); } catch {} // private browsing: the choice just lasts for this page
+    void updatePreferences({ theme: next }, signedIn === true);
   };
   return (
     <button type="button" className="theme-toggle" onClick={flip} aria-label="Switch between dark and light mode" title="Dark or light mode">
@@ -104,16 +103,13 @@ export function TopNav({ signedIn }: { signedIn?: boolean }) {
   return (
     <header className="top-nav">
       <Link className="brand" href="/">
-        {/* the mark: a ticked answer bubble in the primary color */}
-        <svg className="brand-mark" viewBox="0 0 24 24" aria-hidden="true">
-          <rect width="24" height="24" rx="6" fill="currentColor" />
-          <path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="var(--color-on-primary)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="brand-mark mascot-brand" src="/mascot/brand/peek.webp" alt="" width={40} height={40} />
         LSAT Prep
       </Link>
       <SlidingNav items={SITE} className="links" underline label="Site" />
       <span className="spacer" />
-      <ThemeToggle />
+      <ThemeToggle signedIn={signedIn} />
       {signedIn === undefined ? null : signedIn ? (
         <>
           <Link className="icon-btn" href="/settings" aria-label="Settings" title="Settings">

@@ -1,7 +1,7 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { admin, BANK_NAME, bankEntries } from "./bank";
 import type { CdnAnswer } from "./cdn";
+import { requireUser } from "./supabase";
 
 /**
  * Answer keys. Users can't select correct_answer or explanation (the database refuses), so the server reads
@@ -21,8 +21,9 @@ export async function questionAnswer(id: string) {
 }
 
 /** A finished session's answers and reasoning, for marking it; empty while the section is running or if it isn't the user's. */
-export async function sessionAnswerKey(db: SupabaseClient, sessionId: string) {
+export async function sessionAnswerKey(sessionId: string) {
   // The user's own client only sees their own sessions.
+  const { db } = await requireUser();
   const { data: session } = await db.from("test_sessions").select("finished_at").eq("id", sessionId).maybeSingle();
   if (!session?.finished_at) return [];
   if (BANK_NAME === "generated") {

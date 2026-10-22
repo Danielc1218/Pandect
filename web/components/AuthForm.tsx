@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { logIn, signUp, type AuthState } from "@/lib/auth";
 import { today } from "./SettingsForm";
+import { Mascot } from "./Mascot";
 
 /** `next` is the page a signed-out visitor asked for, where logging in takes them. */
 export function AuthForm({ mode, next }: { mode: "signup" | "login"; next?: string }) {
@@ -16,6 +17,7 @@ export function AuthForm({ mode, next }: { mode: "signup" | "login"; next?: stri
   return (
     <section className="auth">
       <div className="panel">
+        <Mascot animation="wave" className="mascot-welcome" />
         <h1>{signup ? "Create your account" : "Log in"}</h1>
         <form className="stack" action={action}>
           {next && <input type="hidden" name="next" value={next} />}

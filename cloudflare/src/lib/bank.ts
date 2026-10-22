@@ -1,38 +1,17 @@
-// Browser version of web/lib/bank.ts. The index tables come from Supabase as the signed-in user; question files
-// come decrypted from the Pages Functions under /api/bank, which check the same session.
-import { toDrillQuestion, typeSlug, type CdnQuestion } from "@/lib/cdn";
+// Browser version of web/lib/bank.ts. The index comes through ops (functions/api/op/[name].ts); question files come
+// decrypted from the Pages Functions under /api/bank. Both act as the signed-in user.
+import { practiceName, toDrillQuestion, typeSlug, type CdnQuestion } from "@/lib/cdn";
 import type { QuestionRow } from "@/lib/questions";
-import { supabase } from "./supabase";
+import { op } from "./run";
+import { api } from "./supabase";
 
 export type BankName = "other" | "generated";
 // Only the generated bank is ever on Cloudflare.
 export const BANK_NAME: BankName = "generated";
 
-async function rows<T>(query: PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> {
-  const { data, error } = await query;
-  if (error) throw error;
-  return data ?? [];
-}
-
-export const typeCounts = async () =>
-  rows<{ section_type: string; question_type: string; total: number }>(
-    (await supabase()).from("bank_type_counts").select("section_type, question_type, total").eq("bank", BANK_NAME));
-
-export const allTests = async () =>
-  rows<{ id: string; name: string; year: number | null }>((await supabase()).from("tests").select("id, name, year").eq("bank", BANK_NAME));
-
-export const allSections = async () =>
-  rows<{ test_id: string; section_number: number; section_type: string; questions: number; passages: number }>(
-    (await supabase()).from("bank_test_sections").select("test_id, section_number, section_type, questions, passages").eq("bank", BANK_NAME).order("section_number"));
-
-/** A bank Function's JSON, sent with the session's token; null on 404. */
-async function api<T>(path: string): Promise<T | null> {
-  const { data: { session } } = await (await supabase()).auth.getSession();
-  const res = await fetch(path, { headers: session ? { Authorization: `Bearer ${session.access_token}` } : {} });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`${path}: ${res.status}`);
-  return res.json();
-}
+export const typeCounts = () => op("typeCounts");
+export const allTests = () => op("allTests");
+export const allSections = () => op("allSections");
 
 /** A generated question file by id. */
 export const cdnQuestion = (id: string) => api<CdnQuestion>(`/api/bank/q/${encodeURIComponent(id)}`);
@@ -57,7 +36,8 @@ export async function cdnQuestions(ids: string[]): Promise<CdnQuestion[]> {
 
 /** Every question of one type for the drill list, in the order drills step through them. */
 export const typeQuestions = async (section: string, type: string): Promise<QuestionRow[]> =>
-  (await api<QuestionRow[]>(`/api/bank/types/${section === "Reading Comprehension" ? "rc" : "lr"}/${typeSlug(type)}`)) ?? [];
+  ((await api<QuestionRow[]>(`/api/bank/types/${section === "Reading Comprehension" ? "rc" : "lr"}/${typeSlug(type)}`)) ?? [])
+    .map((question) => ({ ...question, source: practiceName(question.source) }));
 
 /** One question to drill, with its passage and where it comes from. */
 export async function drillQuestion(id: string) {

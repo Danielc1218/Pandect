@@ -28,9 +28,12 @@ export const bankPaths = {
   version: "/bank/version.json",
 };
 
+/** Public labels omit the internal bank's "Generated" prefix. */
+export const practiceName = (name: string) => name.replace(/^Generated\s+/i, "");
+
 /** The source line shown beside a question, e.g. "Practice Set 3, section 2, question 5". */
 export const sourceOf = (q: Pick<CdnQuestion, "test_name" | "section_number" | "question_number">) =>
-  `${q.test_name}, section ${q.section_number}, question ${q.question_number}`;
+  `${practiceName(q.test_name)}, section ${q.section_number}, question ${q.question_number}`;
 
 /** A question file in the shape the drill page uses. */
 export const toDrillQuestion = (q: CdnQuestion) => ({

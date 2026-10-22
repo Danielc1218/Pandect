@@ -12,7 +12,7 @@ const SHIMS: Record<string, string> = {
   "next/navigation": here("src/shims/navigation.ts"),
   "next/cache": here("src/shims/cache.ts"),
 };
-const SWAPS = new Map(["supabase", "bank", "auth", "actions", "answerKey"].map((name) => [`${web}lib/${name}.ts`, here(`src/lib/${name}.ts`)]));
+const SWAPS = new Map(["supabase", "bank", "auth", "actions", "answerKey", "run"].map((name) => [`${web}lib/${name}.ts`, here(`src/lib/${name}.ts`)]));
 const EMPTY = "\0empty";
 const ROUTER = here("src/router.tsx");
 

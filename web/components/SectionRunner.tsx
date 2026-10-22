@@ -148,7 +148,7 @@ export function SectionRunner({
         {prefs.hideTimer && !low && <button type="button" className="btn" aria-pressed={peek} onClick={() => setPeek(!peek)}>{peek ? "Hide time" : "Show time"}</button>}
         <span className="sr-only" aria-live="assertive">{expired ? "Time is up." : low ? "Five minutes left." : ""}</span>
         <Highlighter sessionId={sessionId} />
-        <ThemeToggle />
+        <ThemeToggle signedIn />
         <button type="button" className="btn" onClick={exit} disabled={leaving} title="Your answers are saved, and the clock stops until you come back.">{leaving ? "Saving…" : "Save and exit"}</button>
       </header>
       <div id="main" tabIndex={-1} className={`reader${q.passage === null ? " single" : ""}`}>

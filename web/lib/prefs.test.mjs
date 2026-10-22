@@ -36,6 +36,13 @@ test("only changes from the defaults are stored", () => {
   assert.deepEqual(changed({ ...DEFAULT_PREFS, textScale: 1.2, motion: "reduce" }), { textScale: 1.2, motion: "reduce" });
 });
 
+test("theme and display settings round-trip through the account profile", () => {
+  const prefs = { ...DEFAULT_PREFS, theme: "dark", accent: "#1f5fae", textScale: 1.2, savedAccents: ["#123456"] };
+  assert.deepEqual(sanitize(JSON.parse(JSON.stringify(changed(prefs)))), prefs);
+  assert.deepEqual(changed(sanitize({ theme: "system" })), {});
+  assert.equal(sanitize({ theme: "invalid" }).theme, "system");
+});
+
 test("contrast follows WCAG", () => {
   assert.equal(Math.round(contrast("#000000", "#ffffff")), 21);
   assert.equal(contrast("#777777", "#777777"), 1);

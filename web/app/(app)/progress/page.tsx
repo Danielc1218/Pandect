@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { CountUp } from "@/components/CountUp";
-import { BANK_NAME } from "@/lib/bank";
-import { activity, drillHref, formatDay, grade, pct, typeStats } from "@/lib/data";
-import { SESSION_FIELDS, sessionLabel, type Session } from "@/lib/sessions";
-import { requireUser } from "@/lib/supabase";
+import { Mascot } from "@/components/Mascot";
+import { drillHref, formatDay, grade, pct } from "@/lib/data";
+import { op } from "@/lib/run";
+import { sessionLabel, type Session } from "@/lib/sessions";
 
 export const metadata = { title: "Progress" };
 
@@ -53,12 +53,7 @@ function duration(s: Session) {
 }
 
 export default async function Progress() {
-  const { db } = await requireUser();
-  const [stats, types, { data: sessions }] = await Promise.all([
-    activity(db),
-    typeStats(db),
-    db.from("test_sessions").select(SESSION_FIELDS).eq("bank", BANK_NAME).not("finished_at", "is", null).order("finished_at", { ascending: false }).limit(10),
-  ]);
+  const { stats, types, sessions } = await op("progress");
   const tried = types.filter((t) => t.answered > 0).sort((a, b) => a.correct / a.answered - b.correct / b.answered);
   return (
     <>
@@ -88,7 +83,7 @@ export default async function Progress() {
             ))}
           </div>
         ) : (
-          <div className="panel"><p>Answer a few questions and your accuracy by type will show here.</p><div className="actions"><Link className="btn primary" href="/types">Choose a question type</Link></div></div>
+          <div className="panel mascot-empty"><Mascot animation="sleepy" /><div><p>Answer a few questions and your accuracy by type will show here.</p><div className="actions"><Link className="btn primary" href="/types">Choose a question type</Link></div></div></div>
         )}
       </section>
       {!!sessions?.length && (

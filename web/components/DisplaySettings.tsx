@@ -1,24 +1,8 @@
 "use client";
 
-import { useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { savePreferences } from "@/lib/actions";
-import { applyPrefs, DEFAULT_PREFS, RANGES, SAVED_MAX, storePrefs, type Prefs } from "@/lib/prefs";
-import { markEdited, usePrefs } from "./Prefs";
-
-type Theme = "system" | "light" | "dark";
-
-// The theme lives on <html> and in storage, outside React (the top bar's switch changes it too), so it is read
-// from there and re-read whenever <html>'s attributes change.
-const watchHtml = (onChange: () => void) => {
-  const observer = new MutationObserver(onChange);
-  observer.observe(document.documentElement, { attributes: true });
-  return () => observer.disconnect();
-};
-const readTheme = (): Theme => {
-  let saved: string | null = null;
-  try { saved = localStorage.getItem("theme"); } catch {}
-  return saved === "light" || saved === "dark" ? saved : "system";
-};
+import { type ReactNode } from "react";
+import { DEFAULT_PREFS, RANGES, SAVED_MAX } from "@/lib/prefs";
+import { updatePreferences, usePreferenceSaveStatus, usePrefs } from "./Prefs";
 
 function Range({ id, label, value, step, format, onChange }: {
   id: keyof typeof RANGES; label: string; value: number; step: number; format: (v: number) => string; onChange: (v: number) => void;
@@ -102,30 +86,11 @@ function Check({ label, checked, onChange }: { label: string; checked: boolean; 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const em = (v: number) => (v ? `${v.toFixed(2)} em` : "Normal");
 
-/** Display and accessibility settings: every change shows at once, on this device and in the preview, and is saved to the account shortly after. */
+/** Display and accessibility settings apply at once and save to the signed-in profile. */
 export function DisplaySettings() {
   const prefs = usePrefs();
-  const [status, setStatus] = useState("");
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const theme = useSyncExternalStore<Theme>(watchHtml, readTheme, () => "system");
-
-  const update = (patch: Partial<Prefs>) => {
-    const next = { ...prefs, ...patch };
-    markEdited();
-    applyPrefs(next);
-    storePrefs(next);
-    setStatus("Saving…");
-    clearTimeout(timer.current); // a slider sends many changes; only the last one is saved
-    timer.current = setTimeout(() => {
-      savePreferences(next).then(() => setStatus("Saved to your account."), () => setStatus("Couldn't save to your account. Your changes still apply on this device."));
-    }, 500);
-  };
-
-  const chooseTheme = (t: Theme) => {
-    const resolved = t === "system" ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : t;
-    try { if (t === "system") localStorage.removeItem("theme"); else localStorage.setItem("theme", t); } catch {}
-    document.documentElement.dataset.theme = resolved; // the observer above picks up the change
-  };
+  const status = usePreferenceSaveStatus();
+  const update = updatePreferences;
 
   return (
     <div className="settings-layout">
@@ -144,7 +109,7 @@ export function DisplaySettings() {
 
         <section className="panel prefs-group" aria-labelledby="colors">
           <h2 id="colors">Colors</h2>
-          <Choice legend="Theme" name="theme" value={theme} onChange={chooseTheme}
+          <Choice legend="Theme" name="theme" value={prefs.theme} onChange={(theme) => update({ theme })}
                   options={[["system", "Match this device"], ["light", "Light"], ["dark", "Dark"]]} />
           <Check label="High contrast" checked={prefs.contrast === "high"} onChange={(v) => update({ contrast: v ? "high" : "normal" })} />
           <ColorChoice id="accent" legend="Accent color" value={prefs.accent} presets={ACCENTS} saved={prefs.savedAccents} fallback="#1e6b43"
@@ -177,7 +142,6 @@ export function DisplaySettings() {
             if (!confirm("Put every display setting back to how it started?")) return;
             // back to the defaults, keeping the colors saved for picking again
             update({ ...DEFAULT_PREFS, savedAccents: prefs.savedAccents, savedTints: prefs.savedTints });
-            chooseTheme("system");
           }}>Reset everything</button>
         </div>
       </div>

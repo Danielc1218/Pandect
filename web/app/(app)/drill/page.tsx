@@ -6,8 +6,8 @@ import { PassageText } from "@/components/PassageText";
 import { QuestionList } from "@/components/QuestionList";
 import { BANK_NAME, drillQuestion, typeQuestions } from "@/lib/bank";
 import { drillHref, grade, pct, SECTIONS, type SectionKey } from "@/lib/data";
-import { latestStatus, nextUnanswered } from "@/lib/questions";
-import { requireUser } from "@/lib/supabase";
+import { nextUnanswered } from "@/lib/questions";
+import { op } from "@/lib/run";
 import { describeType } from "@/lib/types";
 
 /** The tab says which type is being drilled, and whether it is the list or which question (the list is cached). */
@@ -25,15 +25,8 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
   const type = String(params.type ?? "");
   if (!section || !type) notFound();
 
-  const { db } = await requireUser();
-  // Reads the user's newest 1,000 attempts at this type; move to a SQL view if anyone passes that.
-  const [rows, { data: attempts }] = await Promise.all([
-    typeQuestions(section, type),
-    db.from("attempts").select("question_id, correct, questions!inner(id)").eq("questions.section_type", section).eq("questions.question_type", type)
-      .order("created_at", { ascending: false }).limit(1000),
-  ]);
+  const [rows, status] = await Promise.all([typeQuestions(section, type), op("drillStatus", section, type)]);
   if (!rows.length) notFound();
-  const status = latestStatus(attempts ?? []);
   const ids = rows.map((r) => r.id);
   const answered = ids.filter((id) => status[id]).length;
   const solved = ids.filter((id) => status[id] === "solved").length;

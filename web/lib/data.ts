@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { BANK_NAME, typeCounts } from "./bank";
 
 export const SECTIONS = { lr: "Logical Reasoning", rc: "Reading Comprehension" } as const;
 export type SectionKey = keyof typeof SECTIONS;
@@ -9,20 +8,6 @@ export const pct = (part: number, whole: number) => (whole ? Math.round((100 * p
 /** The class that colors an accuracy bar: green from 70%, yellow from 50%, red below. */
 export const grade = (percent: number) => (percent >= 70 ? "good" : percent >= 50 ? "fair" : "poor");
 export const testNumber = (id: string) => Number(id.replace(/\D/g, "")) || 0;
-
-export type TypeStat = { section_type: string; question_type: string; total: number; answered: number; correct: number };
-
-/** Every question type with its size and the signed-in user's record on it, most common first. */
-export async function typeStats(db: SupabaseClient): Promise<TypeStat[]> {
-  const [totals, { data: mine }] = await Promise.all([typeCounts(), db.from("my_bank_type_stats").select("*").eq("bank", BANK_NAME)]);
-  const record = new Map((mine ?? []).map((m) => [m.section_type + "|" + m.question_type, m]));
-  return totals
-    .map((t) => {
-      const m = record.get(t.section_type + "|" + t.question_type);
-      return { ...t, answered: m?.answered ?? 0, correct: m?.correct ?? 0 };
-    })
-    .sort((a, b) => b.total - a.total);
-}
 
 const DAY = 86_400_000;
 const dayOf = (iso: string) => Math.floor(new Date(iso).getTime() / DAY);
@@ -67,7 +52,7 @@ export async function activity(db: SupabaseClient) {
     today,
     latest,
     latestAt: drill?.created_at as string | undefined,
-    /** When the user last answered in each timed section, newest first. */
-    sessionAt: (id: string) => rows.find((r) => r.session_id === id)?.created_at as string | undefined,
+    /** When the user last answered in each timed section, by session id. */
+    sessionAt: Object.fromEntries(rows.filter((r) => r.session_id).reverse().map((r) => [r.session_id as string, r.created_at as string])) as Record<string, string>,
   };
 }

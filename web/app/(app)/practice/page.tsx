@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Tabs } from "@/components/Tabs";
+import { Mascot } from "@/components/Mascot";
 import { startRandomSection } from "@/lib/actions";
-import { allSections, allTests, BANK_NAME } from "@/lib/bank";
+import { BANK_NAME } from "@/lib/bank";
 import { formatDay, grade, pct, testNumber } from "@/lib/data";
 import { isCompleteTest } from "@/lib/practiceTests";
-import { SESSION_FIELDS, sessionLabel, type Session } from "@/lib/sessions";
-import { requireUser } from "@/lib/supabase";
+import { op } from "@/lib/run";
+import { sessionLabel, type Session } from "@/lib/sessions";
 
 export const metadata = { title: "Practice tests" };
 
@@ -39,10 +40,7 @@ function sittingName(s: Session) {
 
 /** The generated bank also draws a fresh random section per sitting; its past sittings, fixed or random, are history. */
 async function RandomSections() {
-  const { db } = await requireUser();
-  const { data } = await db.from("test_sessions").select(SESSION_FIELDS).eq("bank", BANK_NAME)
-    .order("started_at", { ascending: false }).limit(50);
-  const sessions = (data ?? []) as unknown as Session[];
+  const sessions = await op("recentSessions");
   const open = sessions.filter((s) => !s.finished_at);
   const done = sessions.filter((s) => s.finished_at);
   return (
@@ -101,12 +99,7 @@ async function RandomSections() {
 
 export default async function Practice({ searchParams }: PageProps<"/practice">) {
   const find = String((await searchParams).q ?? "").trim();
-  const { db } = await requireUser();
-  const [tests, sections, { data: sessions }] = await Promise.all([
-    allTests(),
-    allSections(),
-    db.from("test_sessions").select("test_id, section_number, finished_at"),
-  ]);
+  const { tests, sections, sessions } = await op("practice");
   // The generated bank lists only whole practice tests; the rest of its questions are in drills and random sections.
   const listed = BANK_NAME === "generated" ? tests.filter((t) => isCompleteTest(sections.filter((s) => s.test_id === t.id))) : tests;
   const rows: Row[] = listed
@@ -126,7 +119,7 @@ export default async function Practice({ searchParams }: PageProps<"/practice">)
   const completed = rows.filter((t) => t.done >= t.sections);
   const list = (
     <section>
-      <h1>Practice tests</h1>
+      <div className="mascot-heading"><h1>Practice tests</h1><Mascot animation="run" /></div>
       <form className="field" role="search">
         <label htmlFor="find-test">Find a test</label>
         <input id="find-test" name="q" type="search" enterKeyHint="search" defaultValue={find} placeholder={"A number like 3"} />

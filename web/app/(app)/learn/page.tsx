@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Art } from "@/components/Art";
+import { Mascot, MascotCard } from "@/components/Mascot";
 import { CountUp } from "@/components/CountUp";
 import { Tabs } from "@/components/Tabs";
-import { BANK_NAME } from "@/lib/bank";
-import { activity, daysUntil, drillHref, formatDay, grade, pct, SECTIONS, typeStats, type TypeStat } from "@/lib/data";
-import { SESSION_FIELDS, sessionHome, sessionLabel, type Session } from "@/lib/sessions";
-import { requireUser } from "@/lib/supabase";
+import { daysUntil, drillHref, formatDay, grade, pct, SECTIONS } from "@/lib/data";
+import type { TypeStat } from "@/lib/ops";
+import { op } from "@/lib/run";
+import { sessionHome, sessionLabel } from "@/lib/sessions";
 
 export const metadata = { title: "Learning" };
 
@@ -27,19 +27,12 @@ function AnsweredBars({ types }: { types: TypeStat[] }) {
 }
 
 export default async function Learn() {
-  const { db, user } = await requireUser();
-  const [{ data: profile }, stats, types, { data: sessions }] = await Promise.all([
-    db.from("profiles").select("display_name, weekly_goal, test_date").eq("id", user.id).single(),
-    activity(db),
-    typeStats(db),
-    db.from("test_sessions").select(SESSION_FIELDS).eq("bank", BANK_NAME).order("started_at", { ascending: false }).limit(1),
-  ]);
+  const { profile, stats, types, session } = await op("learn");
   const goal = profile?.weekly_goal ?? 60;
   const daysLeft = profile?.test_date ? daysUntil(profile.test_date) : null;
 
   // Where the user left off: their latest timed section or their latest drill, whichever they touched last.
-  const session = (sessions as unknown as Session[] | null)?.[0];
-  const sessionAt = session && [session.started_at, stats.sessionAt(session.id) ?? ""].sort().at(-1)!;
+  const sessionAt = session && [session.started_at, stats.sessionAt[session.id] ?? ""].sort().at(-1)!;
   const inSection = session && (!stats.latestAt || sessionAt! > stats.latestAt);
   const drill = types.find((t) => t.question_type === stats.latest?.question_type && t.section_type === stats.latest?.section_type) ?? types[0];
   // Weakest types: the highest share of wrong answers first, the larger number of misses breaking ties.
@@ -47,7 +40,6 @@ export default async function Learn() {
   const weakest = types.filter((t) => t.answered >= 3 && t.answered > t.correct)
     .map((t) => ({ ...t, wrong: t.answered - t.correct }))
     .sort((x, y) => y.wrong / y.answered - x.wrong / x.answered || y.wrong - x.wrong).slice(0, 5);
-  const art = (section?: string | null) => (section === SECTIONS.rc ? "reading" : "logic");
 
   return (
     <>
@@ -57,7 +49,7 @@ export default async function Learn() {
           {inSection ? (
             // A section still running resumes where it stopped; a finished one leads back to its test for the next section.
             <Link className="card wide" href={session.finished_at ? sessionHome(session) : `/section/${session.id}`}>
-              <Art kind={art(session.section_type)} className="photo" />
+              <MascotCard animation="gavel" className="photo" />
               <div className="body">
                 <div><span className="tag accent">Where you left off</span> <span className="tag">{session.finished_at ? "Finished" : "In progress"}</span></div>
                 <h3>{sessionLabel(session).title}</h3>
@@ -68,7 +60,7 @@ export default async function Learn() {
             </Link>
           ) : drill && (
             <Link className="card wide" href={drillHref(drill.section_type, drill.question_type)}>
-              <Art kind={art(drill.section_type)} className="photo" />
+              <MascotCard animation="type" className="photo" />
               <div className="body">
                 <div><span className="tag accent">{stats.latest ? "Where you left off" : "Start here"}</span> <span className="tag">{drill.section_type}</span></div>
                 <h3>{drill.question_type}</h3>
@@ -79,7 +71,10 @@ export default async function Learn() {
             </Link>
           )}
           <div className="panel">
-            <h3>This week</h3>
+            <div className="mascot-panel-heading">
+              <h3>This week</h3>
+              <Mascot animation={stats.week >= goal ? "celebrate" : "coffee"} />
+            </div>
             <p className="muted">Goal: {goal} questions · <Link href="/profile#weekly-goal">Change</Link></p>
             <div className={`progress${stats.week >= goal ? " good" : ""}`}><span style={{ width: `${Math.min(100, pct(stats.week, goal))}%` }} /></div>
             <p className="muted">{stats.week} answered{stats.week < goal ? `, ${goal - stats.week} to go` : <>, <strong className="score good">goal met</strong></>}</p>

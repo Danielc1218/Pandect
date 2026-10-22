@@ -20,7 +20,7 @@ import SectionError from "@/app/(test)/section/[id]/error";
 import SectionLoading from "@/app/(test)/section/[id]/loading";
 import NotFoundPage, { metadata as notFoundMeta } from "@/app/not-found";
 import Root from "./Root";
-import { requireUser, supabase } from "./lib/supabase";
+import { onUser, requireUser } from "./lib/supabase";
 import { notFound, NotFound, onRefresh, Redirect } from "./shims/navigation";
 
 type Props = { params: Promise<Record<string, string>>; searchParams: Promise<Record<string, string>> };
@@ -55,16 +55,16 @@ type Run = Promise<{ node: ReactNode; title?: string }>;
  * navigation still suspended, so a same-route navigation, such as the next drill question, would start a new run on
  * each retry, forever.) Within one visit, the run for each refresh count. Re-renders of the same visit (StrictMode's,
  * or an urgent one while a refresh is pending) find their run here instead of starting another.
- * A change of user (signing in, out, or as someone else) drops them all. Supabase repeats SIGNED_IN for the same
- * user, e.g. when the tab regains focus, and that must not refetch a running section.
+ * A change of user (signing in, out, or as someone else) drops them all; the same user again (lib/supabase.ts tells
+ * of every check) must not refetch a running section.
  */
 let runs = new WeakMap<object, Map<number, Run>>();
 let user: string | null | undefined; // undefined until the first auth event says who is signed in
-supabase().then((db) => db.auth.onAuthStateChange((_event, session) => {
-  const id = session?.user.id ?? null;
+onUser((signedIn) => {
+  const id = signedIn?.id ?? null;
   if (user !== undefined && id !== user) runs = new WeakMap();
   user = id;
-}));
+});
 
 /** The page run (one per visit and refresh) an async component inside the page belongs to. */
 const PageRun = createContext<object>({});

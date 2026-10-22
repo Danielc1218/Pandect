@@ -1,0 +1,61 @@
+/* The panda stays small enough for the original illustrations to look crisp. */
+.top-nav .brand-mark.mascot-brand { width: 40px; height: 40px; flex: none; object-fit: contain; }
+
+.mascot-hero { position: relative; display: grid; place-items: center; min-height: 280px; overflow: hidden; isolation: isolate; }
+.mascot-hero-orbit { position: absolute; width: 260px; height: 260px; border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 9%, var(--color-surface)); z-index: -1; }
+.mascot-hero .mascot-hero-panda { display: block; width: 280px; height: 280px; object-fit: contain; }
+
+.card .mascot-card.photo { display: grid; place-items: center; height: 160px; overflow: hidden;
+  background: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface)); }
+.mascot-card--gavel { --mascot-wash: var(--color-accent); }
+.card .mascot-card--gavel.photo { background: color-mix(in srgb, var(--mascot-wash) 10%, var(--color-surface)); }
+.mascot-figure { --mascot-size: 144px; --mascot-duration: 2.6s; display: grid; place-items: center; flex: none; }
+.mascot-sprite-window { position: relative; width: var(--mascot-size); height: var(--mascot-size); overflow: hidden; }
+.mascot-figure .mascot-strip { display: block; width: calc(var(--mascot-frames, 32) * 100%); max-width: none; height: 100%;
+  animation: mascot-frames var(--mascot-duration) steps(var(--mascot-frames, 32), end) infinite; animation-play-state: paused; }
+.mascot-type { --mascot-duration: 2.2s; }
+.mascot-celebrate { --mascot-duration: 2s; }
+.mascot-run { --mascot-duration: 1.6s; }
+.mascot-coffee { --mascot-duration: 2.8s; }
+.mascot-sleepy { --mascot-duration: 3.2s; }
+.mascot-head-turn { --mascot-duration: 4s; }
+.mascot-read { --mascot-duration: 3.6s; }
+@keyframes mascot-frames { to { transform: translateX(-100%); } }
+/* Card pandas freeze mid-pose when left; the others snap back to their first pose. */
+.mascot-figure:not(.mascot-card) .mascot-strip { animation-name: none; }
+
+/* Hover the illustration or its whole card; linked cards also respond to keyboard focus. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  html:not([data-motion="reduce"]) :is(.mascot-figure:hover, .card:hover .mascot-figure) .mascot-strip { animation-name: mascot-frames; animation-play-state: running; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-motion="reduce"]) .card:focus-visible .mascot-figure .mascot-strip { animation-name: mascot-frames; animation-play-state: running; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mascot-figure .mascot-strip { animation: none; }
+}
+.mascot-card { --mascot-size: 160px; }
+.card.wide .mascot-card.photo { height: 100%; min-height: 190px; }
+.mascot-welcome { --mascot-size: 104px; margin: -12px auto 0; }
+.mascot-about { --mascot-size: 256px; }
+.mascot-heading, .mascot-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.mascot-heading .mascot-figure, .mascot-panel-heading .mascot-figure { --mascot-size: 88px; }
+.mascot-empty { display: flex; align-items: center; gap: var(--space-4); }
+.mascot-empty > .mascot-figure { --mascot-size: 112px; margin-top: 0; }
+.mascot-empty > div { min-width: 0; }
+.mascot-feedback { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: var(--space-3); align-items: start; }
+.mascot-feedback .mascot-figure { --mascot-size: 80px; }
+.mascot-feedback.right .mascot-feedback-copy > strong { color: var(--color-success); }
+.mascot-feedback.wrong .mascot-feedback-copy > strong { color: var(--color-danger); }
+
+@media (max-width: 760px) {
+  .mascot-hero { min-height: 220px; }
+  .mascot-hero-orbit { width: 210px; height: 210px; }
+  .mascot-hero .mascot-hero-panda { width: 232px; height: 232px; }
+  .card.wide .mascot-card.photo { height: 160px; min-height: 160px; }
+  .mascot-about { --mascot-size: 216px; }
+  .mascot-feedback { grid-template-columns: 56px minmax(0, 1fr); }
+  .mascot-feedback .mascot-figure { --mascot-size: 56px; }
+  .mascot-empty > .mascot-figure { --mascot-size: 80px; }
+}

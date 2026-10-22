@@ -1,22 +1,17 @@
 import { notFound, redirect } from "next/navigation";
 import { SectionRunner } from "@/components/SectionRunner";
-import { SESSION_FIELDS, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
-import { requireUser } from "@/lib/supabase";
+import { op } from "@/lib/run";
+import { sessionHome, sessionLabel } from "@/lib/sessions";
+import { sessionQuestions } from "@/lib/wording";
 
 export const metadata = { title: "Timed section" };
 
 export default async function SectionPage({ params }: PageProps<"/section/[id]">) {
   const { id } = await params;
-  const { db } = await requireUser();
-  const [{ data }, section, { data: choices }] = await Promise.all([
-    db.from("test_sessions").select(SESSION_FIELDS).eq("id", id).maybeSingle(),
-    sessionQuestions(db, id),
-    // attempts in a running section are hidden from the user's client; this function returns only the saved choices
-    db.rpc("session_choices", { p_session: id }),
-  ]);
-  const session = data as unknown as Session | null;
+  const { session, questions, saved } = await op("section", id);
   if (!session) notFound();
   if (session.finished_at) redirect(`/results/${id}`);
+  const section = await sessionQuestions(questions);
   if (!section.questions.length) notFound();
   const label = sessionLabel(session);
 
@@ -30,7 +25,7 @@ export default async function SectionPage({ params }: PageProps<"/section/[id]">
       pausedSeconds={session.paused_seconds}
       exitHref={sessionHome(session)}
       passages={section.passages}
-      saved={Object.fromEntries(((choices ?? []) as { question_id: string; chosen: string }[]).map((a) => [a.question_id, a.chosen]))}
+      saved={saved}
       questions={section.questions}
     />
   );

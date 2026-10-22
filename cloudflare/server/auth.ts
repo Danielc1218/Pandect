@@ -4,23 +4,11 @@ import { importBankKey, open, openEntries, type CdnAnswer, type CdnQuestion, typ
 
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-export type Env = { SUPABASE_URL: string; SUPABASE_SECRET_KEY: string; BANK_KEY: string; ASSETS: Fetcher };
+export type Env = { SUPABASE_URL: string; SUPABASE_PUBLISHABLE_KEY: string; SUPABASE_SECRET_KEY: string; BANK_KEY: string; ASSETS: Fetcher };
 
 /** A Supabase client with the server key. It never stores a session. */
 export const admin = (env: Env): SupabaseClient =>
   createClient(env.SUPABASE_URL, env.SUPABASE_SECRET_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
-
-/** The user id from a valid Supabase access token, or null. The signature is checked locally against the cached JWKS. */
-export const userId = async (env: Env, request: Request): Promise<string | null> => {
-  try {
-    const header = request.headers.get("Authorization") ?? "";
-    if (!header.startsWith("Bearer ")) return null;
-    const { data, error } = await admin(env).auth.getClaims(header.slice(7));
-    return error || !data?.claims?.sub ? null : data.claims.sub;
-  } catch {
-    return null; // a malformed token can throw; that is just "not signed in"
-  }
-};
 
 let key: Promise<CryptoKey> | undefined;
 /** The bank key, imported once per isolate. */

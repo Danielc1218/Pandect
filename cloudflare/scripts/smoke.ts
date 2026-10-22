@@ -29,7 +29,8 @@ async function signIn(address: string, secret: string) {
 async function call(path: string, token: string | null, body?: string | object) {
   const res = await fetch(origin + path, {
     method: body === undefined ? "GET" : "POST",
-    headers: { ...(token && { Authorization: `Bearer ${token}` }), ...(body !== undefined && { "Content-Type": "application/json" }) },
+    // A POST without a token is a browser's, which must come from the site's own pages (functions/api/_middleware.ts).
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : { Origin: origin }), ...(body !== undefined && { "Content-Type": "application/json" }) },
     body: typeof body === "string" ? body : body && JSON.stringify(body),
   });
   const text = await res.text();
@@ -59,6 +60,8 @@ const letters = ["A", "B", "C", "D", "E"];
 
 await step("no token", async () => {
   expectStatus("POST /api/answer without a token", await call("/api/answer", null, { questionId: crypto.randomUUID(), chosen: "A" }), 401);
+  expectStatus("POST /api/op from another site", { status: (await fetch(origin + "/api/op/learn", { method: "POST", headers: { Origin: "https://example.com", "Content-Type": "application/json" }, body: "[]" })).status, text: "" }, 403);
+  expectStatus("POST /api/op without a session", await call("/api/op/learn", null, []), 401);
 });
 
 await step("drill answers", async () => {

@@ -34,3 +34,6 @@ export const requireUser = cache(async () => {
   if (!data?.claims) redirect("/login");
   return { db, user: { id: data.claims.sub, email: data.claims.email } };
 });
+
+/** Whether a visitor is signed in, without sending anyone to log in. */
+export const signedIn = async () => !!(await (await supabase()).auth.getClaims()).data?.claims;

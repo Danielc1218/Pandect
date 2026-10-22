@@ -11,3 +11,16 @@ __pycache__/
 data/
 questions/
 generated_questions/
+
+# Mascot working files stay local; only what pages load is committed.
+output/
+/cloudflare/public/mascot/**
+/web/public/mascot/**
+!/cloudflare/public/mascot/**/
+!/web/public/mascot/**/
+!/cloudflare/public/mascot/brand/icon.svg
+!/cloudflare/public/mascot/brand/peek.webp
+!/cloudflare/public/mascot/animations/v4/*/strip.webp
+!/web/public/mascot/brand/icon.svg
+!/web/public/mascot/brand/peek.webp
+!/web/public/mascot/animations/v4/*/strip.webp

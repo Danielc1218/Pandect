@@ -2,9 +2,10 @@
  * Display and accessibility preferences. They live in profiles.preferences (so they follow the account) and
  * in localStorage "prefs" (so the pre-paint script in app/layout.tsx applies them before anything shows).
  * applyPrefs turns them into CSS variables and data attributes on <html>; app/prefs.css does the rest.
- * The light/dark theme is separate and per device: localStorage "theme", shared with the top bar's switch.
+ * Theme is saved with the other preferences; localStorage is only a copy for the first paint.
  */
 export type Prefs = {
+  theme: "system" | "light" | "dark";
   textScale: number;      // multiplies every font size token
   lineHeight: number;
   letterSpacing: number;  // em
@@ -25,6 +26,7 @@ export type Prefs = {
 };
 
 export const DEFAULT_PREFS: Prefs = {
+  theme: "system",
   textScale: 1, lineHeight: 1.5, letterSpacing: 0, wordSpacing: 0, font: "inter", passageFont: "same",
   contrast: "normal", accent: "", tint: "", savedAccents: [], savedTints: [], markers: "standard", motion: "system", focus: "standard",
   extraTime: 1, hideTimer: false, layout: "side",
@@ -38,6 +40,7 @@ export const RANGES = {
 } as const;
 
 const CHOICES = {
+  theme: ["system", "light", "dark"],
   font: ["inter", "atkinson", "lexend"],
   passageFont: ["same", "serif", "atkinson"],
   contrast: ["normal", "high"],
@@ -96,6 +99,7 @@ export function contrast(a: string, b: string) {
  */
 export function applyPrefs(p: Partial<Prefs>) {
   const html = document.documentElement;
+  if (p.theme) html.dataset.theme = p.theme === "system" ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light") : p.theme;
   const vars: Record<string, string | undefined> = {
     "--text-scale": p.textScale === undefined ? undefined : String(p.textScale),
     "--line-height": p.lineHeight === undefined ? undefined : String(p.lineHeight),
@@ -156,7 +160,9 @@ export function applyPrefs(p: Partial<Prefs>) {
 /** Reads this device's copy; any problem (private browsing, bad JSON) gives the defaults. */
 export function loadPrefs(): Prefs {
   try {
-    return sanitize(JSON.parse(localStorage.getItem("prefs") ?? "{}"));
+    const raw = JSON.parse(localStorage.getItem("prefs") ?? "{}");
+    // Keep a device's old theme until the account's preferences arrive.
+    return sanitize({ ...raw, theme: raw?.theme ?? localStorage.getItem("theme") ?? "system" });
   } catch {
     return { ...DEFAULT_PREFS };
   }
@@ -165,6 +171,8 @@ export function loadPrefs(): Prefs {
 export function storePrefs(p: Prefs) {
   try {
     localStorage.setItem("prefs", JSON.stringify(changed(p)));
+    if (p.theme === "system") localStorage.removeItem("theme");
+    else localStorage.setItem("theme", p.theme);
   } catch {} // private browsing: they still apply to this page
   window.dispatchEvent(new Event("prefs"));
 }

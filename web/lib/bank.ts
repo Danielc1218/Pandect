@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
-import { bankPaths, cdnGet, cdnRaw, importBankKey, openEntries, sourceOf, toDrillQuestion, type CdnQuestion, type Purpose } from "./cdn";
+import { bankPaths, cdnGet, cdnRaw, importBankKey, openEntries, practiceName, sourceOf, toDrillQuestion, type CdnQuestion, type Purpose } from "./cdn";
 import { snippet, type QuestionRow } from "./questions";
 import { SUPABASE_URL } from "./supabase";
 import { typeset } from "./text";
@@ -78,7 +78,8 @@ export const allTests = () => allTestsIn(BANK_NAME);
 async function allTestsIn(bank: BankName) {
   "use cache: remote";
   shared();
-  return rows<{ id: string; name: string; year: number | null }>(admin().from("tests").select("id, name, year").eq("bank", bank));
+  return (await rows<{ id: string; name: string; year: number | null }>(admin().from("tests").select("id, name, year").eq("bank", bank)))
+    .map((test) => ({ ...test, name: practiceName(test.name) }));
 }
 
 export const allSections = () => allSectionsIn(BANK_NAME);
@@ -94,7 +95,8 @@ export const typeQuestions = (section: string, type: string) => typeQuestionsIn(
 async function typeQuestionsIn(bank: BankName, section: string, type: string): Promise<QuestionRow[]> {
   "use cache: remote";
   shared();
-  if (bank === "generated") return (await bankFile<QuestionRow[]>(bankPaths.typeList(section === "Reading Comprehension" ? "rc" : "lr", type))) ?? [];
+  if (bank === "generated") return ((await bankFile<QuestionRow[]>(bankPaths.typeList(section === "Reading Comprehension" ? "rc" : "lr", type))) ?? [])
+    .map((question) => ({ ...question, source: practiceName(question.source) }));
   const all: QuestionRow[] = [];
   // Supabase returns at most 1,000 rows a request, so read in pages until one comes back short.
   // Reads whole passages to keep their opening words; give passages a short title column if this read gets slow.
