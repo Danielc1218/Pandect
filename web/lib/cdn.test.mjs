@@ -51,6 +51,12 @@ test("opening fails for the wrong purpose, a flipped byte, or another key", asyn
   await assert.rejects(open(await newKey(), s, "question"));
 });
 
+test("a value of about 1 MB seals and opens", async () => {
+  const key = await newKey();
+  const x = { text: "é".repeat(500_000) };
+  assert.deepEqual(await open(key, await seal(key, x, "question"), "question"), x);
+});
+
 test("two seals of the same value use different IVs", async () => {
   const key = await newKey();
   assert.notEqual((await seal(key, 1, "answer")).iv, (await seal(key, 1, "answer")).iv);

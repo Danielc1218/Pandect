@@ -43,7 +43,12 @@ export type Sealed = { iv: string; data: string };
 /** What a sealed file is for. It is bound into the encryption, so a question file can't be opened as an answer. */
 export type Purpose = "question" | "answer";
 
-const toB64 = (b: Uint8Array) => btoa(String.fromCharCode(...b));
+// Built 0x8000 bytes at a time: spreading a whole large array into one call overflows the stack.
+const toB64 = (b: Uint8Array) => {
+  let s = "";
+  for (let i = 0; i < b.length; i += 0x8000) s += String.fromCharCode(...b.subarray(i, i + 0x8000));
+  return btoa(s);
+};
 const fromB64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
 
 /** The bank key from 32 base64 bytes. */
