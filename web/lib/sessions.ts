@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { BANK_NAME, cdnQuestion } from "./bank";
 
 /**
  * Timed sections. Each one records its own questions in session_questions, in order: a fixed practice test section
@@ -27,6 +28,7 @@ type Row = { position: number; questions: Record<string, unknown> & { passage_id
 
 /** A session's questions as a test taker sees them, numbered by position, with the passages they point at by index. */
 export async function sessionQuestions(db: SupabaseClient, sessionId: string) {
+  if (BANK_NAME === "generated") return generatedSessionQuestions(db, sessionId);
   const { data, error } = await db.from("session_questions")
     .select("position, questions(id, stimulus, prompt, options, passage_id, passages(passage_text))")
     .eq("session_id", sessionId).order("position");
@@ -38,6 +40,22 @@ export async function sessionQuestions(db: SupabaseClient, sessionId: string) {
     questions: rows.map(({ position, questions: q }) => ({
       id: q.id as string, number: position, stimulus: q.stimulus as string | null, prompt: q.prompt as string,
       options: q.options as Record<string, string>, passage: q.passage_id ? passageIds.indexOf(q.passage_id) : null,
+    })),
+  };
+}
+
+/** The generated bank's version: the slim index says which questions, the CDN has their wording. */
+async function generatedSessionQuestions(db: SupabaseClient, sessionId: string) {
+  const { data, error } = await db.from("session_questions").select("position, question_id").eq("session_id", sessionId).order("position");
+  if (error) throw error;
+  const rows = await Promise.all((data ?? []).map(async ({ position, question_id }) => ({ position, q: await cdnQuestion(question_id as string) })));
+  const found = rows.filter((r) => r.q) as { position: number; q: NonNullable<(typeof rows)[number]["q"]> }[];
+  const passageIds = [...new Set(found.map((r) => r.q.passage_id).filter(Boolean))] as string[];
+  return {
+    passages: passageIds.map((pid) => found.find((r) => r.q.passage_id === pid)?.q.passage ?? ""),
+    questions: found.map(({ position, q }) => ({
+      id: q.id, number: position, stimulus: q.stimulus, prompt: q.prompt, options: q.options,
+      passage: q.passage_id ? passageIds.indexOf(q.passage_id) : null,
     })),
   };
 }

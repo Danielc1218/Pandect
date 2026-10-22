@@ -1,6 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { admin, BANK_NAME } from "./bank";
+import { admin, BANK_NAME, bankFile } from "./bank";
+import { bankPaths, type CdnAnswer } from "./cdn";
 
 /**
  * Answer keys. Users can't select correct_answer or explanation (the database refuses), so the server reads
@@ -9,6 +10,11 @@ import { admin, BANK_NAME } from "./bank";
 
 /** One question's answer and reasoning, or null if it isn't in the bank this deployment serves. */
 export async function questionAnswer(id: string) {
+  if (BANK_NAME === "generated") {
+    // Only ids in this deployment's index get their answer file opened.
+    const { data: known } = await admin().from("questions").select("id, tests!inner(bank)").eq("id", id).eq("tests.bank", "generated").maybeSingle();
+    return known ? bankFile<CdnAnswer>(bankPaths.answer(id), "answer") : null;
+  }
   const { data } = await admin().from("questions").select("correct_answer, explanation, tests!inner(bank)")
     .eq("id", id).eq("tests.bank", BANK_NAME).maybeSingle();
   return data ? { correct_answer: data.correct_answer as string, explanation: data.explanation as string | null } : null;
@@ -19,6 +25,15 @@ export async function sessionAnswerKey(db: SupabaseClient, sessionId: string) {
   // The user's own client only sees their own sessions.
   const { data: session } = await db.from("test_sessions").select("finished_at").eq("id", sessionId).maybeSingle();
   if (!session?.finished_at) return [];
+  if (BANK_NAME === "generated") {
+    const { data, error } = await admin().from("session_questions")
+      .select("position, questions(id, question_type, section_type)").eq("session_id", sessionId).order("position");
+    if (error) throw error;
+    const index = (data ?? []) as unknown as { position: number; questions: { id: string; question_type: string; section_type: string } }[];
+    const answers = await Promise.all(index.map((r) => bankFile<CdnAnswer>(bankPaths.answer(r.questions.id), "answer")));
+    return index.flatMap(({ position, questions: q }, i) => answers[i]
+      ? [{ id: q.id, number: position, question_type: q.question_type, section_type: q.section_type, correct_answer: answers[i].correct_answer as string, explanation: answers[i].explanation }] : []);
+  }
   const { data, error } = await admin().from("session_questions")
     .select("position, questions(id, question_type, section_type, correct_answer, explanation)")
     .eq("session_id", sessionId).order("position");

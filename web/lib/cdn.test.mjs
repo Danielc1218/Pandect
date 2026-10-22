@@ -1,7 +1,7 @@
 // node --test lib/cdn.test.mjs   (Node 23+ runs the TypeScript import directly)
 import assert from "node:assert/strict";
 import test from "node:test";
-import { bankPaths, importBankKey, open, seal, sourceOf, toDrillQuestion, typeSlug } from "./cdn.ts";
+import { bankPaths, cdnGet, importBankKey, open, seal, sourceOf, toDrillQuestion, typeSlug } from "./cdn.ts";
 
 test("type slugs are lowercase words joined by dashes", () => {
   assert.equal(typeSlug("Resolve/Explain"), "resolve-explain");
@@ -54,4 +54,42 @@ test("opening fails for the wrong purpose, a flipped byte, or another key", asyn
 test("two seals of the same value use different IVs", async () => {
   const key = await newKey();
   assert.notEqual((await seal(key, 1, "answer")).iv, (await seal(key, 1, "answer")).iv);
+});
+
+test("cdnGet refuses the other bank before any fetch", async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = () => { throw new Error("fetch must not be called"); };
+  try {
+    await assert.rejects(cdnGet("/bank/q/x.json", { key: await newKey(), purpose: "question", bank: "other" }),
+      { message: "the other bank never reads Cloudflare" });
+  } finally { globalThis.fetch = realFetch; }
+});
+
+test("cdnGet opens a sealed file, and a 404 is null", async () => {
+  const realFetch = globalThis.fetch;
+  const key = await newKey();
+  const body = await seal(key, { a: 1 }, "question");
+  let url, headers;
+  globalThis.fetch = async (u, init) => { url = String(u); headers = init?.headers; return url.includes("missing") ? new Response("", { status: 404 }) : Response.json(body); };
+  try {
+    assert.deepEqual(await cdnGet("/bank/q/x.json", { key, purpose: "question", bank: "generated" }), { a: 1 });
+    assert.ok(url.endsWith("/bank/q/x.json"));
+    assert.equal(headers, undefined);
+    assert.equal(await cdnGet("/bank/q/missing.json", { key, purpose: "question", bank: "generated" }), null);
+  } finally { globalThis.fetch = realFetch; }
+});
+
+test("cdnGet throws on other failures", async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("", { status: 500 });
+  try {
+    await assert.rejects(cdnGet("/bank/q/x.json", { key: await newKey(), purpose: "question", bank: "generated" }));
+  } finally { globalThis.fetch = realFetch; }
+});
+
+test("cdnGet treats Pages' HTML fallback as missing", async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("<!doctype html>", { headers: { "content-type": "text/html" } });
+  try { assert.equal(await cdnGet("/bank/q/x.json", { key: await newKey(), purpose: "question", bank: "generated" }), null); }
+  finally { globalThis.fetch = realFetch; }
 });

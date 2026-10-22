@@ -1,7 +1,8 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
-import { sourceOf } from "./cdn";
+import { bankPaths, cdnGet, importBankKey, sourceOf, toDrillQuestion, type CdnQuestion, type Purpose } from "./cdn";
+import { sectionKey } from "./data";
 import { snippet, type QuestionRow } from "./questions";
 import { SUPABASE_URL } from "./supabase";
 import { typeset } from "./text";
@@ -31,6 +32,18 @@ export const BANK_NAME: BankName = process.env.QUESTION_BANK === "other" ? "othe
 
 /** The secret-key client: bypasses row-level security, so only server code may use it. */
 export const admin = () => createClient(SUPABASE_URL, process.env.SUPABASE_SECRET_KEY!, { auth: { persistSession: false } });
+
+/** The bank key, imported once per server instance. Server only: BANK_KEY never reaches the browser. */
+let key: Promise<CryptoKey> | undefined;
+const bankKey = () => (key ??= importBankKey(process.env.BANK_KEY!));
+
+/** One sealed file of the generated bank from the CDN, decrypted here on the server. */
+export async function bankFile<T>(path: string, purpose: Purpose): Promise<T | null> {
+  return cdnGet<T>(path, { key: await bankKey(), purpose, bank: BANK_NAME });
+}
+
+/** A generated question file by id. */
+export const cdnQuestion = (id: string) => bankFile<CdnQuestion>(bankPaths.question(id), "question");
 
 async function rows<T>(query: PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> {
   const { data, error } = await query;
@@ -71,6 +84,7 @@ export const typeQuestions = (section: string, type: string) => typeQuestionsIn(
 async function typeQuestionsIn(bank: BankName, section: string, type: string): Promise<QuestionRow[]> {
   "use cache: remote";
   shared();
+  if (bank === "generated") return (await bankFile<QuestionRow[]>(bankPaths.typeList(sectionKey(section), type), "question")) ?? [];
   const all: QuestionRow[] = [];
   // Supabase returns at most 1,000 rows a request, so read in pages until one comes back short.
   // Reads whole passages to keep their opening words; give passages a short title column if this read gets slow.
@@ -94,6 +108,7 @@ export const drillQuestion = (id: string) => drillQuestionIn(BANK_NAME, id);
 async function drillQuestionIn(bank: BankName, id: string) {
   "use cache: remote";
   shared();
+  if (bank === "generated") { const q = await cdnQuestion(id); return q && toDrillQuestion(q); }
   const [q] = await rows(admin().from("questions")
     .select("id, test_id, stimulus, prompt, options, section_number, question_number, tests!inner(name), passages(passage_text)").eq("id", id).eq("tests.bank", bank));
   if (!q) return null;
