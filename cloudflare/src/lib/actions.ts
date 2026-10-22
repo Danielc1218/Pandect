@@ -1,15 +1,39 @@
-// Stand-in for web/lib/actions.ts until its actions are ported: same names, so shared components build.
-const notPorted = (): never => { throw new Error("not ported yet"); };
+// Browser version of web/lib/actions.ts. Grading needs the answer files, so answer and saveAnswer call the Pages
+// Functions with the session's token. The rest are web's own actions (their supabase() is the browser client here,
+// and their revalidatePath does nothing), with the redirect they may end with followed through the router.
+import * as web from "@/lib/actions";
+import { follow } from "./auth";
+import { requireUser } from "./supabase";
 
-export type SettingsState = { saved?: boolean; error?: string };
+export type { SettingsState } from "@/lib/actions";
 
-export async function answer(_questionId: string, _chosen: string) { return notPorted(); }
-export async function startSection(_form: FormData) { return notPorted(); }
-export async function startRandomSection(_form: FormData) { return notPorted(); }
-export async function saveAnswer(_sessionId: string, _questionId: string, _chosen: string) { return notPorted(); }
-export async function pauseSection(_sessionId: string) { return notPorted(); }
-export async function resumeSection(_sessionId: string) { return notPorted(); }
-export async function finishSection(_sessionId: string) { return notPorted(); }
-export async function saveSettings(_: SettingsState, _form: FormData): Promise<SettingsState> { return notPorted(); }
-export async function saveProfile(_: SettingsState, _form: FormData): Promise<SettingsState> { return notPorted(); }
-export async function savePreferences(_prefs: unknown) { return notPorted(); }
+/** POSTs JSON to a grading Function as the signed-in user; throws on any non-2xx, as the server action would. */
+async function post<T>(path: string, body: object): Promise<T> {
+  const { db } = await requireUser();
+  const { data: { session } } = await db.auth.getSession();
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.access_token}` },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(res.status === 404 ? "That question is not available." : `${path}: ${res.status}`);
+  return res.json();
+}
+
+/** Records a drill answer. The Function grades it; the correct letter is only returned afterwards. */
+export const answer = follow((questionId: string, chosen: string) =>
+  post<Awaited<ReturnType<typeof web.answer>>>("/api/answer", { questionId, chosen }));
+
+/** Saves or changes one answer in a timed section. */
+export const saveAnswer = follow(async (sessionId: string, questionId: string, chosen: string) => {
+  await post("/api/section-answer", { sessionId, questionId, chosen });
+});
+
+export const startSection = follow(web.startSection);
+export const startRandomSection = follow(web.startRandomSection);
+export const pauseSection = follow(web.pauseSection);
+export const resumeSection = follow(web.resumeSection);
+export const finishSection = follow(web.finishSection);
+export const saveSettings = follow(web.saveSettings);
+export const saveProfile = follow(web.saveProfile);
+export const savePreferences = follow(web.savePreferences);

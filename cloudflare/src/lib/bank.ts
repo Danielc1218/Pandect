@@ -46,3 +46,6 @@ export async function drillQuestion(id: string) {
   const q = await cdnQuestion(id);
   return q && toDrillQuestion(q);
 }
+
+/** web/lib/actions.ts imports this for answer and saveAnswer, which src/lib/actions.ts replaces with Function calls. */
+export const admin = (): never => { throw new Error("the secret-key client is server-only"); };

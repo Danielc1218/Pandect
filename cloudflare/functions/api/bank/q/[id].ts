@@ -1,8 +1,6 @@
 // GET /api/bank/q/:id -> the question file, decrypted.
 import { bankPaths } from "../../../../../web/lib/cdn";
-import { openQuestionFile, type Env } from "../../../../server/auth";
-
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+import { openQuestionFile, UUID, type Env } from "../../../../server/auth";
 
 export const onRequestGet: PagesFunction<Env> = async ({ env, request, params }) => {
   const id = String(params.id);
