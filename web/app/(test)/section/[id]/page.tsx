@@ -8,10 +8,11 @@ export const metadata = { title: "Timed section" };
 export default async function SectionPage({ params }: PageProps<"/section/[id]">) {
   const { id } = await params;
   const { db } = await requireUser();
-  const [{ data }, section, { data: attempts }] = await Promise.all([
+  const [{ data }, section, { data: choices }] = await Promise.all([
     db.from("test_sessions").select(SESSION_FIELDS).eq("id", id).maybeSingle(),
     sessionQuestions(db, id),
-    db.from("attempts").select("question_id, chosen").eq("session_id", id),
+    // attempts in a running section are hidden from the user's client; this function returns only the saved choices
+    db.rpc("session_choices", { p_session: id }),
   ]);
   const session = data as unknown as Session | null;
   if (!session) notFound();
@@ -29,7 +30,7 @@ export default async function SectionPage({ params }: PageProps<"/section/[id]">
       pausedSeconds={session.paused_seconds}
       exitHref={sessionHome(session)}
       passages={section.passages}
-      saved={Object.fromEntries((attempts ?? []).map((a) => [a.question_id, a.chosen]))}
+      saved={Object.fromEntries(((choices ?? []) as { question_id: string; chosen: string }[]).map((a) => [a.question_id, a.chosen]))}
       questions={section.questions}
     />
   );

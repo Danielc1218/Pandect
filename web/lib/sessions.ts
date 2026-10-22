@@ -41,15 +41,3 @@ export async function sessionQuestions(db: SupabaseClient, sessionId: string) {
     })),
   };
 }
-
-/** A finished session's answers and reasoning, for marking it; never fetched while the section is running. */
-export async function sessionAnswerKey(db: SupabaseClient, sessionId: string) {
-  const { data, error } = await db.from("session_questions")
-    .select("position, questions(id, question_type, section_type, correct_answer, explanation)")
-    .eq("session_id", sessionId).order("position");
-  if (error) throw error;
-  return ((data ?? []) as unknown as { position: number; questions: Record<string, string | null> }[]).map(({ position, questions: q }) => ({
-    id: q.id as string, number: position, question_type: q.question_type as string, section_type: q.section_type as string,
-    correct_answer: q.correct_answer as string, explanation: q.explanation,
-  }));
-}

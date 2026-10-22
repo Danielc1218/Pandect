@@ -2,19 +2,21 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { allTests, BANK_NAME } from "./bank";
+import { questionAnswer } from "./answerKey";
+import { admin, allTests, BANK_NAME } from "./bank";
 import { changed, sanitize } from "./prefs";
 import { requireUser } from "./supabase";
 
-/** Records a drill answer. The database grades it; the correct letter is only returned afterwards. */
+/** Records a drill answer. The server grades it with the secret key; the correct letter is only returned afterwards. */
 export async function answer(questionId: string, chosen: string) {
-  const { db } = await requireUser();
+  const { user } = await requireUser();
   // Only questions in the bank this deployment serves can be answered or have their answer revealed.
-  const { data: question } = await db.from("questions").select("correct_answer, explanation, tests!inner(bank)").eq("id", questionId).eq("tests.bank", BANK_NAME).maybeSingle();
-  if (!question) throw new Error("That question is not available.");
-  const { data, error } = await db.from("attempts").insert({ question_id: questionId, chosen }).select("correct").single();
+  const key = await questionAnswer(questionId);
+  if (!key) throw new Error("That question is not available.");
+  const correct = chosen === key.correct_answer;
+  const { error } = await admin().from("attempts").insert({ user_id: user.id, question_id: questionId, chosen, correct });
   if (error) throw new Error(error.message);
-  return { correct: data.correct as boolean, correctAnswer: question.correct_answer as string, explanation: question.explanation as string | null };
+  return { correct, correctAnswer: key.correct_answer, explanation: key.explanation };
 }
 
 export async function startSection(form: FormData) {
@@ -42,8 +44,18 @@ export async function startRandomSection(form: FormData) {
 
 /** Saves or changes one answer in a timed section. */
 export async function saveAnswer(sessionId: string, questionId: string, chosen: string) {
-  const { db } = await requireUser();
-  const { error } = await db.from("attempts").upsert({ session_id: sessionId, question_id: questionId, chosen }, { onConflict: "session_id,question_id" });
+  const { db, user } = await requireUser();
+  // The user's own client only sees their own sessions and the questions listed for them.
+  const [{ data: session }, { data: listed }] = await Promise.all([
+    db.from("test_sessions").select("id").eq("id", sessionId).is("finished_at", null).maybeSingle(),
+    db.from("session_questions").select("question_id").eq("session_id", sessionId).eq("question_id", questionId).maybeSingle(),
+  ]);
+  if (!session || !listed) throw new Error("That question is not part of this section.");
+  const key = await questionAnswer(questionId);
+  if (!key) throw new Error("That question is not available.");
+  const { error } = await admin().from("attempts").upsert(
+    { user_id: user.id, session_id: sessionId, question_id: questionId, chosen, correct: chosen === key.correct_answer },
+    { onConflict: "session_id,question_id" });
   if (error) throw new Error(error.message);
 }
 

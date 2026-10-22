@@ -29,7 +29,7 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
   // Reads the user's newest 1,000 attempts at this type; move to a SQL view if anyone passes that.
   const [rows, { data: attempts }] = await Promise.all([
     typeQuestions(section, type),
-    db.from("attempts").select("question_id, correct, questions!inner()").eq("questions.section_type", section).eq("questions.question_type", type)
+    db.from("attempts").select("question_id, correct, questions!inner(id)").eq("questions.section_type", section).eq("questions.question_type", type)
       .order("created_at", { ascending: false }).limit(1000),
   ]);
   if (!rows.length) notFound();

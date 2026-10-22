@@ -12,7 +12,7 @@ import { typeset } from "./text";
  * after an import, which expires the tag; the "days" lifetime is only a backstop for edits made by hand.
  *
  * Reads go through the secret key, which bypasses row-level security (a cached function can't read the
- * user's cookies), so this module is server-only, selects explicit columns, and never reads correct_answer.
+ * user's cookies), so this module is server-only, selects explicit columns, and never reads correct_answer (lib/answerKey.ts does, and only for answers the user is entitled to see).
  * Timed sections are per-user and are read through the user's own client in lib/sessions.ts.
  */
 export const BANK = "question-bank";
@@ -28,7 +28,8 @@ export const BANK = "question-bank";
 export type BankName = "other" | "generated";
 export const BANK_NAME: BankName = process.env.QUESTION_BANK === "other" ? "other" : "generated";
 
-const db = () => createClient(SUPABASE_URL, process.env.SUPABASE_SECRET_KEY!, { auth: { persistSession: false } });
+/** The secret-key client: bypasses row-level security, so only server code may use it. */
+export const admin = () => createClient(SUPABASE_URL, process.env.SUPABASE_SECRET_KEY!, { auth: { persistSession: false } });
 
 async function rows<T>(query: PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> {
   const { data, error } = await query;
@@ -46,14 +47,14 @@ async function typeCountsIn(bank: BankName) {
   "use cache: remote";
   shared();
   return rows<{ section_type: string; question_type: string; total: number }>(
-    db().from("bank_type_counts").select("section_type, question_type, total").eq("bank", bank));
+    admin().from("bank_type_counts").select("section_type, question_type, total").eq("bank", bank));
 }
 
 export const allTests = () => allTestsIn(BANK_NAME);
 async function allTestsIn(bank: BankName) {
   "use cache: remote";
   shared();
-  return rows<{ id: string; name: string; year: number | null }>(db().from("tests").select("id, name, year").eq("bank", bank));
+  return rows<{ id: string; name: string; year: number | null }>(admin().from("tests").select("id, name, year").eq("bank", bank));
 }
 
 export const allSections = () => allSectionsIn(BANK_NAME);
@@ -61,7 +62,7 @@ async function allSectionsIn(bank: BankName) {
   "use cache: remote";
   shared();
   return rows<{ test_id: string; section_number: number; section_type: string; questions: number }>(
-    db().from("bank_test_sections").select("test_id, section_number, section_type, questions").eq("bank", bank).order("section_number"));
+    admin().from("bank_test_sections").select("test_id, section_number, section_type, questions").eq("bank", bank).order("section_number"));
 }
 
 const sourceOf = (q: { tests: unknown; section_number: unknown; question_number: unknown }) =>
@@ -76,7 +77,7 @@ async function typeQuestionsIn(bank: BankName, section: string, type: string): P
   // Supabase returns at most 1,000 rows a request, so read in pages until one comes back short.
   // Reads whole passages to keep their opening words; give passages a short title column if this read gets slow.
   for (let from = 0; ; from += 1000) {
-    const page = await rows(db().from("questions")
+    const page = await rows(admin().from("questions")
       .select("id, stimulus, prompt, section_number, question_number, tests!inner(name), passages(passage_text)")
       .eq("section_type", section).eq("question_type", type).eq("tests.bank", bank)
       .order("test_id").order("section_number").order("question_number").range(from, from + 999));
@@ -94,7 +95,7 @@ export const drillQuestion = (id: string) => drillQuestionIn(BANK_NAME, id);
 async function drillQuestionIn(bank: BankName, id: string) {
   "use cache: remote";
   shared();
-  const [q] = await rows(db().from("questions")
+  const [q] = await rows(admin().from("questions")
     .select("id, test_id, stimulus, prompt, options, section_number, question_number, tests!inner(name), passages(passage_text)").eq("id", id).eq("tests.bank", bank));
   if (!q) return null;
   const passage = q.passages as unknown as { passage_text: string } | null;
