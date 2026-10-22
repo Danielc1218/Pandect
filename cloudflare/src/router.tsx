@@ -32,7 +32,7 @@ type PageModule = {
   generateMetadata?: (p: Props) => Promise<Title>;
 };
 
-const setTitle = (title?: string) => { document.title = title ? `${title} · LSAT Prep` : "LSAT Prep"; };
+const setTitle = (title?: string) => { document.title = title ? `${title} · Pandect` : "Pandect"; };
 
 /** Shows `fallback(error)` in place of its children when they throw; clears when `resetKey` changes. */
 class Catch extends Component<{ resetKey: string; fallback: (error: unknown) => ReactNode; children: ReactNode }, { error: unknown; key: string }> {

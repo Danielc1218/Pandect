@@ -105,7 +105,7 @@ export function TopNav({ signedIn }: { signedIn?: boolean }) {
       <Link className="brand" href="/">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className="brand-mark mascot-brand" src="/mascot/brand/peek.webp" alt="" width={40} height={40} />
-        LSAT Prep
+        Pandect
       </Link>
       <SlidingNav items={SITE} className="links" underline label="Site" />
       <span className="spacer" />

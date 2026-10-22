@@ -1,4 +1,4 @@
-# LSAT Prep web app
+# Pandect web app
 
 Next.js (App Router) on Supabase. Styles come straight from the design system:
 `npm run design` copies `../design/mock/tokens.css`, `mock.css` and the photos

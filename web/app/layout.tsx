@@ -13,7 +13,7 @@ import "./prefs.css";
 import "./mascot.css";
 
 export const metadata: Metadata = {
-  title: { default: "LSAT Prep", template: "%s · LSAT Prep" },
+  title: { default: "Pandect", template: "%s · Pandect" },
   description: `Practice on ${"LSAT-style"} questions, sorted by type, with your accuracy tracked.`,
 };
 
