@@ -22,8 +22,8 @@ export const allTests = async () =>
   rows<{ id: string; name: string; year: number | null }>((await supabase()).from("tests").select("id, name, year").eq("bank", BANK_NAME));
 
 export const allSections = async () =>
-  rows<{ test_id: string; section_number: number; section_type: string; questions: number }>(
-    (await supabase()).from("bank_test_sections").select("test_id, section_number, section_type, questions").eq("bank", BANK_NAME).order("section_number"));
+  rows<{ test_id: string; section_number: number; section_type: string; questions: number; passages: number }>(
+    (await supabase()).from("bank_test_sections").select("test_id, section_number, section_type, questions, passages").eq("bank", BANK_NAME).order("section_number"));
 
 /** A bank Function's JSON, sent with the session's token; null on 404. */
 async function api<T>(path: string): Promise<T | null> {

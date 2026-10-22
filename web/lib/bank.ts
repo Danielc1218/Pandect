@@ -85,8 +85,8 @@ export const allSections = () => allSectionsIn(BANK_NAME);
 async function allSectionsIn(bank: BankName) {
   "use cache: remote";
   shared();
-  return rows<{ test_id: string; section_number: number; section_type: string; questions: number }>(
-    admin().from("bank_test_sections").select("test_id, section_number, section_type, questions").eq("bank", bank).order("section_number"));
+  return rows<{ test_id: string; section_number: number; section_type: string; questions: number; passages: number }>(
+    admin().from("bank_test_sections").select("test_id, section_number, section_type, questions, passages").eq("bank", bank).order("section_number"));
 }
 
 /** Every question of one type for the drill list, in the order drills step through them. */

@@ -4,6 +4,7 @@ import { Tabs } from "@/components/Tabs";
 import { startRandomSection } from "@/lib/actions";
 import { allSections, allTests, BANK_NAME } from "@/lib/bank";
 import { formatDay, grade, pct, testNumber } from "@/lib/data";
+import { isCompleteTest } from "@/lib/practiceTests";
 import { SESSION_FIELDS, sessionLabel, type Session } from "@/lib/sessions";
 import { requireUser } from "@/lib/supabase";
 
@@ -30,7 +31,13 @@ function TestList({ tests, empty }: { tests: Row[]; empty: string }) {
   );
 }
 
-/** The generated bank has no fixed tests: each sitting is a fresh random set, and past sittings are history. */
+/** What a past sitting is called in the generated bank's history; a fixed section also names its test. */
+function sittingName(s: Session) {
+  const { title, subtitle } = sessionLabel(s);
+  return s.kind === "fixed" ? `${title}, ${subtitle}` : subtitle;
+}
+
+/** The generated bank also draws a fresh random section per sitting; its past sittings, fixed or random, are history. */
 async function RandomSections() {
   const { db } = await requireUser();
   const { data } = await db.from("test_sessions").select(SESSION_FIELDS).eq("bank", BANK_NAME)
@@ -41,7 +48,7 @@ async function RandomSections() {
   return (
     <>
       <section>
-        <h1>Practice tests</h1>
+        <h2>Random sections</h2>
         <form className="panel" action={startRandomSection}>
           <h3>Timed Logical Reasoning section</h3>
           <p className="muted">25 questions, 35 minutes</p>
@@ -60,7 +67,7 @@ async function RandomSections() {
           <div className="list">
             {open.map((s) => (
               <Link key={s.id} className="row" href={`/section/${s.id}`}>
-                <div className="grow"><div className="title">{sessionLabel(s).subtitle}</div><div className="muted">Started {formatDay(s.started_at)}</div></div>
+                <div className="grow"><div className="title">{sittingName(s)}</div><div className="muted">Started {formatDay(s.started_at)}</div></div>
                 <span className="btn primary">Resume</span>
               </Link>
             ))}
@@ -78,7 +85,7 @@ async function RandomSections() {
           <div className="list">
             {done.map((s) => (
               <Link key={s.id} className="row" href={`/results/${s.id}`}>
-                <div className="grow"><div className="title">{sessionLabel(s).subtitle}</div><div className="muted">Finished {formatDay(s.finished_at!)}</div></div>
+                <div className="grow"><div className="title">{sittingName(s)}</div><div className="muted">Finished {formatDay(s.finished_at!)}</div></div>
                 <span className="tag">{s.score_correct} of {s.score_total}</span>
                 <div className={`figure score ${grade(pct(s.score_correct ?? 0, s.score_total ?? 0))}`}>{pct(s.score_correct ?? 0, s.score_total ?? 0)}%</div>
               </Link>
@@ -93,7 +100,6 @@ async function RandomSections() {
 }
 
 export default async function Practice({ searchParams }: PageProps<"/practice">) {
-  if (BANK_NAME === "generated") return <RandomSections />;
   const find = String((await searchParams).q ?? "").trim();
   const { db } = await requireUser();
   const [tests, sections, { data: sessions }] = await Promise.all([
@@ -101,7 +107,9 @@ export default async function Practice({ searchParams }: PageProps<"/practice">)
     allSections(),
     db.from("test_sessions").select("test_id, section_number, finished_at"),
   ]);
-  const rows: Row[] = tests
+  // The generated bank lists only whole practice tests; the rest of its questions are in drills and random sections.
+  const listed = BANK_NAME === "generated" ? tests.filter((t) => isCompleteTest(sections.filter((s) => s.test_id === t.id))) : tests;
+  const rows: Row[] = listed
     .map((t) => {
       const mine = (sessions ?? []).filter((s) => s.test_id === t.id);
       return {
@@ -116,12 +124,12 @@ export default async function Practice({ searchParams }: PageProps<"/practice">)
     .filter((t) => !find || find.split(/\s+/).every((w) => `${t.name} ${t.year ?? ""} ${testNumber(t.id)}`.toLowerCase().split(/\s+/).includes(w.toLowerCase()) || t.name.toLowerCase().includes(w.toLowerCase())));
   const started = rows.filter((t) => t.started && t.done < t.sections);
   const completed = rows.filter((t) => t.done >= t.sections);
-  return (
+  const list = (
     <section>
       <h1>Practice tests</h1>
       <form className="field" role="search">
         <label htmlFor="find-test">Find a test</label>
-        <input id="find-test" name="q" type="search" enterKeyHint="search" defaultValue={find} placeholder="A number like 72, or a year like 2015" />
+        <input id="find-test" name="q" type="search" enterKeyHint="search" defaultValue={find} placeholder={"A number like 3"} />
       </form>
       {find && <p className="muted">{rows.length} {rows.length === 1 ? "test matches" : "tests match"} “{find}”. <Link href="/practice">Show all</Link></p>}
       <Tabs labels={[`All (${rows.length})`, `In progress (${started.length})`, `Completed (${completed.length})`]} label="Filter practice tests">
@@ -131,4 +139,5 @@ export default async function Practice({ searchParams }: PageProps<"/practice">)
       </Tabs>
     </section>
   );
+  return BANK_NAME === "generated" ? <>{list}<RandomSections /></> : list;
 }
