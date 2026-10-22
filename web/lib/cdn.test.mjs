@@ -87,9 +87,9 @@ test("cdnGet throws on other failures", async () => {
   } finally { globalThis.fetch = realFetch; }
 });
 
-test("cdnGet treats Pages' HTML fallback as missing", async () => {
+test("cdnGet throws on a 200 that is not a bank file", async () => {
   const realFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response("<!doctype html>", { headers: { "content-type": "text/html" } });
-  try { assert.equal(await cdnGet("/bank/q/x.json", { key: await newKey(), purpose: "question", bank: "generated" }), null); }
+  try { await assert.rejects(cdnGet("/bank/q/x.json", { key: await newKey(), purpose: "question", bank: "generated" }), { message: "/bank/q/x.json: not a bank file" }); }
   finally { globalThis.fetch = realFetch; }
 });

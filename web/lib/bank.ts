@@ -2,7 +2,6 @@ import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
 import { bankPaths, cdnGet, importBankKey, sourceOf, toDrillQuestion, type CdnQuestion, type Purpose } from "./cdn";
-import { sectionKey } from "./data";
 import { snippet, type QuestionRow } from "./questions";
 import { SUPABASE_URL } from "./supabase";
 import { typeset } from "./text";
@@ -84,7 +83,7 @@ export const typeQuestions = (section: string, type: string) => typeQuestionsIn(
 async function typeQuestionsIn(bank: BankName, section: string, type: string): Promise<QuestionRow[]> {
   "use cache: remote";
   shared();
-  if (bank === "generated") return (await bankFile<QuestionRow[]>(bankPaths.typeList(sectionKey(section), type), "question")) ?? [];
+  if (bank === "generated") return (await bankFile<QuestionRow[]>(bankPaths.typeList(section === "Reading Comprehension" ? "rc" : "lr", type), "question")) ?? [];
   const all: QuestionRow[] = [];
   // Supabase returns at most 1,000 rows a request, so read in pages until one comes back short.
   // Reads whole passages to keep their opening words; give passages a short title column if this read gets slow.

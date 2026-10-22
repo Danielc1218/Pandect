@@ -72,8 +72,10 @@ export const open = async <T>(key: CryptoKey, sealed: Sealed, purpose: Purpose):
 export const cdnGet = async <T>(path: string, init: { key: CryptoKey; purpose: Purpose; bank?: string }): Promise<T | null> => {
   if ((init.bank ?? globalThis.process?.env?.QUESTION_BANK) === "other") throw new Error("the other bank never reads Cloudflare");
   const res = await fetch(cdnBase() + path);
-  // Pages answers a missing file with its HTML fallback page, so that counts as missing too.
-  if (res.status === 404 || res.headers.get("content-type")?.includes("text/html")) return null;
+  if (res.status === 404) return null;
   if (!res.ok) throw new Error(`${path}: ${res.status}`);
-  return open<T>(init.key, await res.json(), init.purpose);
+  // A 200 that isn't JSON is not a bank file (e.g. a misconfigured origin serving its HTML page).
+  let sealed: Sealed;
+  try { sealed = await res.json(); } catch { throw new Error(`${path}: not a bank file`); }
+  return open<T>(init.key, sealed, init.purpose);
 };

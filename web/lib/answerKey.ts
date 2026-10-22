@@ -27,12 +27,15 @@ export async function sessionAnswerKey(db: SupabaseClient, sessionId: string) {
   if (!session?.finished_at) return [];
   if (BANK_NAME === "generated") {
     const { data, error } = await admin().from("session_questions")
-      .select("position, questions(id, question_type, section_type)").eq("session_id", sessionId).order("position");
+      .select("position, questions!inner(id, question_type, section_type, tests!inner(bank))").eq("questions.tests.bank", "generated").eq("session_id", sessionId).order("position");
     if (error) throw error;
     const index = (data ?? []) as unknown as { position: number; questions: { id: string; question_type: string; section_type: string } }[];
     const answers = await Promise.all(index.map((r) => bankFile<CdnAnswer>(bankPaths.answer(r.questions.id), "answer")));
-    return index.flatMap(({ position, questions: q }, i) => answers[i]
-      ? [{ id: q.id, number: position, question_type: q.question_type, section_type: q.section_type, correct_answer: answers[i].correct_answer as string, explanation: answers[i].explanation }] : []);
+    return index.map(({ position, questions: q }, i) => {
+      const a = answers[i];
+      if (!a) throw new Error(`answer file missing: ${q.id}`);
+      return { id: q.id, number: position, question_type: q.question_type, section_type: q.section_type, correct_answer: a.correct_answer as string, explanation: a.explanation };
+    });
   }
   const { data, error } = await admin().from("session_questions")
     .select("position, questions(id, question_type, section_type, correct_answer, explanation)")

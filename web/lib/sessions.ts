@@ -48,8 +48,11 @@ export async function sessionQuestions(db: SupabaseClient, sessionId: string) {
 async function generatedSessionQuestions(db: SupabaseClient, sessionId: string) {
   const { data, error } = await db.from("session_questions").select("position, question_id").eq("session_id", sessionId).order("position");
   if (error) throw error;
-  const rows = await Promise.all((data ?? []).map(async ({ position, question_id }) => ({ position, q: await cdnQuestion(question_id as string) })));
-  const found = rows.filter((r) => r.q) as { position: number; q: NonNullable<(typeof rows)[number]["q"]> }[];
+  const found = await Promise.all((data ?? []).map(async ({ position, question_id }) => {
+    const q = await cdnQuestion(question_id as string);
+    if (!q) throw new Error(`question file missing: ${question_id}`);
+    return { position: position as number, q };
+  }));
   const passageIds = [...new Set(found.map((r) => r.q.passage_id).filter(Boolean))] as string[];
   return {
     passages: passageIds.map((pid) => found.find((r) => r.q.passage_id === pid)?.q.passage ?? ""),
