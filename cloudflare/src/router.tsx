@@ -55,11 +55,15 @@ type Run = Promise<{ node: ReactNode; title?: string }>;
  * navigation still suspended, so a same-route navigation, such as the next drill question, would start a new run on
  * each retry, forever.) Within one visit, the run for each refresh count. Re-renders of the same visit (StrictMode's,
  * or an urgent one while a refresh is pending) find their run here instead of starting another.
- * Signing in or out drops them all.
+ * A change of user (signing in, out, or as someone else) drops them all. Supabase repeats SIGNED_IN for the same
+ * user, e.g. when the tab regains focus, and that must not refetch a running section.
  */
 let runs = new WeakMap<object, Map<number, Run>>();
-supabase().then((db) => db.auth.onAuthStateChange((event) => {
-  if (event === "SIGNED_IN" || event === "SIGNED_OUT") runs = new WeakMap();
+let user: string | null | undefined; // undefined until the first auth event says who is signed in
+supabase().then((db) => db.auth.onAuthStateChange((_event, session) => {
+  const id = session?.user.id ?? null;
+  if (user !== undefined && id !== user) runs = new WeakMap();
+  user = id;
 }));
 
 /** The page run (one per visit and refresh) an async component inside the page belongs to. */
