@@ -19,8 +19,10 @@ export function redirect(href: string): never {
   throw new Redirect(href);
 }
 
-// router.refresh() re-runs the current page (src/router.tsx listens).
+// router.refresh() re-runs the current page and re-reads Root's session data (src/router.tsx and src/Root.tsx listen),
+// as Next re-renders the page and the root layout.
 const refreshes = new EventTarget();
+export const refresh = () => void refreshes.dispatchEvent(new Event("refresh"));
 export const onRefresh = (run: () => void) => {
   refreshes.addEventListener("refresh", run);
   return () => refreshes.removeEventListener("refresh", run);
@@ -31,7 +33,7 @@ export function useRouter() {
   return useMemo(() => ({
     push: (href: string) => void navigate(href),
     replace: (href: string) => void navigate(href, { replace: true }),
-    refresh: () => void refreshes.dispatchEvent(new Event("refresh")),
+    refresh,
     back: () => void navigate(-1),
   }), [navigate]);
 }

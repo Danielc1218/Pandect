@@ -4,12 +4,19 @@ import { createBrowserRouter, Navigate, Outlet, UNSAFE_DataRouterStateContext, u
 import AppLayout from "@/app/(app)/layout";
 import DrillLoading from "@/app/(app)/drill/loading";
 import LearningError from "@/app/(app)/error";
+import LearnLoading from "@/app/(app)/learn/loading";
+import TestLoading from "@/app/(app)/practice/[test]/loading";
 import PracticeLoading from "@/app/(app)/practice/loading";
+import ProfileLoading from "@/app/(app)/profile/loading";
+import ProgressLoading from "@/app/(app)/progress/loading";
 import ResultsLoading from "@/app/(app)/results/[id]/loading";
+import SettingsLoading from "@/app/(app)/settings/loading";
 import TypesLoading from "@/app/(app)/types/loading";
 import SiteLayout from "@/app/(site)/layout";
+import SiteLoading from "@/app/(site)/loading";
 import LogInLoading from "@/app/(site)/login/loading";
 import SignUpLoading from "@/app/(site)/signup/loading";
+import SectionError from "@/app/(test)/section/[id]/error";
 import SectionLoading from "@/app/(test)/section/[id]/loading";
 import NotFoundPage, { metadata as notFoundMeta } from "@/app/not-found";
 import Root from "./Root";
@@ -18,6 +25,7 @@ import { notFound, NotFound, onRefresh, Redirect } from "./shims/navigation";
 
 type Props = { params: Promise<Record<string, string>>; searchParams: Promise<Record<string, string>> };
 type Title = { title?: string };
+type ErrorView = ComponentType<{ error: Error; retry: () => void }>;
 type PageModule = {
   default: (p: Props) => ReactNode | Promise<ReactNode>;
   metadata?: Title;
@@ -36,20 +44,8 @@ class Catch extends Component<{ resetKey: string; fallback: (error: unknown) => 
   render() { return this.state.error === null ? this.props.children : this.props.fallback(this.state.error); }
 }
 
-function Missing() {
-  useEffect(() => setTitle(notFoundMeta.title), []);
-  return <NotFoundPage />;
-}
-
-/** Above the layouts, like Next's root not-found boundary: a page's notFound() replaces its layout too. */
-function NotFoundBoundary() {
-  const { key } = useLocation();
-  const fallback = (error: unknown) => {
-    if (error instanceof NotFound) return <Missing />;
-    throw error;
-  };
-  return <Catch resetKey={key} fallback={fallback}><Outlet /></Catch>;
-}
+// web/proxy.ts's open pages; every other page needs a session.
+const OPEN = ["/login", "/signup"];
 
 type Run = Promise<{ node: ReactNode; title?: string }>;
 
@@ -69,9 +65,9 @@ supabase().then((db) => db.auth.onAuthStateChange((event) => {
 /**
  * A server-component page run in the browser: called once per visit (and again on router.refresh() or "Try
  * again"), its promise read with use() under the route's loading.tsx. A thrown redirect() navigates, notFound()
- * goes up to NotFoundBoundary, and anything else shows (app)/error.tsx.
+ * shows not-found.tsx, and anything else shows the route's error.tsx ((app)/error.tsx unless given).
  */
-export function page(mod: () => Promise<PageModule>, Loading: ComponentType = () => null) {
+export function page(mod: () => Promise<PageModule>, Loading: ComponentType = () => null, ErrorPage: ErrorView = LearningError) {
   function Run({ count }: { count: number }) {
     const location = useLocation();
     const visitKey = useContext(UNSAFE_DataRouterStateContext)!.location;
@@ -82,14 +78,23 @@ export function page(mod: () => Promise<PageModule>, Loading: ComponentType = ()
     if (!result) {
       const search = Object.fromEntries(new URLSearchParams(location.search));
       visit.set(count, (result = (async () => {
-        const m = await mod();
+        // web/proxy.ts: signed-out visitors only ever see log-in and sign-up; the rest send them there first.
+        const [m] = await Promise.all([mod(), OPEN.includes(location.pathname) || requireUser()]);
         const props = { params: Promise.resolve(params), searchParams: Promise.resolve(search) };
-        let [node, meta] = await Promise.all([m.default(props), m.generateMetadata?.(props) ?? m.metadata]);
-        // A page may return an async server component (practice's <RandomSections />), which the browser can't render: run it here.
-        while (isValidElement<object>(node) && typeof node.type === "function" && node.type.constructor.name === "AsyncFunction") {
-          node = await (node.type as (p: object) => Promise<ReactNode>)(node.props);
+        const meta = Promise.resolve(m.generateMetadata?.(props) ?? m.metadata);
+        meta.catch(() => {}); // left unread when the page redirects or fails
+        try {
+          let node = await m.default(props);
+          // A page may return an async server component (practice's <RandomSections />), which the browser can't render: run it here.
+          while (isValidElement<object>(node) && typeof node.type === "function" && node.type.constructor.name === "AsyncFunction") {
+            node = await (node.type as (p: object) => Promise<ReactNode>)(node.props);
+          }
+          return { node, title: (await meta)?.title };
+        } catch (error) {
+          // notFound(): Next shows not-found.tsx inside the page's layouts, under the page's own title if it has one.
+          if (!(error instanceof NotFound)) throw error;
+          return { node: <NotFoundPage />, title: (await meta.catch(() => undefined))?.title ?? notFoundMeta.title };
         }
-        return { node, title: meta?.title };
       })()));
     }
     const { node, title } = use(result);
@@ -104,8 +109,7 @@ export function page(mod: () => Promise<PageModule>, Loading: ComponentType = ()
     const retry = () => setCount((n) => n + 1);
     const fallback = (error: unknown) => {
       if (error instanceof Redirect) return <Navigate to={error.href} replace />;
-      if (error instanceof NotFound) throw error;
-      return <LearningError error={error as Error} retry={retry} />;
+      return <ErrorPage error={error as Error} retry={retry} />;
     };
     return (
       <Catch resetKey={`${key}:${count}`} fallback={fallback}>
@@ -122,30 +126,32 @@ export const router = createBrowserRouter([
     element: <Root />,
     children: [
       {
-        element: <NotFoundBoundary />,
+        element: <SiteLayout><Outlet /></SiteLayout>,
         children: [
-          {
-            element: <SiteLayout><Outlet /></SiteLayout>,
-            children: [
-              { path: "login", element: page(() => import("@/app/(site)/login/page"), LogInLoading) },
-              { path: "signup", element: page(() => import("@/app/(site)/signup/page"), SignUpLoading) },
-            ],
-          },
-          {
-            element: <AppLayout><Outlet /></AppLayout>,
-            children: [
-              { path: "types", element: page(() => import("@/app/(app)/types/page"), TypesLoading) },
-              { path: "drill", element: page(() => import("@/app/(app)/drill/page"), DrillLoading) },
-              { path: "practice", element: page(() => import("@/app/(app)/practice/page"), PracticeLoading) },
-              { path: "results/:id", element: page(() => import("@/app/(app)/results/[id]/page"), ResultsLoading) },
-            ],
-          },
-          // (test) has no layout of its own: a timed section fills the window.
-          { path: "section/:id", element: page(() => import("@/app/(test)/section/[id]/page"), SectionLoading) },
-          // Any other address: signed-out visitors log in first (web/proxy.ts), everyone else gets not-found.
-          { path: "*", element: page(async () => ({ default: async () => { await requireUser(); notFound(); } })) },
+          { index: true, element: page(() => import("@/app/(site)/page"), SiteLoading) },
+          { path: "about", element: page(() => import("@/app/(site)/about/page"), SiteLoading) },
+          { path: "login", element: page(() => import("@/app/(site)/login/page"), LogInLoading) },
+          { path: "signup", element: page(() => import("@/app/(site)/signup/page"), SignUpLoading) },
         ],
       },
+      {
+        element: <AppLayout><Outlet /></AppLayout>,
+        children: [
+          { path: "learn", element: page(() => import("@/app/(app)/learn/page"), LearnLoading) },
+          { path: "types", element: page(() => import("@/app/(app)/types/page"), TypesLoading) },
+          { path: "drill", element: page(() => import("@/app/(app)/drill/page"), DrillLoading) },
+          { path: "practice", element: page(() => import("@/app/(app)/practice/page"), PracticeLoading) },
+          { path: "practice/:test", element: page(() => import("@/app/(app)/practice/[test]/page"), TestLoading) },
+          { path: "progress", element: page(() => import("@/app/(app)/progress/page"), ProgressLoading) },
+          { path: "results/:id", element: page(() => import("@/app/(app)/results/[id]/page"), ResultsLoading) },
+          { path: "settings", element: page(() => import("@/app/(app)/settings/page"), SettingsLoading) },
+          { path: "profile", element: page(() => import("@/app/(app)/profile/page"), ProfileLoading) },
+        ],
+      },
+      // (test) has no layout of its own: a timed section fills the window, and has its own error page.
+      { path: "section/:id", element: page(() => import("@/app/(test)/section/[id]/page"), SectionLoading, SectionError) },
+      // Any other address: not-found (after the sign-in check every page gets).
+      { path: "*", element: page(async () => ({ default: () => notFound() })) },
     ],
   },
 ]);

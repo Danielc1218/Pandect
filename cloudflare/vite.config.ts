@@ -6,13 +6,15 @@ import { applyPrefs } from "../web/lib/prefs";
 const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 const web = here("../web/");
 
-// next/* modules the shared files import, and the server-only web/lib modules, swapped for browser versions.
+// next/* modules the shared files import, and web's server-only modules, swapped for browser versions.
 const SHIMS: Record<string, string> = {
   "next/link": here("src/shims/link.tsx"),
   "next/navigation": here("src/shims/navigation.ts"),
   "next/cache": here("src/shims/cache.ts"),
 };
-const SWAPS = new Map(["supabase", "bank", "auth", "actions", "answerKey"].map((name) => [`${web}lib/${name}.ts`, here(`src/lib/${name}.ts`)]));
+// components/StartButton.tsx renders an async server component inside the page, which the browser can't run.
+const SWAPS = new Map(["lib/supabase.ts", "lib/bank.ts", "lib/auth.ts", "lib/actions.ts", "lib/answerKey.ts", "components/StartButton.tsx"]
+  .map((path) => [web + path, here(`src/${path}`)]));
 const EMPTY = "\0empty";
 
 // web/app/layout.tsx's pre-paint scripts: the theme, then this device's display preferences.
