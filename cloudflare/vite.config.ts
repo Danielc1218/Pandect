@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
-import { defineConfig, type Plugin } from "vite";
+import { defineConfig, loadEnv, type Plugin } from "vite";
 import { applyPrefs } from "../web/lib/prefs";
 
 const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
@@ -48,11 +48,19 @@ function nextShims(): Plugin {
   };
 }
 
-export default defineConfig({
-  root: here("."),
-  publicDir: "public",
-  plugins: [nextShims(), react()],
-  // web's files resolve react from web/node_modules; one copy for the whole app.
-  resolve: { alias: { "@": here("../web") }, dedupe: ["react", "react-dom", "react-router", "@supabase/supabase-js"] },
-  server: { fs: { allow: [here("..")] } },
+// The browser's Supabase settings. A build without them still succeeds but every page fails, so stop it here.
+const REQUIRED_ENV = ["VITE_SUPABASE_URL", "VITE_SUPABASE_PUBLISHABLE_KEY"];
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, here("."), "VITE_");
+  const missing = REQUIRED_ENV.filter((name) => !env[name]);
+  if (missing.length) throw new Error(`${missing.join(" and ")} missing: set them in cloudflare/.env or the environment`);
+  return {
+    root: here("."),
+    publicDir: "public",
+    plugins: [nextShims(), react()],
+    // web's files resolve react from web/node_modules; one copy for the whole app.
+    resolve: { alias: { "@": here("../web") }, dedupe: ["react", "react-dom", "react-router", "@supabase/supabase-js"] },
+    server: { fs: { allow: [here("..")] } },
+  };
 });
