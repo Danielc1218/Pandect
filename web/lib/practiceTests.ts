@@ -1,4 +1,4 @@
-/** One section of a test as bank_test_sections counts it (published questions only). */
+/** One section of a test as bank_test_sections counts it (ready questions only). */
 export type SectionCount = { section_number: number; questions: number; passages: number };
 
 /**
@@ -12,7 +12,7 @@ export function isCompleteTest(sections: SectionCount[]) {
 }
 
 /**
- * Whether a fixed section can be started (and so offered): it has published questions, and in the generated bank its
+ * Whether a fixed section can be started (and so offered): it has ready questions, and in the generated bank its
  * test is complete. The old one-section generated tests (GEN-LR, GEN-RC) are empty now, so their results offer no retake.
  */
 export function canStartSection(sections: (SectionCount & { test_id: string })[], bank: string, testId: string, sectionNumber: number) {

@@ -41,14 +41,14 @@ UPDATE passages SET topic = 'Law' WHERE id = '00000000-0000-0000-0000-0000000000
 SELECT is((SELECT paired FROM passages WHERE id = '00000000-0000-0000-0000-0000000000d1'), true, 'an update without text keeps paired');
 
 -- New generated questions arrive slim: no wording, no answer.
-SELECT lives_ok($$INSERT INTO questions (id, test_id, section_type, section_number, question_number, question_type, passage_id, published) VALUES
+SELECT lives_ok($$INSERT INTO questions (id, test_id, section_type, section_number, question_number, question_type, passage_id, ready) VALUES
   ('00000000-0000-0000-0000-0000000000b1', 'gbc-gen', 'Reading Comprehension', 1, 1, 'Main Point', '00000000-0000-0000-0000-0000000000d1', true),
   ('00000000-0000-0000-0000-0000000000b2', 'gbc-gen', 'Reading Comprehension', 1, 2, 'Main Point', '00000000-0000-0000-0000-0000000000d2', true),
   ('00000000-0000-0000-0000-0000000000b3', 'gbc-gen', 'Reading Comprehension', 1, 3, 'Main Point', '00000000-0000-0000-0000-0000000000d3', true),
   ('00000000-0000-0000-0000-0000000000b4', 'gbc-gen', 'Reading Comprehension', 1, 4, 'Main Point', '00000000-0000-0000-0000-0000000000d4', true),
   ('00000000-0000-0000-0000-0000000000b5', 'gbc-gen', 'Logical Reasoning', 1, 5, 'Flaw', NULL, true)$$,
   'a generated question can be inserted without wording or answer');
-INSERT INTO questions (id, test_id, section_type, section_number, question_number, question_type, prompt, options, correct_answer, published) VALUES
+INSERT INTO questions (id, test_id, section_type, section_number, question_number, question_type, prompt, options, correct_answer, ready) VALUES
   ('00000000-0000-0000-0000-0000000000b6', 'gbc-ot', 'Logical Reasoning', 1, 1, 'Flaw', 'Which?', '{"A":"a","B":"b"}', 'B', true);
 SELECT throws_ok($$INSERT INTO questions (test_id, section_type, section_number, question_number, question_type, correct_answer)
   VALUES ('gbc-gen', 'Logical Reasoning', 1, 6, 'Flaw', 'F')$$, '23514', NULL, 'correct_answer is still A to E when given');

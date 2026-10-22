@@ -24,7 +24,7 @@ export async function startSection(form: FormData) {
   const { db } = await requireUser();
   const testId = String(form.get("test_id"));
   const sectionNumber = Number(form.get("section_number"));
-  // Only a section of this bank with published questions, and in the generated bank only from a complete test.
+  // Only a section of this bank with ready questions, and in the generated bank only from a complete test.
   if (!canStartSection(await allSections(), BANK_NAME, testId, sectionNumber)) throw new Error("That section is not available.");
   const { data, error } = await db
     .from("test_sessions")

@@ -12,10 +12,10 @@ INSERT INTO auth.users (id, email) VALUES ('00000000-0000-0000-0000-0000000000a1
 INSERT INTO tests (id, name, source) VALUES
   ('GEN-LR', 'Generated Logical Reasoning', 'generated'), ('GEN-RC', 'Generated Reading Comprehension', 'generated'),
   ('gpt-ot', 'Other', 'other');
-INSERT INTO questions (id, test_id, section_type, section_number, question_number, question_type, published)
+INSERT INTO questions (id, test_id, section_type, section_number, question_number, question_type, ready)
 SELECT md5('lr' || n)::uuid, 'GEN-LR', 'Logical Reasoning', 1, n, 'Flaw', true FROM generate_series(2, 120, 2) n;
 INSERT INTO passages (id, test_id, topic) SELECT md5(p)::uuid, 'GEN-RC', 'Law' FROM unnest(ARRAY['p1', 'p2', 'p3', 'p4', 'p5', 'p6']) p;
-INSERT INTO questions (id, test_id, section_type, section_number, question_number, question_type, passage_id, published)
+INSERT INTO questions (id, test_id, section_type, section_number, question_number, question_type, passage_id, ready)
 SELECT md5('rc' || n)::uuid, 'GEN-RC', 'Reading Comprehension', 1, n, 'Main Point', md5(p)::uuid, true
 FROM (VALUES ('p1', 211), ('p1', 213), ('p1', 215), ('p2', 222), ('p2', 212), ('p2', 221), ('p3', 301), ('p3', 302),
              ('p4', 241), ('p4', 242), ('p4', 243), ('p5', 401), ('p6', 402), ('p6', 403)) v (p, n);
