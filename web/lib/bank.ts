@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { cacheLife, cacheTag } from "next/cache";
-import { bankPaths, cdnGet, importBankKey, sourceOf, toDrillQuestion, type CdnQuestion, type Purpose } from "./cdn";
+import { bankPaths, cdnGet, cdnRaw, importBankKey, openEntries, sourceOf, toDrillQuestion, type CdnQuestion, type Purpose } from "./cdn";
 import { snippet, type QuestionRow } from "./questions";
 import { SUPABASE_URL } from "./supabase";
 import { typeset } from "./text";
@@ -36,20 +36,24 @@ export const admin = () => createClient(SUPABASE_URL, process.env.SUPABASE_SECRE
 let key: Promise<CryptoKey> | undefined;
 const bankKey = () => (key ??= importBankKey(process.env.BANK_KEY!));
 
-/** One sealed file of the generated bank from the CDN, decrypted here on the server. */
-export async function bankFile<T>(path: string, purpose: Purpose): Promise<T | null> {
-  return cdnGet<T>(path, { key: await bankKey(), purpose, bank: BANK_NAME });
+/** One whole sealed file of the generated bank (a type list) from the CDN, decrypted here on the server. */
+async function bankFile<T>(path: string): Promise<T | null> {
+  return cdnGet<T>(path, { key: await bankKey(), purpose: "question", bank: BANK_NAME });
 }
 
-/** A generated question file by id. */
-export const cdnQuestion = (id: string) => bankFile<CdnQuestion>(bankPaths.question(id), "question");
+/** Generated bank entries by id, in order, null where missing: each bucket fetched once, only these entries opened. */
+export async function bankEntries<T>(ids: string[], purpose: Purpose): Promise<(T | null)[]> {
+  return openEntries<T>(await bankKey(), ids, purpose, (path) => cdnRaw(path, BANK_NAME));
+}
 
-/** Generated question files, in the order given. Throws if any is missing. */
-export const cdnQuestions = (ids: string[]) => Promise.all(ids.map(async (id) => {
-  const q = await cdnQuestion(id);
-  if (!q) throw new Error(`question file missing: ${id}`);
+/** A generated question by id. */
+export const cdnQuestion = async (id: string) => (await bankEntries<CdnQuestion>([id], "question"))[0];
+
+/** Generated questions, in the order given. Throws if any is missing. */
+export const cdnQuestions = async (ids: string[]) => (await bankEntries<CdnQuestion>(ids, "question")).map((q, i) => {
+  if (!q) throw new Error(`question file missing: ${ids[i]}`);
   return q;
-}));
+});
 
 async function rows<T>(query: PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> {
   const { data, error } = await query;
@@ -90,7 +94,7 @@ export const typeQuestions = (section: string, type: string) => typeQuestionsIn(
 async function typeQuestionsIn(bank: BankName, section: string, type: string): Promise<QuestionRow[]> {
   "use cache: remote";
   shared();
-  if (bank === "generated") return (await bankFile<QuestionRow[]>(bankPaths.typeList(section === "Reading Comprehension" ? "rc" : "lr", type), "question")) ?? [];
+  if (bank === "generated") return (await bankFile<QuestionRow[]>(bankPaths.typeList(section === "Reading Comprehension" ? "rc" : "lr", type))) ?? [];
   const all: QuestionRow[] = [];
   // Supabase returns at most 1,000 rows a request, so read in pages until one comes back short.
   // Reads whole passages to keep their opening words; give passages a short title column if this read gets slow.

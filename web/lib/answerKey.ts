@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { admin, BANK_NAME, bankFile } from "./bank";
-import { bankPaths, type CdnAnswer } from "./cdn";
+import { admin, BANK_NAME, bankEntries } from "./bank";
+import type { CdnAnswer } from "./cdn";
 
 /**
  * Answer keys. Users can't select correct_answer or explanation (the database refuses), so the server reads
@@ -11,9 +11,9 @@ import { bankPaths, type CdnAnswer } from "./cdn";
 /** One question's answer and reasoning, or null if it isn't in the bank this deployment serves. */
 export async function questionAnswer(id: string) {
   if (BANK_NAME === "generated") {
-    // Only ids in this deployment's index get their answer file opened.
+    // Only ids in this deployment's index get their answer opened.
     const { data: known } = await admin().from("questions").select("id, tests!inner(bank)").eq("id", id).eq("tests.bank", "generated").maybeSingle();
-    return known ? bankFile<CdnAnswer>(bankPaths.answer(id), "answer") : null;
+    return known ? (await bankEntries<CdnAnswer>([id], "answer"))[0] : null;
   }
   const { data } = await admin().from("questions").select("correct_answer, explanation, tests!inner(bank)")
     .eq("id", id).eq("tests.bank", BANK_NAME).maybeSingle();
@@ -30,7 +30,7 @@ export async function sessionAnswerKey(db: SupabaseClient, sessionId: string) {
       .select("position, questions!inner(id, question_type, section_type, tests!inner(bank))").eq("questions.tests.bank", "generated").eq("session_id", sessionId).order("position");
     if (error) throw error;
     const index = (data ?? []) as unknown as { position: number; questions: { id: string; question_type: string; section_type: string } }[];
-    const answers = await Promise.all(index.map((r) => bankFile<CdnAnswer>(bankPaths.answer(r.questions.id), "answer")));
+    const answers = await bankEntries<CdnAnswer>(index.map((r) => r.questions.id), "answer");
     return index.map(({ position, questions: q }, i) => {
       const a = answers[i];
       if (!a) throw new Error(`answer file missing: ${q.id}`);

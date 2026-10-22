@@ -2,7 +2,7 @@
 // inclusive, at most 25) of the caller's finished section, in the shape of web/lib/answerKey.ts's sessionAnswerKey.
 // Only generated-bank questions are listed. Paged so one call stays within the plan's subrequest and CPU limits.
 import type { CdnAnswer } from "../../../web/lib/cdn";
-import { admin, guarded, json, readAnswer, reply, UUID } from "../../server/auth";
+import { admin, guarded, json, readAnswers, reply, UUID } from "../../server/auth";
 
 const PAGE = 25; // src/lib/answerKey.ts asks in pages of this size
 
@@ -24,7 +24,7 @@ export const onRequestGet = guarded<{ userId: string }>(async ({ env, request, d
     .eq("questions.tests.bank", "generated").eq("session_id", sessionId).gte("position", from).lte("position", to).order("position");
   if (index.error) throw index.error;
   const rows = index.data as unknown as Row[];
-  const answers = await Promise.all(rows.map((r) => readAnswer(env, request, r.questions.id)));
+  const answers = await readAnswers(env, request, rows.map((r) => r.questions.id)); // one fetch per bucket in the page
   if (answers.some((a) => !a)) return reply(500, "An answer file is missing");
   return json(rows.map(({ position, questions: q }, i) => {
     const a = answers[i] as CdnAnswer;

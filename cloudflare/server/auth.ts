@@ -1,6 +1,6 @@
 // Who is asking, and the key that opens the bank. The bank files are public ciphertext; only Functions can open them.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { bankPaths, importBankKey, open, type CdnAnswer, type Purpose, type Sealed } from "../../web/lib/cdn";
+import { importBankKey, open, openEntries, type CdnAnswer, type CdnQuestion, type Purpose, type Sealed } from "../../web/lib/cdn";
 
 export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -26,30 +26,34 @@ let key: Promise<CryptoKey> | undefined;
 /** The bank key, imported once per isolate. */
 export const bankKey = (env: Env): Promise<CryptoKey> => (key ??= importBankKey(env.BANK_KEY));
 
-/** One sealed bank file from the static assets, decrypted, or null if there is none. Callers pass only paths they built. */
-const openFile = async <T>(env: Env, request: Request, path: string, purpose: Purpose): Promise<T | null> => {
+/** One bank file from the static assets as stored, or null. A missing file may come back as the site's fallback page, so anything that isn't JSON is missing too. Callers pass only paths they built. */
+const assetJson = async (env: Env, request: Request, path: string): Promise<unknown> => {
   const res = await env.ASSETS.fetch(new URL(path, request.url));
-  // A missing file may come back as the site's fallback page, so anything that isn't sealed JSON is missing too.
-  const sealed = res.ok ? ((await res.json().catch(() => null)) as Sealed | null) : null;
-  return sealed?.iv && sealed.data ? open<T>(await bankKey(env), sealed, purpose) : null;
+  return res.ok ? res.json().catch(() => null) : null;
 };
+
+/** Bank entries by id, decrypted, in the order given, null where missing: each bucket fetched once, only these entries opened. */
+const readEntries = async <T>(env: Env, request: Request, ids: string[], purpose: Purpose) =>
+  openEntries<T>(await bankKey(env), ids, purpose, (path) => assetJson(env, request, path));
 
 /** Question files are private to signed-in users, so a browser may keep them briefly but no shared cache may. */
 export const questionReply = (value: unknown) => Response.json(value, { headers: { "Cache-Control": "private, max-age=300" } });
 
-/** One question-purpose file (a question or a type list), decrypted, or null. Only the grading routes open answers, through readAnswer. */
-export const readQuestionFile = <T>(env: Env, request: Request, path: string) => openFile<T>(env, request, path, "question");
+/** Questions by id, decrypted, null where missing. Only the grading routes open answers, through readAnswers. */
+export const readQuestions = (env: Env, request: Request, ids: string[]) => readEntries<CdnQuestion>(env, request, ids, "question");
 
-/** One question-purpose file as a reply, or a 404. */
+/** One whole question-purpose file (a type list), sealed under its path, as a reply, or a 404. */
 export const openQuestionFile = async (env: Env, request: Request, path: string): Promise<Response> => {
-  const file = await readQuestionFile(env, request, path);
-  return file === null ? new Response("Not found", { status: 404 }) : questionReply(file);
+  const sealed = (await assetJson(env, request, path)) as Sealed | null;
+  return sealed?.iv && sealed.data ? questionReply(await open(await bankKey(env), sealed, "question", path)) : new Response("Not found", { status: 404 });
 };
 
-/** One question's answer file, decrypted, or null if the id isn't a UUID or there is no such file. Grading routes only. */
-export const readAnswer = async (env: Env, request: Request, id: string): Promise<CdnAnswer | null> => {
-  return UUID.test(id) ? openFile<CdnAnswer>(env, request, bankPaths.answer(id), "answer") : null;
-};
+/** Answers by id, decrypted, null where missing. Grading routes only; callers pass ids from the index or checked against UUID. */
+export const readAnswers = (env: Env, request: Request, ids: string[]) => readEntries<CdnAnswer>(env, request, ids, "answer");
+
+/** One question's answer, decrypted, or null if the id isn't a UUID or the bank has no answer for it. Grading routes only. */
+export const readAnswer = async (env: Env, request: Request, id: string): Promise<CdnAnswer | null> =>
+  UUID.test(id) ? (await readAnswers(env, request, [id]))[0] : null;
 
 /** The answer to a question in the generated bank's index, or null: only those ids get their answer file opened. */
 export const generatedAnswer = async (env: Env, request: Request, id: string): Promise<CdnAnswer | null> => {
