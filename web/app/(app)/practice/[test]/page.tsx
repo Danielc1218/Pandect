@@ -3,8 +3,9 @@ import { sectionMinutes } from "@/lib/timing";
 import { notFound } from "next/navigation";
 import { SubmitButton } from "@/components/SubmitButton";
 import { startSection } from "@/lib/actions";
-import { allSections, allTests } from "@/lib/bank";
+import { allSections, allTests, BANK_NAME } from "@/lib/bank";
 import { formatDay, grade, pct } from "@/lib/data";
+import { canStartSection } from "@/lib/practiceTests";
 import { requireUser } from "@/lib/supabase";
 
 /** The tab names the test (the list of tests is cached). */
@@ -38,6 +39,8 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
           {(sections ?? []).map((s) => {
             const running = open(s.section_number);
             const done = last(s.section_number);
+            // An incomplete generated test (reachable by its address) lists its sections but offers none to start.
+            const startable = canStartSection(allSecs, BANK_NAME, testId, s.section_number);
             const info = (
               <>
                 <div className="grow">
@@ -48,11 +51,13 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
                     {done && <>, last score <span className={`score ${grade(pct(done.score_correct ?? 0, done.score_total ?? 0))}`}>{done.score_correct} of {done.score_total}</span></>}
                   </div>
                 </div>
-                <span className={`btn${running || !done ? " primary" : ""}`}>{running ? "Resume" : done ? "Retake" : "Start"}</span>
+                {(running || startable) && <span className={`btn${running || !done ? " primary" : ""}`}>{running ? "Resume" : done ? "Retake" : "Start"}</span>}
               </>
             );
             return running ? (
               <Link key={s.section_number} className="row" href={`/section/${running.id}`}>{info}</Link>
+            ) : !startable ? (
+              <div key={s.section_number} className="row">{info}</div>
             ) : (
               <form key={s.section_number} action={startSection}>
                 <input type="hidden" name="test_id" value={test.id} />

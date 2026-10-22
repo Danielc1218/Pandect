@@ -6,7 +6,9 @@ import { PassageText } from "@/components/PassageText";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Tabs } from "@/components/Tabs";
 import { startSection } from "@/lib/actions";
+import { allSections, BANK_NAME } from "@/lib/bank";
 import { drillHref, formatDay, grade, pct } from "@/lib/data";
+import { canStartSection } from "@/lib/practiceTests";
 import { sanitize } from "@/lib/prefs";
 import { sessionAnswerKey } from "@/lib/answerKey";
 import { SESSION_FIELDS, sessionHome, sessionLabel, sessionQuestions, type Session } from "@/lib/sessions";
@@ -64,11 +66,12 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
   if (!session) notFound();
   if (!session.finished_at) redirect(`/section/${id}`);
 
-  const [all, section, { data: attempts }, { data: profile }] = await Promise.all([
+  const [all, section, { data: attempts }, { data: profile }, sections] = await Promise.all([
     sessionAnswerKey(db, id),
     sessionQuestions(db, id),
     db.from("attempts").select("question_id, chosen, correct").eq("session_id", id),
     db.from("profiles").select("preferences").eq("id", user.id).maybeSingle(),
+    allSections(),
   ]);
   const text = new Map(section.questions.map((q) => [q.id, q]));
   const mine = new Map((attempts ?? []).map((a) => [a.question_id, a]));
@@ -130,7 +133,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
       <section>
         <div className="actions">
           <Link className="btn primary" href={home}>{session.kind === "random" ? "Start another section" : `Back to ${label.title}`}</Link>
-          {session.kind === "fixed" && session.test_id && (
+          {session.kind === "fixed" && session.test_id && canStartSection(sections, BANK_NAME, session.test_id, session.section_number ?? 0) && (
             <form action={startSection}>
               <input type="hidden" name="test_id" value={session.test_id} />
               <input type="hidden" name="section_number" value={session.section_number ?? ""} />

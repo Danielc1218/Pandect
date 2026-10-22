@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { questionAnswer } from "./answerKey";
-import { admin, allTests, BANK_NAME } from "./bank";
+import { admin, allSections, BANK_NAME } from "./bank";
+import { canStartSection } from "./practiceTests";
 import { changed, sanitize } from "./prefs";
 import { requireUser } from "./supabase";
 
@@ -22,10 +23,12 @@ export async function answer(questionId: string, chosen: string) {
 export async function startSection(form: FormData) {
   const { db } = await requireUser();
   const testId = String(form.get("test_id"));
-  if (!(await allTests()).some((t) => t.id === testId)) throw new Error("That test is not available.");
+  const sectionNumber = Number(form.get("section_number"));
+  // Only a section of this bank with published questions, and in the generated bank only from a complete test.
+  if (!canStartSection(await allSections(), BANK_NAME, testId, sectionNumber)) throw new Error("That section is not available.");
   const { data, error } = await db
     .from("test_sessions")
-    .insert({ test_id: testId, section_number: Number(form.get("section_number")) })
+    .insert({ test_id: testId, section_number: sectionNumber })
     .select("id")
     .single();
   if (error) throw new Error(error.message);
