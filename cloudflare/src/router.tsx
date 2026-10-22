@@ -45,7 +45,7 @@ class Catch extends Component<{ resetKey: string; fallback: (error: unknown) => 
 }
 
 // web/proxy.ts's open pages; every other page needs a session.
-const OPEN = ["/login", "/signup"];
+const OPEN = ["/", "/about", "/login", "/signup"];
 
 type Run = Promise<{ node: ReactNode; title?: string }>;
 
