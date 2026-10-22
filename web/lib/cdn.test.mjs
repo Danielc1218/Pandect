@@ -1,7 +1,7 @@
 // node --test lib/cdn.test.mjs   (Node 23+ runs the TypeScript import directly)
 import assert from "node:assert/strict";
 import test from "node:test";
-import { bankPaths, sourceOf, toDrillQuestion, typeSlug } from "./cdn.ts";
+import { bankPaths, importBankKey, open, seal, sourceOf, toDrillQuestion, typeSlug } from "./cdn.ts";
 
 test("type slugs are lowercase words joined by dashes", () => {
   assert.equal(typeSlug("Resolve/Explain"), "resolve-explain");
@@ -31,4 +31,27 @@ test("a question file maps to the drill page's shape", () => {
     id: "q1", stimulus: "Some text.", prompt: "Which one?", options: { A: "a", B: "b" },
     source: "Practice Set 3, section 2, question 5", testId: "t1", passage: "Glaciers carve valleys.",
   });
+});
+
+const newKey = () => importBankKey(btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))));
+
+test("a sealed value opens with the same key and purpose", async () => {
+  const key = await newKey();
+  const x = { a: [1, "two", null], b: { c: "é" } };
+  assert.deepEqual(await open(key, await seal(key, x, "question"), "question"), x);
+});
+
+test("opening fails for the wrong purpose, a flipped byte, or another key", async () => {
+  const key = await newKey();
+  const s = await seal(key, { a: 1 }, "question");
+  await assert.rejects(open(key, s, "answer"));
+  const bytes = Uint8Array.from(atob(s.data), (c) => c.charCodeAt(0));
+  bytes[0] ^= 1;
+  await assert.rejects(open(key, { ...s, data: btoa(String.fromCharCode(...bytes)) }, "question"));
+  await assert.rejects(open(await newKey(), s, "question"));
+});
+
+test("two seals of the same value use different IVs", async () => {
+  const key = await newKey();
+  assert.notEqual((await seal(key, 1, "answer")).iv, (await seal(key, 1, "answer")).iv);
 });

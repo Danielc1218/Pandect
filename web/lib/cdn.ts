@@ -37,3 +37,30 @@ export const toDrillQuestion = (q: CdnQuestion) => ({
 
 /** The CDN origin, from BANK_CDN_URL; empty means same-origin paths. */
 export const cdnBase = (): string => globalThis.process?.env?.BANK_CDN_URL ?? "";
+
+/** A bank file as stored on the CDN: base64 IV (12 bytes) and base64 AES-GCM ciphertext+tag. */
+export type Sealed = { iv: string; data: string };
+/** What a sealed file is for. It is bound into the encryption, so a question file can't be opened as an answer. */
+export type Purpose = "question" | "answer";
+
+const toB64 = (b: Uint8Array) => btoa(String.fromCharCode(...b));
+const fromB64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+/** The bank key from 32 base64 bytes. */
+export const importBankKey = (base64Key: string): Promise<CryptoKey> =>
+  globalThis.crypto.subtle.importKey("raw", fromB64(base64Key), "AES-GCM", false, ["encrypt", "decrypt"]);
+
+/** Encrypt any JSON value; the purpose is the additional data. */
+export const seal = async (key: CryptoKey, value: unknown, purpose: Purpose): Promise<Sealed> => {
+  const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
+  const data = await globalThis.crypto.subtle.encrypt(
+    { name: "AES-GCM", iv, additionalData: new TextEncoder().encode(purpose) }, key, new TextEncoder().encode(JSON.stringify(value)));
+  return { iv: toB64(iv), data: toB64(new Uint8Array(data)) };
+};
+
+/** Decrypt a sealed value. Throws on the wrong key, wrong purpose or any tampering. */
+export const open = async <T>(key: CryptoKey, sealed: Sealed, purpose: Purpose): Promise<T> => {
+  const plain = await globalThis.crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: fromB64(sealed.iv), additionalData: new TextEncoder().encode(purpose) }, key, fromB64(sealed.data));
+  return JSON.parse(new TextDecoder().decode(plain));
+};
