@@ -1,0 +1,46 @@
+import { fileURLToPath } from "node:url";
+import react from "@vitejs/plugin-react";
+import { defineConfig, type Plugin } from "vite";
+import { applyPrefs } from "../web/lib/prefs";
+
+const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
+const web = here("../web/");
+
+// next/* modules the shared files import, and the server-only web/lib modules, swapped for browser versions.
+const SHIMS: Record<string, string> = {
+  "next/link": here("src/shims/link.tsx"),
+  "next/navigation": here("src/shims/navigation.ts"),
+  "next/cache": here("src/shims/cache.ts"),
+};
+const SWAPS = new Map(["supabase", "bank", "auth", "actions", "answerKey"].map((name) => [`${web}lib/${name}.ts`, here(`src/lib/${name}.ts`)]));
+const EMPTY = "\0empty";
+
+// web/app/layout.tsx's pre-paint scripts: the theme, then this device's display preferences.
+const THEME_SCRIPT = `try{var t=localStorage.getItem("theme")}catch(e){}document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")`;
+const PREFS_SCRIPT = `try{(${applyPrefs.toString()})(JSON.parse(localStorage.getItem("prefs")||"{}"))}catch(e){}`;
+
+function nextShims(): Plugin {
+  return {
+    name: "next-shims",
+    enforce: "pre",
+    async resolveId(source, importer, options) {
+      if (source in SHIMS) return SHIMS[source];
+      if (source === "server-only") return EMPTY;
+      // Only web's files get the swaps; src/lib may build on the web module it replaces.
+      if (!importer?.startsWith(web)) return null;
+      const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
+      return resolved && SWAPS.has(resolved.id) ? SWAPS.get(resolved.id) : resolved;
+    },
+    load: (id) => (id === EMPTY ? "export {}" : null),
+    transformIndexHtml: () => [THEME_SCRIPT, PREFS_SCRIPT].map((children) => ({ tag: "script", children, injectTo: "head-prepend" as const })),
+  };
+}
+
+export default defineConfig({
+  root: here("."),
+  publicDir: "public",
+  plugins: [nextShims(), react()],
+  // web's files resolve react from web/node_modules; one copy for the whole app.
+  resolve: { alias: { "@": here("../web") }, dedupe: ["react", "react-dom", "react-router", "@supabase/supabase-js"] },
+  server: { fs: { allow: [here("..")] } },
+});
