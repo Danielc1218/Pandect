@@ -15,7 +15,7 @@ INSERT INTO test_sessions (id, user_id, test_id, section_number) VALUES
 
 SELECT ok(NOT has_column_privilege('authenticated', 'public.questions', 'correct_answer', 'SELECT'), 'users cannot read correct_answer');
 SELECT ok(NOT has_column_privilege('authenticated', 'public.questions', 'explanation', 'SELECT'), 'users cannot read explanation');
-SELECT ok(has_column_privilege('authenticated', 'public.questions', 'prompt', 'SELECT'), 'users can still read prompt');
+SELECT ok(has_column_privilege('authenticated', 'public.questions', 'question_type', 'SELECT'), 'users can still read question_type');
 
 -- The grading trigger for a non-secret-key writer, run as the table owner (which skips the row rules and the
 -- table grants that now stop users) so that the trigger alone is what is tested.
