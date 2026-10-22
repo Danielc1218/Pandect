@@ -9,7 +9,7 @@ import LogInLoading from "@/app/(site)/login/loading";
 import SignUpLoading from "@/app/(site)/signup/loading";
 import NotFoundPage, { metadata as notFoundMeta } from "@/app/not-found";
 import Root from "./Root";
-import { requireUser } from "./lib/supabase";
+import { requireUser, supabase } from "./lib/supabase";
 import { notFound, NotFound, onRefresh, Redirect } from "./shims/navigation";
 
 type Props = { params: Promise<Record<string, string>>; searchParams: Promise<Record<string, string>> };
@@ -47,45 +47,58 @@ function NotFoundBoundary() {
   return <Catch resetKey={key} fallback={fallback}><Outlet /></Catch>;
 }
 
+type Run = Promise<{ node: ReactNode; title?: string }>;
+
+/**
+ * Page runs by visit: each navigation, Back and Forward included, gets a new location object, so a page is never
+ * shown from an earlier visit; within one visit, the run for each refresh count. Re-renders of the same visit
+ * (StrictMode's, or an urgent one while a refresh is pending) find their run here instead of starting another.
+ * Signing in or out drops them all.
+ */
+let runs = new WeakMap<object, Map<number, Run>>();
+supabase().then((db) => db.auth.onAuthStateChange((event) => {
+  if (event === "SIGNED_IN" || event === "SIGNED_OUT") runs = new WeakMap();
+}));
+
 /**
  * A server-component page run in the browser: called once per visit (and again on router.refresh() or "Try
  * again"), its promise read with use() under the route's loading.tsx. A thrown redirect() navigates, notFound()
  * goes up to NotFoundBoundary, and anything else shows (app)/error.tsx.
  */
 export function page(mod: () => Promise<PageModule>, Loading: ComponentType = () => null) {
-  let last: { key: string; result: Promise<{ node: ReactNode; title?: string }> } | undefined;
-
-  function Run({ runs }: { runs: number }) {
+  function Run({ count }: { count: number }) {
     const location = useLocation();
     const params = useParams() as Record<string, string>;
-    const key = `${location.key}:${runs}`;
-    if (last?.key !== key) {
+    let visit = runs.get(location);
+    if (!visit) runs.set(location, (visit = new Map()));
+    let result = visit.get(count);
+    if (!result) {
       const search = Object.fromEntries(new URLSearchParams(location.search));
-      last = { key, result: (async () => {
+      visit.set(count, (result = (async () => {
         const m = await mod();
         const props = { params: Promise.resolve(params), searchParams: Promise.resolve(search) };
         const [node, meta] = await Promise.all([m.default(props), m.generateMetadata?.(props) ?? m.metadata]);
         return { node, title: meta?.title };
-      })() };
+      })()));
     }
-    const { node, title } = use(last.result);
+    const { node, title } = use(result);
     useEffect(() => setTitle(title), [title]);
     return node;
   }
 
   function Page() {
     const { key } = useLocation();
-    const [runs, setRuns] = useState(0);
-    useEffect(() => onRefresh(() => startTransition(() => setRuns((n) => n + 1))), []);
-    const retry = () => setRuns((n) => n + 1);
+    const [count, setCount] = useState(0);
+    useEffect(() => onRefresh(() => startTransition(() => setCount((n) => n + 1))), []);
+    const retry = () => setCount((n) => n + 1);
     const fallback = (error: unknown) => {
       if (error instanceof Redirect) return <Navigate to={error.href} replace />;
       if (error instanceof NotFound) throw error;
       return <LearningError error={error as Error} retry={retry} />;
     };
     return (
-      <Catch resetKey={`${key}:${runs}`} fallback={fallback}>
-        <Suspense fallback={<Loading />}><Run runs={runs} /></Suspense>
+      <Catch resetKey={`${key}:${count}`} fallback={fallback}>
+        <Suspense fallback={<Loading />}><Run count={count} /></Suspense>
       </Catch>
     );
   }
