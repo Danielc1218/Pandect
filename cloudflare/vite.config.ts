@@ -26,6 +26,8 @@ function nextShims(): Plugin {
     enforce: "pre",
     async resolveId(source, importer, options) {
       if (source in SHIMS) return SHIMS[source];
+      // Anything else from Next would be bundled as-is and break at run time, so the build stops here instead.
+      if (source.startsWith("next/")) this.error(`${source} (imported by ${importer}) has no browser shim: add one to SHIMS in vite.config.ts`);
       if (source === "server-only") return EMPTY;
       // Only web's files get the swaps; src/lib may build on the web module it replaces.
       if (!importer?.startsWith(web)) return null;
