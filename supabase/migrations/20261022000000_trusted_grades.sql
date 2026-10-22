@@ -20,3 +20,6 @@ BEGIN
 END;
 $$;
 REVOKE EXECUTE ON FUNCTION grade_attempt() FROM PUBLIC, anon, authenticated;
+
+-- No default grade: a secret-key write that leaves out `correct` is refused, not stored as wrong.
+ALTER TABLE attempts ALTER COLUMN correct DROP DEFAULT;
