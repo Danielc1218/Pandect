@@ -1,3 +1,6 @@
-node_modules
-public/bank
-.wrangler
+node_modules/
+dist/
+public/bank/
+.wrangler/
+.env
+.dev.vars
