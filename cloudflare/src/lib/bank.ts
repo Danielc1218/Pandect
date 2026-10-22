@@ -37,6 +37,24 @@ async function api<T>(path: string): Promise<T | null> {
 /** A generated question file by id. */
 export const cdnQuestion = (id: string) => api<CdnQuestion>(`/api/bank/q/${encodeURIComponent(id)}`);
 
+const PAGE = 25; // functions/api/bank/qs.ts takes at most this many ids
+const PARALLEL = 6;
+
+/** Generated question files, in the order given: pages of 25 ids, at most 6 calls at once. Throws if any is missing. */
+export async function cdnQuestions(ids: string[]): Promise<CdnQuestion[]> {
+  const pages = Array.from({ length: Math.ceil(ids.length / PAGE) }, (_, i) => ids.slice(i * PAGE, (i + 1) * PAGE));
+  const out: CdnQuestion[][] = [];
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(PARALLEL, pages.length) }, async () => {
+    for (let i = next++; i < pages.length; i = next++) {
+      const page = await api<CdnQuestion[]>(`/api/bank/qs?ids=${pages[i].join(",")}`);
+      if (!page) throw new Error("question file missing");
+      out[i] = page;
+    }
+  }));
+  return out.flat();
+}
+
 /** Every question of one type for the drill list, in the order drills step through them. */
 export const typeQuestions = async (section: string, type: string): Promise<QuestionRow[]> =>
   (await api<QuestionRow[]>(`/api/bank/types/${section === "Reading Comprehension" ? "rc" : "lr"}/${typeSlug(type)}`)) ?? [];

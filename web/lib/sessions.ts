@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { BANK_NAME, cdnQuestion } from "./bank";
+import { BANK_NAME, cdnQuestions } from "./bank";
 
 /**
  * Timed sections. Each one records its own questions in session_questions, in order: a fixed practice test section
@@ -48,11 +48,9 @@ export async function sessionQuestions(db: SupabaseClient, sessionId: string) {
 async function generatedSessionQuestions(db: SupabaseClient, sessionId: string) {
   const { data, error } = await db.from("session_questions").select("position, question_id").eq("session_id", sessionId).order("position");
   if (error) throw error;
-  const found = await Promise.all((data ?? []).map(async ({ position, question_id }) => {
-    const q = await cdnQuestion(question_id as string);
-    if (!q) throw new Error(`question file missing: ${question_id}`);
-    return { position: position as number, q };
-  }));
+  const rows = data ?? [];
+  const qs = await cdnQuestions(rows.map((r) => r.question_id as string));
+  const found = rows.map(({ position }, i) => ({ position: position as number, q: qs[i] }));
   const passageIds = [...new Set(found.map((r) => r.q.passage_id).filter(Boolean))] as string[];
   return {
     passages: passageIds.map((pid) => found.find((r) => r.q.passage_id === pid)?.q.passage ?? ""),

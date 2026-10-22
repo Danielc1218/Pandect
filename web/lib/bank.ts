@@ -44,6 +44,13 @@ export async function bankFile<T>(path: string, purpose: Purpose): Promise<T | n
 /** A generated question file by id. */
 export const cdnQuestion = (id: string) => bankFile<CdnQuestion>(bankPaths.question(id), "question");
 
+/** Generated question files, in the order given. Throws if any is missing. */
+export const cdnQuestions = (ids: string[]) => Promise.all(ids.map(async (id) => {
+  const q = await cdnQuestion(id);
+  if (!q) throw new Error(`question file missing: ${id}`);
+  return q;
+}));
+
 async function rows<T>(query: PromiseLike<{ data: T[] | null; error: unknown }>): Promise<T[]> {
   const { data, error } = await query;
   if (error) throw error; // a thrown read is not cached

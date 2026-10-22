@@ -26,23 +26,29 @@ let key: Promise<CryptoKey> | undefined;
 /** The bank key, imported once per isolate. */
 export const bankKey = (env: Env): Promise<CryptoKey> => (key ??= importBankKey(env.BANK_KEY));
 
-/** Fetch one sealed bank file from the static assets and return it decrypted, or a 404. Callers pass only paths they built. */
-export const openQuestionFile = async (env: Env, request: Request, path: string): Promise<Response> => {
+/** One sealed bank file from the static assets, decrypted, or null if there is none. Callers pass only paths they built. */
+const openFile = async <T>(env: Env, request: Request, path: string, purpose: Purpose): Promise<T | null> => {
   const res = await env.ASSETS.fetch(new URL(path, request.url));
-  // A missing file may come back as the site's fallback page, so anything that isn't sealed JSON is a 404 too.
+  // A missing file may come back as the site's fallback page, so anything that isn't sealed JSON is missing too.
   const sealed = res.ok ? ((await res.json().catch(() => null)) as Sealed | null) : null;
-  if (!sealed?.iv || !sealed.data) return new Response("Not found", { status: 404 });
-  const purpose: Purpose = "question"; // only the grading routes open answers, through readAnswer
-  const json = await open(await bankKey(env), sealed, purpose);
-  return Response.json(json, { headers: { "Cache-Control": "private, max-age=300" } });
+  return sealed?.iv && sealed.data ? open<T>(await bankKey(env), sealed, purpose) : null;
+};
+
+/** Question files are private to signed-in users, so a browser may keep them briefly but no shared cache may. */
+export const questionReply = (value: unknown) => Response.json(value, { headers: { "Cache-Control": "private, max-age=300" } });
+
+/** One question-purpose file (a question or a type list), decrypted, or null. Only the grading routes open answers, through readAnswer. */
+export const readQuestionFile = <T>(env: Env, request: Request, path: string) => openFile<T>(env, request, path, "question");
+
+/** One question-purpose file as a reply, or a 404. */
+export const openQuestionFile = async (env: Env, request: Request, path: string): Promise<Response> => {
+  const file = await readQuestionFile(env, request, path);
+  return file === null ? new Response("Not found", { status: 404 }) : questionReply(file);
 };
 
 /** One question's answer file, decrypted, or null if the id isn't a UUID or there is no such file. Grading routes only. */
 export const readAnswer = async (env: Env, request: Request, id: string): Promise<CdnAnswer | null> => {
-  if (!UUID.test(id)) return null;
-  const res = await env.ASSETS.fetch(new URL(bankPaths.answer(id), request.url));
-  const sealed = res.ok ? ((await res.json().catch(() => null)) as Sealed | null) : null;
-  return sealed?.iv && sealed.data ? open<CdnAnswer>(await bankKey(env), sealed, "answer") : null;
+  return UUID.test(id) ? openFile<CdnAnswer>(env, request, bankPaths.answer(id), "answer") : null;
 };
 
 /** The answer to a question in the generated bank's index, or null: only those ids get their answer file opened. */
@@ -59,7 +65,7 @@ export const reply = (status: number, text: string) => new Response(text, { stat
 /** A JSON reply that no cache keeps. */
 export const json = (value: unknown) => Response.json(value, { headers: { "Cache-Control": "no-store" } });
 
-/** A grading route: anything it throws becomes a plain 500, never a stack trace. */
+/** A Function route: anything it throws becomes a plain 500, never a stack trace. */
 export const guarded = <D extends Record<string, unknown>>(route: PagesFunction<Env, any, D>): PagesFunction<Env, any, D> =>
   async (context) => {
     try {

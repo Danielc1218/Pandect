@@ -96,6 +96,22 @@ await step("drill answers", async () => {
   expectStatus("an other-bank question id", await call("/api/answer", me.token, { questionId: other.id, chosen: "A" }), 404);
 });
 
+await step("question batches", async () => {
+  const qs = (ids: string[], token: string | null = me.token) => call(`/api/bank/qs?ids=${ids.join(",")}`, token);
+  const list = await call("/api/bank/types/lr/flaw", me.token);
+  const ids: string[] = (list.json ?? []).slice(0, 3).map((r: { id: string }) => r.id).reverse();
+  if (ids.length < 3) throw new Error(`fewer than 3 drill questions from /api/bank/types/lr/flaw (${list.status})`);
+  const batch = await qs(ids);
+  expectStatus("GET /api/bank/qs with 3 ids", batch, 200);
+  check("the batch keeps the order asked", Array.isArray(batch.json) && batch.json.map((q: { id: string }) => q.id).join() === ids.join(), batch.json?.length);
+  check("batch files have no answers", Array.isArray(batch.json) && batch.json.every((q: object) => !("correct_answer" in q) && !("explanation" in q)));
+  expectStatus("26 ids", await qs(Array.from({ length: 26 }, () => crypto.randomUUID())), 400);
+  expectStatus("a non-UUID id", await qs([ids[0], "../answers/x"]), 400);
+  expectStatus("no ids", await qs([]), 400);
+  expectStatus("an unknown id in the batch", await qs([ids[0], crypto.randomUUID()]), 404);
+  expectStatus("no token", await qs(ids, null), 401);
+});
+
 await step("timed sections", async () => {
   const mine = await startSection(me.db);
   const theirs = await startSection(other.db);
