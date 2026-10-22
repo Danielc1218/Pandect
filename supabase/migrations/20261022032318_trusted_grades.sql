@@ -1,4 +1,4 @@
--- Trusted grades: the question generator writes attempts with the secret key (role service_role),
+-- Trusted grades: the site's server, on Vercel or Cloudflare, writes attempts with the secret key (role service_role),
 -- so grade_attempt keeps the user and grade it gives. A browser write is still graded by the database.
 -- It is SECURITY DEFINER so it can read correct_answer once users lose the right to select it.
 CREATE OR REPLACE FUNCTION grade_attempt() RETURNS TRIGGER
