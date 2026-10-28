@@ -1,7 +1,18 @@
-import type { CSSProperties } from "react";
-
 /** Original panda artwork, shared by the public pages and learning dashboard. */
 export type MascotAnimation = "type" | "gavel" | "wave" | "thinking" | "head-turn" | "run" | "celebrate" | "coffee" | "sleepy" | "read";
+
+const LAYERS: Record<MascotAnimation, readonly string[]> = {
+  type: ["base", "paw", "blink"],
+  gavel: ["base", "arm"],
+  wave: ["base", "arm", "jacket-cover", "blink"],
+  thinking: ["base", "head", "blink", "paw", "question"],
+  "head-turn": ["base", "head-0", "head-1", "head-2", "head-3"],
+  run: ["base", "pose-1", "pose-2", "pose-3", "pose-4", "pose-5", "pose-6", "pose-7"],
+  celebrate: ["base", "left-arm", "right-arm"],
+  coffee: ["base", "cup"],
+  sleepy: ["base", "head", "yawn"],
+  read: ["base", "book-0", "book-1", "book-2", "blink"],
+};
 
 export function MascotPeek() {
   return (
@@ -14,13 +25,13 @@ export function MascotPeek() {
 }
 
 export function Mascot({ animation, className = "" }: { animation: MascotAnimation; className?: string }) {
-  const frames = animation === "head-turn" ? 48 : 32;
   return (
-    <div className={`mascot-figure mascot-${animation} ${className}`} style={{ "--mascot-frames": frames } as CSSProperties} aria-hidden="true">
+    <div className={`mascot-figure mascot-${animation} ${className}`} aria-hidden="true">
       <div className="mascot-sprite-window">
-        {/* CSS only controls playback of the drawn poses. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className="mascot-strip" src={`/mascot/animations/v4/${animation}/strip.webp`} alt="" width={frames * 320} height={320} loading="lazy" decoding="async" />
+        {LAYERS[animation].map((layer) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img key={layer} className={`mascot-layer mascot-layer--${layer}`} src={`/mascot/rig/${animation}/${layer}.webp`} alt="" width={320} height={320} loading="lazy" decoding="async" />
+        ))}
       </div>
     </div>
   );
