@@ -7,10 +7,10 @@ import { FAQ, SITE_DESCRIPTION, SITE_URL } from "@/lib/site";
 
 export const metadata = { description: SITE_DESCRIPTION, alternates: { canonical: "/" } };
 
-const WAYS: { href: string; animation: MascotAnimation; tag: string; title: string; text: string }[] = [
-  { href: "/types", animation: "type", tag: "Drill", title: "Drills by question type", text: "Flaw, Strengthen, Necessary Assumption, and the rest, each in its own set, with an explanation after every answer." },
-  { href: "/practice", animation: "gavel", tag: "Practice test", title: "Timed sections", text: "Logical Reasoning or Reading Comprehension, 35 minutes, like a section on test day." },
-  { href: "/progress", animation: "thinking", tag: "Review", title: "Progress and misses", text: "Your accuracy by question type, and the questions you got wrong, ready to redo." },
+const WAYS: { href: string; animation: MascotAnimation; tag: string; title: string }[] = [
+  { href: "/types", animation: "type", tag: "Drill", title: "Drills by question type" },
+  { href: "/practice", animation: "gavel", tag: "Practice test", title: "Timed sections" },
+  { href: "/progress", animation: "thinking", tag: "Review", title: "Progress and misses" },
 ];
 const STEPS = ["Make a free account", "Drill one question type", "Take a timed section, then review"];
 
@@ -64,7 +64,6 @@ export default function Home() {
               <div className="body">
                 <span className="tag">{w.tag}</span>
                 <h3>{w.title}</h3>
-                <p className="muted">{w.text}</p>
               </div>
             </Link>
           ))}

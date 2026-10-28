@@ -1,12 +1,11 @@
 import { Mascot } from "@/components/Mascot";
 import { Start } from "@/components/StartButton";
 import { BANK_NAME } from "@/lib/bank";
-import { FAQ } from "@/lib/site";
 
 
 export const metadata = {
   title: "About",
-  description: "How Pandect works: the LSAT's sections at a glance, how the question bank is built, and answers to common questions.",
+  description: "What the LSAT's sections ask of you, and how Pandect builds and labels its practice questions.",
   alternates: { canonical: "/about" },
 };
 
@@ -23,7 +22,7 @@ export default function About() {
       <section className="hero">
         <div className="stack">
           <span className="tag">Our approach</span>
-          <h1>Learn the reasoning one <mark>question type</mark> at a time.</h1>
+          <h1>What the LSAT asks, and how Pandect <mark>practices</mark> it.</h1>
         </div>
         <Mascot animation="read" className="mascot-about" />
       </section>
@@ -40,12 +39,6 @@ export default function About() {
           <div className="step"><div className="num">1</div><h3>{"Write practice questions"}</h3><p className="muted">{"Each question is written to follow the pattern of one LSAT question type."}</p></div>
           <div className="step"><div className="num">2</div><h3>Label each question</h3><p className="muted">Every question is labeled by type, so you can practice one kind of reasoning at a time.</p></div>
           <div className="step"><div className="num">3</div><h3>Track your answers</h3><p className="muted">Your answers build an accuracy record per type, which shows what to practice next.</p></div>
-        </div>
-      </section>
-      <section>
-        <h2>Questions people ask</h2>
-        <div className="faq">
-          {FAQ.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}
         </div>
       </section>
       <section className="panel tinted">
