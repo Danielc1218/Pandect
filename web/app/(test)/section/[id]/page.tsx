@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { SectionRunner } from "@/components/SectionRunner";
+import { BANK_NAME } from "@/lib/bank";
 import { op } from "@/lib/run";
 import { sessionHome, sessionLabel } from "@/lib/sessions";
 import { sessionQuestions } from "@/lib/wording";
@@ -18,6 +19,7 @@ export default async function SectionPage({ params }: PageProps<"/section/[id]">
   return (
     <SectionRunner
       sessionId={id}
+      bank={BANK_NAME}
       title={label.title}
       subtitle={label.subtitle}
       startedAt={session.started_at}

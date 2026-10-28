@@ -14,6 +14,7 @@ import { sessionAnswerKey } from "@/lib/answerKey";
 import { op } from "@/lib/run";
 import { sessionHome, sessionLabel } from "@/lib/sessions";
 import { sessionQuestions } from "@/lib/wording";
+import { choiceOrder, relabel, shownLetter } from "@/lib/shuffle";
 import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
 
@@ -28,13 +29,15 @@ type Key = Awaited<ReturnType<typeof sessionAnswerKey>>[number];
 type Text = Awaited<ReturnType<typeof sessionQuestions>>["questions"][number];
 
 /** A missed question as a row that opens to the question itself, the marked answers and the reasoning. */
-function ReviewRow({ q, text, passages, chosen }: { q: Key; text?: Text; passages: string[]; chosen: string | null }) {
+function ReviewRow({ q, text, passages, chosen, sessionId }: { q: Key; text?: Text; passages: string[]; chosen: string | null; sessionId: string }) {
+  const order = text && choiceOrder(text.options, sessionId + q.id, BANK_NAME);
+  const shown = (letter: string) => order ? shownLetter(order, letter) : letter;
   return (
     <details className="review">
       <summary className="row" data-status={!chosen ? "blank" : chosen === q.correct_answer ? "solved" : "missed"}>
         <div className="grow">
           <div className="title">Question {q.number}</div>
-          <div className="muted">{chosen === q.correct_answer ? `Correct. You chose ${chosen}.` : `${chosen ? `You chose ${chosen}.` : "Not answered."} Correct answer ${q.correct_answer}.`}</div>
+          <div className="muted">{chosen === q.correct_answer ? `Correct. You chose ${shown(chosen)}.` : `${chosen ? `You chose ${shown(chosen)}.` : "Not answered."} Correct answer ${shown(q.correct_answer)}.`}</div>
         </div>
         <span className="tag">{q.question_type}</span>
       </summary>
@@ -45,10 +48,10 @@ function ReviewRow({ q, text, passages, chosen }: { q: Key; text?: Text; passage
           )}
           {text.stimulus && <p>{typeset(text.stimulus)}</p>}
           <h3>{typeset(text.prompt)}</h3>
-          <Choices options={text.options} selected={chosen} result={{ correctAnswer: q.correct_answer }} />
+          <Choices options={text.options} order={order} selected={chosen} result={{ correctAnswer: q.correct_answer }} />
           <div className="explain">
             <strong>Reasoning</strong>
-            <p>{q.explanation ? typeset(q.explanation) : "No written reasoning for this question yet."}</p>
+            <p>{q.explanation ? typeset(order ? relabel(q.explanation, order) : q.explanation) : "No written reasoning for this question yet."}</p>
           </div>
           <p><Link href={drillHref(q.section_type, q.question_type)}>Drill more {q.question_type} questions</Link></p>
         </div>
@@ -115,7 +118,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
           {[missed, all].map((list, i) => list.length ? (
             <div key={i} className="list">
               {list.map((q) => (
-                <ReviewRow key={q.id} q={q} text={text.get(q.id)} passages={section.passages} chosen={mine.get(q.id)?.chosen ?? null} />
+                <ReviewRow key={q.id} q={q} text={text.get(q.id)} passages={section.passages} chosen={mine.get(q.id)?.chosen ?? null} sessionId={id} />
               ))}
             </div>
           ) : <div key={i} className="panel"><p>Nothing missed. You got every question right.</p></div>)}

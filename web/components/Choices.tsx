@@ -6,18 +6,22 @@ const LETTERS = ["A", "B", "C", "D", "E"];
 
 /** The five answer rows. Click selects; right-click or the Cross out button eliminates. With a result and no handlers it is a read-only review. */
 export function Choices({
-  options, selected, eliminated = [], result, onSelect, onEliminate,
+  options, order, selected, eliminated = [], result, onSelect, onEliminate,
 }: {
   options: Record<string, string>;
+  order?: string[];
   selected: string | null;
   eliminated?: string[];
   result?: { correctAnswer: string } | null;
   onSelect?: (letter: string) => void;
   onEliminate?: (letter: string) => void;
 }) {
+  const natural = LETTERS.filter((letter) => options[letter]);
+  const shuffled = order?.some((letter, i) => letter !== natural[i]);
   return (
     <div className="stack" role="radiogroup" aria-label="Answer choices">
-      {LETTERS.filter((l) => options[l]).map((letter) => {
+      {(order ?? natural).map((letter, i) => {
+        const shown = shuffled ? LETTERS[i] : letter;
         const state = result
           ? letter === result.correctAnswer ? "correct" : letter === selected ? "incorrect" : ""
           : letter === selected ? "selected" : eliminated.includes(letter) ? "eliminated" : "";
@@ -41,13 +45,13 @@ export function Choices({
             }}
             onContextMenu={(e) => { e.preventDefault(); if (!result) onEliminate?.(letter); }}
           >
-            <span className="letter">{letter}</span>
+            <span className="letter">{shown}</span>
             <span>{typeset(options[letter])}</span>
             {state === "eliminated" && <span className="sr-only"> (crossed out)</span>}
             {result && letter === result.correctAnswer && <span className="note">Correct answer</span>}
             {result && letter === selected && letter !== result.correctAnswer && <span className="note">Your answer</span>}
             {!result && onEliminate && (
-              <button type="button" className="cross" aria-label={`Cross out ${letter}`} aria-pressed={eliminated.includes(letter)} title="Cross out"
+              <button type="button" className="cross" aria-label={`Cross out ${shown}`} aria-pressed={eliminated.includes(letter)} title="Cross out"
                 onClick={(e) => { e.stopPropagation(); onEliminate(letter); }} onKeyDown={(e) => e.stopPropagation()}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>

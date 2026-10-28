@@ -6,6 +6,7 @@ import { useEffect, useEffectEvent, useRef, useState, useTransition, type ReactN
 import { answer } from "@/lib/actions";
 import { closeOnBackdrop } from "@/lib/dialog";
 import type { Status } from "@/lib/questions";
+import { choiceOrder, originalLetter, relabel, shownLetter } from "@/lib/shuffle";
 import { typeset } from "@/lib/text";
 import { Choices } from "./Choices";
 import { usePrefs } from "./Prefs";
@@ -19,9 +20,9 @@ export type DrillQuestion = { id: string; stimulus: string | null; prompt: strin
  * One drill question. `children` is the type's question list, shown in a popup; `nextHref` is the next unanswered
  * question, if any; `prevHref` and `skipHref` are its neighbors in the list.
  */
-export function Drill({ question, type, number, answered, total, listHref, nextHref, prevHref, skipHref, before, children }: {
+export function Drill({ question, bank, type, number, answered, total, listHref, nextHref, prevHref, skipHref, before, children }: {
   question: DrillQuestion; type: string; number: number; answered: number; total: number; listHref: string; nextHref?: string;
-  prevHref?: string; skipHref?: string; before?: Status; children: ReactNode;
+  prevHref?: string; skipHref?: string; before?: Status; children: ReactNode; bank: "generated" | "other";
 }) {
   const router = useRouter();
   const list = useRef<HTMLDialogElement>(null);
@@ -30,6 +31,7 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
   const [selected, setSelected] = useState<string | null>(null);
   const [eliminated, setEliminated] = useState<string[]>([]);
   const [result, setResult] = useState<{ correct: boolean; correctAnswer: string; explanation: string | null } | null>(null);
+  const [order] = useState(() => choiceOrder(question.options, String(Math.random()), bank));
   const [pending, start] = useTransition();
   // A stopwatch for this question, stopped by the answer; hidden with the timer setting.
   const { hideTimer } = usePrefs();
@@ -60,7 +62,8 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
   // with the question list open, or when a choice already used the key (its arrows move between choices).
   const onKey = useEffectEvent((e: KeyboardEvent) => {
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || document.querySelector("dialog[open]") || (e.target as HTMLElement).closest("input, select, textarea, button, a")) return;
-    const letter = "ABCDE"[Number(e.key) - 1] ?? (/^[a-e]$/i.test(e.key) ? e.key.toUpperCase() : null);
+    const shown = "ABCDE"[Number(e.key) - 1] ?? (/^[a-e]$/i.test(e.key) ? e.key.toUpperCase() : null);
+    const letter = shown ? originalLetter(order, shown) : null;
     if (letter && !result && question.options[letter]) { e.preventDefault(); if (e.shiftKey) toggle(letter); else pick(letter); }
     else if (e.key === "Enter") { e.preventDefault(); if (result) router.push(nextHref ?? listHref); else submit(); }
     else if (e.key === "l" || e.key === "L") { e.preventDefault(); openList(); }
@@ -88,21 +91,21 @@ export function Drill({ question, type, number, answered, total, listHref, nextH
       {question.stimulus && <p>{typeset(question.stimulus)}</p>}
       <h3>{typeset(question.prompt)}</h3>
       <Choices
-        options={question.options} selected={selected} eliminated={eliminated} result={result}
+        options={question.options} order={order} selected={selected} eliminated={eliminated} result={result}
         onSelect={pick}
         onEliminate={toggle}
       />
       <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> choose · <kbd>Enter</kbd> {result ? "next question" : "submit"} · <kbd>←</kbd> <kbd>→</kbd> previous and skip · <kbd>Shift</kbd>+letter, <kbd>✕</kbd> or right-click crosses a choice out</p>
       <ShortcutsHelp keys={[["A–E or 1–5", "Choose an answer"], ["Shift+A–E", "Cross out a choice, or bring it back"], ["Enter", "Submit, then go to the next question"], ["↑ ↓", "Move between the choices"], ["← →", "Previous question, or skip to the next"], ["L", "Open the question list"], ["H", "Turn the highlighter on or off"], ["/", "Search the question list"]]} />
       {failed && <p className="field invalid" role="alert"><span className="hint">Your answer couldn&rsquo;t be checked. Check your connection and submit again.</span></p>}
-      {result && <div ref={explain} className={`explain mascot-feedback ${result.correct ? "right" : "wrong"}`} role="status"><Mascot animation={result.correct ? "celebrate" : "thinking"} /><div className="mascot-feedback-copy"><strong>{result.correct ? `Correct: ${result.correctAnswer}.` : `Not quite. You chose ${selected}; the answer is ${result.correctAnswer}.`}</strong>{result.explanation && <p>{typeset(result.explanation)}</p>}</div></div>}
+      {result && <div ref={explain} className={`explain mascot-feedback ${result.correct ? "right" : "wrong"}`} role="status"><Mascot animation={result.correct ? "celebrate" : "thinking"} /><div className="mascot-feedback-copy"><strong>{result.correct ? `Correct: ${shownLetter(order, result.correctAnswer)}.` : `Not quite. You chose ${selected && shownLetter(order, selected)}; the answer is ${shownLetter(order, result.correctAnswer)}.`}</strong>{result.explanation && <p>{typeset(relabel(result.explanation, order))}</p>}</div></div>}
       <div className="actions spread">
         <button className="btn" onClick={openList} aria-keyshortcuts="L">Question list</button>
         {result ? (
           <Link ref={next} className="btn primary" href={nextHref ?? listHref}>{nextHref ? "Next question" : "Back to question list"}</Link>
         ) : (
           // The refresh re-reads this question's status, so the list, the bar and the next link count the new answer.
-          <button className="btn primary" disabled={!selected || pending} onClick={submit}>{pending ? "Checking…" : selected ? `Submit ${selected}` : "Choose an answer"}</button>
+          <button className="btn primary" disabled={!selected || pending} onClick={submit}>{pending ? "Checking…" : selected ? `Submit ${shownLetter(order, selected)}` : "Choose an answer"}</button>
         )}
       </div>
       <dialog ref={list} className="modal" style={{ width: "100%", maxWidth: 760 }} aria-labelledby="question-list-title" onClick={closeOnBackdrop}>

@@ -4,6 +4,7 @@ import { Fragment, useEffect, useEffectEvent, useRef, useState, useTransition } 
 import { useRouter } from "next/navigation";
 import { finishSection, pauseSection, resumeSection, saveAnswer } from "@/lib/actions";
 import { closeOnBackdrop } from "@/lib/dialog";
+import { choiceOrder, originalLetter, shownLetter } from "@/lib/shuffle";
 import { typeset } from "@/lib/text";
 import { sectionMinutes } from "@/lib/timing";
 import { Choices } from "./Choices";
@@ -16,19 +17,21 @@ import { ShortcutsHelp } from "./ShortcutsHelp";
 export type SectionQuestion = { id: string; number: number; stimulus: string | null; prompt: string; options: Record<string, string>; passage: number | null };
 
 export function SectionRunner({
-  sessionId, title, subtitle, startedAt, pausedAt, pausedSeconds, questions, passages, saved, exitHref,
+  sessionId, bank, title, subtitle, startedAt, pausedAt, pausedSeconds, questions, passages, saved, exitHref,
 }: {
   sessionId: string; title: string; subtitle: string; startedAt: string; pausedAt: string | null; pausedSeconds: number; exitHref: string;
-  questions: SectionQuestion[]; passages: string[]; saved: Record<string, string>;
+  questions: SectionQuestion[]; passages: string[]; saved: Record<string, string>; bank: "generated" | "other";
 }) {
   const [index, setIndex] = useState(() => Math.max(0, questions.findIndex((q) => !saved[q.id])));
   const [answers, setAnswers] = useState(saved);
   const [eliminated, setEliminated] = useState<Record<string, string[]>>({});
   const [flagged, setFlagged] = useState<string[]>([]);
   const [left, setLeft] = useState<number | null>(null);
+  const [orders] = useState(() => Object.fromEntries(questions.map((question) => [question.id, choiceOrder(question.options, sessionId + question.id, bank)])));
   const [pending, start] = useTransition();
   const [saving, startSave] = useTransition(); // an answer on its way to the database
   const q = questions[index];
+  const order = orders[q.id];
   const prefs = usePrefs(); // extended time and a hidden timer, from the settings page
   const limit = Math.round(sectionMinutes(questions.length) * prefs.extraTime * 60);
   const finish = () => start(() => { clearHighlights(sessionId); return finishSection(sessionId); });
@@ -106,7 +109,8 @@ export function SectionRunner({
   // Keys: A–E or 1–5 answer, ← and → move between questions (Home and End to the first and last), F flags. Not while a dialog is open or a key was handled.
   const onKey = useEffectEvent((e: KeyboardEvent) => {
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || document.querySelector("dialog[open]") || (e.target as HTMLElement).closest("input, select, textarea")) return;
-    const letter = "ABCDE"[Number(e.key) - 1] ?? (/^[a-e]$/i.test(e.key) ? e.key.toUpperCase() : null);
+    const shown = "ABCDE"[Number(e.key) - 1] ?? (/^[a-e]$/i.test(e.key) ? e.key.toUpperCase() : null);
+    const letter = shown ? originalLetter(order, shown) : null;
     if (letter && q.options[letter]) (e.shiftKey ? eliminate : select)(letter);
     else if (e.key === "ArrowRight" && index < questions.length - 1) setIndex(index + 1);
     else if (e.key === "ArrowLeft" && index > 0) setIndex(index - 1);
@@ -170,7 +174,7 @@ export function SectionRunner({
           </div>
           {q.stimulus && <p>{typeset(q.stimulus)}</p>}
           <h3>{typeset(q.prompt)}</h3>
-          <Choices options={q.options} selected={answers[q.id] ?? null} eliminated={eliminated[q.id] ?? []} onSelect={select} onEliminate={eliminate} />
+          <Choices options={q.options} order={order} selected={answers[q.id] ?? null} eliminated={eliminated[q.id] ?? []} onSelect={select} onEliminate={eliminate} />
           <p className="muted keys-hint"><kbd>A</kbd>–<kbd>E</kbd> answer · <kbd>←</kbd> <kbd>→</kbd> previous and next · <kbd>F</kbd> flag · <kbd>Shift</kbd>+letter or <kbd>✕</kbd> crosses a choice out</p>
           <ShortcutsHelp keys={[["A–E or 1–5", "Answer"], ["Shift+A–E", "Cross out a choice, or bring it back"], ["← →", "Previous and next question"], ["Home End", "First and last question"], ["F", "Flag or unflag for review"], ["H", "Turn the highlighter on or off"]]} />
           <div className="actions spread">
@@ -192,7 +196,7 @@ export function SectionRunner({
         <div className="qnav-items" ref={items}>
           {questions.map((item, i) => {
             const state = [i === index && "current", flagged.includes(item.id) && "flagged", answers[item.id] && "done"].filter(Boolean).join(" ");
-            const label = `Question ${i + 1}${answers[item.id] ? `, answered ${answers[item.id]}` : ", unanswered"}${flagged.includes(item.id) ? ", flagged" : ""}`;
+            const label = `Question ${i + 1}${answers[item.id] ? `, answered ${shownLetter(orders[item.id], answers[item.id])}` : ", unanswered"}${flagged.includes(item.id) ? ", flagged" : ""}`;
             // In Reading Comprehension each passage's questions form a group, labeled P1, P2 and so on.
             const opens = item.passage !== null && item.passage !== questions[i - 1]?.passage;
             return (

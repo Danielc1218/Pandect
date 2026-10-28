@@ -85,7 +85,7 @@ export default async function DrillPage({ searchParams }: PageProps<"/drill">) {
       <div className={question.passage ? "drill-reader" : undefined}>
         {question.passage && <article className="passage"><PassageText text={question.passage} /></article>}
         {/* key remounts the question so selections reset when another one loads */}
-        <Drill key={question.id} question={{ ...question, sourceHref: BANK_NAME === "other" ? `/practice/${question.testId}` : undefined }} type={type} number={row.n} answered={answered} total={rows.length} listHref={base} nextHref={next && `${base}&q=${next}`}
+        <Drill key={question.id} question={{ ...question, sourceHref: BANK_NAME === "other" ? `/practice/${question.testId}` : undefined }} bank={BANK_NAME} type={type} number={row.n} answered={answered} total={rows.length} listHref={base} nextHref={next && `${base}&q=${next}`}
           prevHref={prev && `${base}&q=${prev}`} skipHref={after && `${base}&q=${after}`} before={status[q]}>
           {list}
         </Drill>

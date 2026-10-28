@@ -12,11 +12,7 @@ const WAYS: { href: string; animation: MascotAnimation; tag: string; title: stri
   { href: "/practice", animation: "gavel", tag: "Practice test", title: "Timed sections", text: "Logical Reasoning or Reading Comprehension, 35 minutes, like a section on test day." },
   { href: "/progress", animation: "thinking", tag: "Review", title: "Progress and misses", text: "Your accuracy by question type, and the questions you got wrong, ready to redo." },
 ];
-const STEPS = [
-  ["Make a free account", "An email address and a password. Your answers are saved to it on any device."],
-  ["Drill one question type", "Start with a common one, such as Flaw or Necessary Assumption. After each answer you see the right choice and why."],
-  ["Take a timed section, then review", "A 35-minute section shows whether the drilling holds up. Progress shows which types you miss most; drill those next."],
-];
+const STEPS = ["Make a free account", "Drill one question type", "Take a timed section, then review"];
 
 // What search engines and AI answer engines read about the site, the FAQ word for word as shown below.
 const JSON_LD = {
@@ -41,9 +37,6 @@ export default function Home() {
         <div className="stack">
           <span className="tag">Logical Reasoning and Reading Comprehension</span>
           <h1>LSAT practice, one <mark>question type</mark> at a time.</h1>
-          <p className="lead muted">
-            For anyone studying for the LSAT: free {"LSAT-style"} questions sorted by type, timed 35-minute sections, and a record of what you miss.
-          </p>
           <div className="actions">
             <Start />
             <a className="btn" href="#how">How it works</a>
@@ -54,11 +47,10 @@ export default function Home() {
       <section id="how">
         <h2>How it works</h2>
         <div className="steps">
-          {STEPS.map(([title, text], i) => (
+          {STEPS.map((title, i) => (
             <div key={title} className="step">
               <div className="num">{i + 1}</div>
               <h3>{title}</h3>
-              <p className="muted">{text}</p>
             </div>
           ))}
         </div>
