@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Tabs } from "@/components/Tabs";
 import { Mascot } from "@/components/Mascot";
@@ -13,7 +14,7 @@ export const metadata = { title: "Practice tests" };
 
 type Row = { id: string; name: string; year: number | null; sections: number; done: number; started: boolean };
 
-function TestList({ tests, empty }: { tests: Row[]; empty: string }) {
+function TestList({ tests, empty }: { tests: Row[]; empty: ReactNode }) {
   if (!tests.length) return <div className="panel"><p>{empty}</p></div>;
   return (
     <div className="list">
@@ -120,13 +121,14 @@ export default async function Practice({ searchParams }: PageProps<"/practice">)
   const list = (
     <section>
       <div className="mascot-heading"><h1>Practice tests</h1><Mascot animation="run" /></div>
+      <p>Take timed sections, like on test day, then review what you missed in the results.{" Pick a test below, or start a random section further down."}</p>
       <form className="field" role="search">
         <label htmlFor="find-test">Find a test</label>
         <input id="find-test" name="q" type="search" enterKeyHint="search" defaultValue={find} placeholder={"A number like 3"} />
       </form>
       {find && <p className="muted">{rows.length} {rows.length === 1 ? "test matches" : "tests match"} “{find}”. <Link href="/practice">Show all</Link></p>}
       <Tabs labels={[`All (${rows.length})`, `In progress (${started.length})`, `Completed (${completed.length})`]} label="Filter practice tests">
-        <TestList tests={rows} empty={find ? "No tests match that search." : "No tests here yet."} />
+        <TestList tests={rows} empty={find ? "No tests match that search." : <>No tests here yet. <Link href="/types">Drill a question type</Link> in the meantime.</>} />
         <TestList tests={started} empty={find ? "None of the matching tests is in progress." : "Tests you have started but not finished will show here."} />
         <TestList tests={completed} empty={find ? "None of the matching tests is completed." : "Tests with every section finished will show here."} />
       </Tabs>

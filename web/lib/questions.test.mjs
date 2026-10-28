@@ -52,6 +52,21 @@ test("search also covers the opening words of a row's passage", () => {
   assert.deepEqual(filterRows(rows, {}, "glaciers main", "all").map((r) => r.id), ["a"]);
 });
 
+test("search ignores curly quotes, dashes and punctuation, and reads the full text when a row has it", () => {
+  const rows = [
+    { id: "a", n: 1, source: "Practice Test 3, section 2, question 5", snippet: "The mayor’s plan—though popular…", text: "The mayor’s plan—though popular—ignores the budget entirely." },
+    { id: "b", n: 2, source: "Practice Test 3, section 2, question 15", snippet: "Café owners say…" },
+  ];
+  const ids = (query) => filterRows(rows, {}, query, "all").map((r) => r.id);
+  assert.deepEqual(ids("mayor's plan"), ["a"]);            // straight apostrophe finds a curly one
+  assert.deepEqual(ids("plan though"), ["a"]);             // an em dash counts as a space
+  assert.deepEqual(ids("budget"), ["a"]);                  // past the snippet's cut, found in `text`
+  assert.deepEqual(ids("section 2, question 5"), ["a", "b"]);
+  assert.deepEqual(ids("section 2 question 15"), ["b"]);
+  assert.deepEqual(ids("cafe owners"), ["b"]);             // no `text`: the snippet is searched, accents ignored
+  assert.deepEqual(ids("'plan'"), ["a"]);                  // quote marks around a word are not apostrophes
+});
+
 test("snippet collapses whitespace and cuts long text at a word", () => {
   assert.equal(snippet("  Short\n text. "), "Short text.");
   const long = snippet("word ".repeat(100));

@@ -40,46 +40,60 @@ export default async function Learn() {
   const weakest = types.filter((t) => t.answered >= 3 && t.answered > t.correct)
     .map((t) => ({ ...t, wrong: t.answered - t.correct }))
     .sort((x, y) => y.wrong / y.answered - x.wrong / x.answered || y.wrong - x.wrong).slice(0, 5);
+  // A brand-new user gets the three steps to follow instead of a place to pick up from.
+  const isNew = !stats.answered && !session;
 
   return (
     <>
       <section>
         <h1>{stats.answered ? "Welcome back" : "Welcome"}, {profile?.display_name?.trim().split(/\s+/)[0] || "there"}</h1>
-        <div className="split">
-          {inSection ? (
-            // A section still running resumes where it stopped; a finished one leads back to its test for the next section.
-            <Link className="card wide" href={session.finished_at ? sessionHome(session) : `/section/${session.id}`}>
-              <MascotCard animation="gavel" className="photo" />
-              <div className="body">
-                <div><span className="tag accent">Where you left off</span> <span className="tag">{session.finished_at ? "Finished" : "In progress"}</span></div>
-                <h3>{sessionLabel(session).title}</h3>
-                <p className="muted">{sessionLabel(session).subtitle}</p>
-                <p className="muted">{session.finished_at ? `Finished ${formatDay(session.finished_at)}` : `Started ${formatDay(session.started_at)}`}</p>
-                <span className="btn primary">{session.finished_at ? "Next section" : "Resume section"} →</span>
-              </div>
-            </Link>
-          ) : drill && (
-            <Link className="card wide" href={drillHref(drill.section_type, drill.question_type)}>
-              <MascotCard animation="type" className="photo" />
-              <div className="body">
-                <div><span className="tag accent">{stats.latest ? "Where you left off" : "Start here"}</span> <span className="tag">{drill.section_type}</span></div>
-                <h3>{drill.question_type}</h3>
-                <p className="muted">{drill.answered} of {drill.total} answered</p>
-                <div className="progress"><span style={{ width: `${pct(drill.answered, drill.total)}%` }} /></div>
-                <span className="btn primary">{stats.latest ? "Continue drilling" : "Start drilling"} →</span>
-              </div>
-            </Link>
-          )}
-          <div className="panel">
-            <div className="mascot-panel-heading">
-              <h3>This week</h3>
-              <Mascot animation={stats.week >= goal ? "celebrate" : "coffee"} />
+        {isNew && drill ? (
+          <div className="panel stack">
+            <h2>Start here</h2>
+            <div className="steps">
+              <div className="step"><div className="num">1</div><h3>Drill a question type</h3><p className="muted">Answer one kind of question at a time, untimed, and check each answer as you go.</p></div>
+              <div className="step"><div className="num">2</div><h3>Take a timed section</h3><p className="muted">When a few types feel familiar, try a full section against the clock on the <Link href="/practice">Practice</Link> page.</p></div>
+              <div className="step"><div className="num">3</div><h3>Review what you missed</h3><p className="muted">Your weakest types show up below. Open one to redo the questions you missed.</p></div>
             </div>
-            <p className="muted">Goal: {goal} questions · <Link href="/profile#weekly-goal">Change</Link></p>
-            <div className={`progress${stats.week >= goal ? " good" : ""}`}><span style={{ width: `${Math.min(100, pct(stats.week, goal))}%` }} /></div>
-            <p className="muted">{stats.week} answered{stats.week < goal ? `, ${goal - stats.week} to go` : <>, <strong className="score good">goal met</strong></>}</p>
+            <div className="actions"><Link className="btn primary" href={drillHref(drill.section_type, drill.question_type)}>Start with {drill.question_type} →</Link></div>
           </div>
-        </div>
+        ) : (
+          <div className="split">
+            {inSection ? (
+              // A section still running resumes where it stopped; a finished one leads back to its test for the next section.
+              <Link className="card wide" href={session.finished_at ? sessionHome(session) : `/section/${session.id}`}>
+                <MascotCard animation="gavel" className="photo" />
+                <div className="body">
+                  <div><span className="tag accent">Where you left off</span> <span className="tag">{session.finished_at ? "Finished" : "In progress"}</span></div>
+                  <h3>{sessionLabel(session).title}</h3>
+                  <p className="muted">{sessionLabel(session).subtitle}</p>
+                  <p className="muted">{session.finished_at ? `Finished ${formatDay(session.finished_at)}` : `Started ${formatDay(session.started_at)}`}</p>
+                  <span className="btn primary">{session.finished_at ? "Next section" : "Resume section"} →</span>
+                </div>
+              </Link>
+            ) : drill && (
+              <Link className="card wide" href={drillHref(drill.section_type, drill.question_type)}>
+                <MascotCard animation="type" className="photo" />
+                <div className="body">
+                  <div><span className="tag accent">Where you left off</span> <span className="tag">{drill.section_type}</span></div>
+                  <h3>{drill.question_type}</h3>
+                  <p className="muted">{drill.answered} of {drill.total} answered</p>
+                  <div className="progress"><span style={{ width: `${pct(drill.answered, drill.total)}%` }} /></div>
+                  <span className="btn primary">Continue drilling →</span>
+                </div>
+              </Link>
+            )}
+            <div className="panel">
+              <div className="mascot-panel-heading">
+                <h3>This week</h3>
+                <Mascot animation={stats.week >= goal ? "celebrate" : "coffee"} />
+              </div>
+              <p className="muted">Goal: {goal} questions · <Link href="/profile#weekly-goal">Change</Link></p>
+              <div className={`progress${stats.week >= goal ? " good" : ""}`}><span style={{ width: `${Math.min(100, pct(stats.week, goal))}%` }} /></div>
+              <p className="muted">{stats.week} answered{stats.week < goal ? `, ${goal - stats.week} to go` : <>, <strong className="score good">goal met</strong></>}</p>
+            </div>
+          </div>
+        )}
       </section>
       <section className="stats">
         <div className="stat"><div className="value"><CountUp value={stats.answered} /></div><div className="label">{stats.answered === 1 ? "question" : "questions"} answered</div></div>

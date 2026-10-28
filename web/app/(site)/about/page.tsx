@@ -1,21 +1,20 @@
 import { Mascot } from "@/components/Mascot";
 import { Start } from "@/components/StartButton";
 import { BANK_NAME } from "@/lib/bank";
+import { FAQ } from "@/lib/site";
 
 
-export const metadata = { title: "About" };
+export const metadata = {
+  title: "About",
+  description: "How Pandect works: the LSAT's sections at a glance, how the question bank is built, and answers to common questions.",
+  alternates: { canonical: "/about" },
+};
 
 const FORMAT = [
   ["Logical Reasoning (two sections)", "24 to 26 each", "35 minutes each", "Yes"],
   ["Reading Comprehension", "26 to 28", "35 minutes", "Yes"],
   ["Unscored section (either type)", "varies", "35 minutes", "No"],
   ["Argumentative Writing (taken separately online)", "1 prompt", "50 minutes", "No"],
-];
-const FAQ = [
-  ["Are these real LSAT questions?", "No. They are practice questions written in the style of the LSAT, not questions from past tests. Every question is labeled with its type."],
-  ["How long should I study?", "It depends on your starting point and target. Short, regular sets on your weakest types tend to help more than occasional long sessions."],
-  ["Can I use it on my phone?", "Yes. Every screen works at phone width, though timed sections are easier on a larger screen."],
-  ["What happened to Logic Games?", "That section was removed from the test. The scored sections are now two Logical Reasoning sections and one Reading Comprehension section."],
 ];
 
 export default function About() {

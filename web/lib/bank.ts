@@ -109,7 +109,8 @@ async function typeQuestionsIn(bank: BankName, section: string, type: string): P
       const passage = (q.passages as unknown as { passage_text: string } | null)?.passage_text;
       // Reading Comprehension prompts repeat ("…the main point of the passage?"), so those rows also carry how the passage opens.
       const source = sourceOf({ test_name: (q.tests as unknown as { name: string }).name, section_number: q.section_number as number, question_number: q.question_number as number });
-      all.push({ id: q.id as string, n: all.length + 1, source, snippet: snippet(typeset((q.stimulus ?? q.prompt) as string)), ...(passage && { passage: snippet(typeset(passage), 90) }) });
+      all.push({ id: q.id as string, n: all.length + 1, source, snippet: snippet(typeset((q.stimulus ?? q.prompt) as string)),
+        text: `${q.stimulus ?? ""} ${q.prompt}`, ...(passage && { passage: snippet(typeset(passage), 90) }) });
     }
     if (page.length < 1000) return all;
   }

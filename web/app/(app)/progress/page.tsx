@@ -59,6 +59,8 @@ export default async function Progress() {
     <>
       <section>
         <h1>Progress</h1>
+        <p>See how much you practice and which types you miss.</p>
+        {tried.length > 0 && <div className="actions"><Link className="btn primary" href={drillHref(tried[0].section_type, tried[0].question_type) + (tried[0].answered > tried[0].correct ? "&show=missed" : "")}>Drill {tried[0].question_type} →</Link></div>}
         <div className="stats">
           <div className="stat"><div className="value"><CountUp value={stats.answered} /></div><div className="label">{stats.answered === 1 ? "question" : "questions"} answered</div></div>
           <div className="stat"><div className={`value ${stats.answered ? grade(stats.accuracy) : ""}`}>{stats.answered ? <CountUp value={stats.accuracy} suffix="%" /> : "–"}</div><div className="label">accuracy, last 100</div></div>
@@ -86,9 +88,9 @@ export default async function Progress() {
           <div className="panel mascot-empty"><Mascot animation="sleepy" /><div><p>Answer a few questions and your accuracy by type will show here.</p><div className="actions"><Link className="btn primary" href="/types">Choose a question type</Link></div></div></div>
         )}
       </section>
-      {!!sessions?.length && (
-        <section>
-          <h2>Timed sections</h2>
+      <section>
+        <h2>Timed sections</h2>
+        {sessions?.length ? (
           <table className="plain">
             <thead><tr><th>Test</th><th>Section</th><th>Date</th><th>Time</th><th>Score</th></tr></thead>
             <tbody>
@@ -106,8 +108,10 @@ export default async function Progress() {
               })}
             </tbody>
           </table>
-        </section>
-      )}
+        ) : (
+          <div className="panel"><p>Your timed sections and their scores will show here.</p><div className="actions"><Link className="btn" href="/practice">Take a timed section</Link></div></div>
+        )}
+      </section>
     </>
   );
 }

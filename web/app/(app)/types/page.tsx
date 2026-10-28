@@ -32,9 +32,13 @@ export default async function Types() {
   const sum = (list: TypeStat[]) => list.reduce((n, t) => n + t.total, 0);
   const lr = of(SECTIONS.lr);
   const rc = of(SECTIONS.rc);
+  // the suggested next drill: a type not yet started, else one not yet finished
+  const next = types.find((t) => !t.answered) ?? types.find((t) => t.answered < t.total) ?? types[0];
   return (
     <section>
       <h1>Question types</h1>
+      <p>Practice one kind of question at a time, untimed. Pick any type below, or start with the one we suggest.</p>
+      {next && <div className="actions"><Link className="btn primary" href={drillHref(next.section_type, next.question_type)}>Drill {next.question_type} →</Link></div>}
       <div className="stats">
         <div className="stat"><div className="value">{sum(lr).toLocaleString()}</div><div className="label">Logical Reasoning questions</div></div>
         <div className="stat"><div className="value">{sum(rc).toLocaleString()}</div><div className="label">Reading Comprehension questions</div></div>

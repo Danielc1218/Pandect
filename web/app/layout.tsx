@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { TopNav } from "@/components/Nav";
 import { PrefsSync } from "@/components/Prefs";
-import { BANK_NAME } from "@/lib/bank";
 import { applyPrefs } from "@/lib/prefs";
+import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/lib/site";
 import { supabase } from "@/lib/supabase";
 import "./design/tokens.css";
 import "./design/dark.css";
@@ -13,8 +13,11 @@ import "./prefs.css";
 import "./mascot.css";
 
 export const metadata: Metadata = {
-  title: { default: "Pandect", template: "%s · Pandect" },
-  description: `Practice on ${"LSAT-style"} questions, sorted by type, with your accuracy tracked.`,
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_TITLE, template: "%s · Pandect" },
+  description: SITE_DESCRIPTION,
+  openGraph: { siteName: "Pandect", type: "website", images: "/mascot/brand/peek.png" },
+  twitter: { card: "summary" },
 };
 
 // A phone's browser bar takes the top bar's color (the surface tokens), following the device's light or dark setting.

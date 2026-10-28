@@ -1,5 +1,5 @@
 // The site's routes, each one a page file from web/app inside its layout, as Next would nest them.
-import { Component, createContext, startTransition, Suspense, use, useContext, useEffect, useState, type ComponentType, type ReactNode } from "react";
+import { Component, createContext, startTransition, Suspense, use, useContext, useEffect, useLayoutEffect, useState, type ComponentType, type ReactNode } from "react";
 import { createBrowserRouter, Navigate, Outlet, UNSAFE_DataRouterStateContext, useLocation, useParams } from "react-router";
 import AppLayout from "@/app/(app)/layout";
 import DrillLoading from "@/app/(app)/drill/loading";
@@ -19,12 +19,13 @@ import SignUpLoading from "@/app/(site)/signup/loading";
 import SectionError from "@/app/(test)/section/[id]/error";
 import SectionLoading from "@/app/(test)/section/[id]/loading";
 import NotFoundPage, { metadata as notFoundMeta } from "@/app/not-found";
+import { pageTitle, SITE_URL } from "@/lib/site";
 import Root from "./Root";
 import { onUser, requireUser } from "./lib/supabase";
 import { notFound, NotFound, onRefresh, Redirect } from "./shims/navigation";
 
 type Props = { params: Promise<Record<string, string>>; searchParams: Promise<Record<string, string>> };
-type Title = { title?: string };
+type Title = { title?: string; description?: string };
 type ErrorView = ComponentType<{ error: Error; retry: () => void }>;
 type PageModule = {
   default: (p: Props) => ReactNode | Promise<ReactNode>;
@@ -32,7 +33,24 @@ type PageModule = {
   generateMetadata?: (p: Props) => Promise<Title>;
 };
 
-const setTitle = (title?: string) => { document.title = title ? `${title} · Pandect` : "Pandect"; };
+const setTitle = (title?: string) => { document.title = pageTitle(title); };
+
+/** Only Home and About are for search engines (public/robots.txt): every other page says noindex once it shows. */
+function setIndexing(path: string) {
+  document.querySelector('link[rel="canonical"]')?.setAttribute("href", SITE_URL + path);
+  document.querySelector('meta[name="robots"]')?.remove();
+  if (path !== "/" && path !== "/about") document.head.append(Object.assign(document.createElement("meta"), { name: "robots", content: "noindex" }));
+}
+
+// Home or About as prerendered (scripts/prerender.tsx), still in #root while this module runs: on the first load it
+// stands in for the skeleton while the page's code loads, so the page doesn't blink.
+const main = document.querySelector("#root main");
+let prerendered = main ? { path: location.pathname, html: main.innerHTML } : undefined;
+
+function SiteLoadingOrPrerendered() {
+  const { pathname } = useLocation();
+  return prerendered?.path === pathname ? <div style={{ display: "contents" }} dangerouslySetInnerHTML={{ __html: prerendered.html }} /> : <SiteLoading />;
+}
 
 /** Shows `fallback(error)` in place of its children when they throw; clears when `resetKey` changes. */
 class Catch extends Component<{ resetKey: string; fallback: (error: unknown) => ReactNode; children: ReactNode }, { error: unknown; key: string }> {
@@ -121,6 +139,13 @@ export function page(mod: () => Promise<PageModule>, Loading: ComponentType = ()
     }
     const { node, title } = use(result);
     useEffect(() => setTitle(title), [title]);
+    useEffect(() => setIndexing(location.pathname), [location.pathname]);
+    // The page replacing its prerendered copy skips skeleton.css's ease-in: it is already showing.
+    useLayoutEffect(() => {
+      const same = prerendered?.path === location.pathname;
+      prerendered = undefined;
+      if (same) for (const a of document.getAnimations()) if (a instanceof CSSAnimation && a.animationName === "page-in") a.finish();
+    }, [location.pathname]);
     return <PageRun value={result}>{node}</PageRun>;
   }
 
@@ -151,8 +176,8 @@ export const router = createBrowserRouter([
       {
         element: <SiteLayout><Outlet /></SiteLayout>,
         children: [
-          { index: true, element: page(() => import("@/app/(site)/page"), SiteLoading) },
-          { path: "about", element: page(() => import("@/app/(site)/about/page"), SiteLoading) },
+          { index: true, element: page(() => import("@/app/(site)/page"), SiteLoadingOrPrerendered) },
+          { path: "about", element: page(() => import("@/app/(site)/about/page"), SiteLoadingOrPrerendered) },
           { path: "login", element: page(() => import("@/app/(site)/login/page"), LogInLoading) },
           { path: "signup", element: page(() => import("@/app/(site)/signup/page"), SignUpLoading) },
         ],

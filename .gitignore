@@ -20,7 +20,9 @@ output/
 !/web/public/mascot/**/
 !/cloudflare/public/mascot/brand/icon.svg
 !/cloudflare/public/mascot/brand/peek.webp
+!/cloudflare/public/mascot/brand/peek.png
 !/cloudflare/public/mascot/animations/v4/*/strip.webp
 !/web/public/mascot/brand/icon.svg
 !/web/public/mascot/brand/peek.webp
+!/web/public/mascot/brand/peek.png
 !/web/public/mascot/animations/v4/*/strip.webp

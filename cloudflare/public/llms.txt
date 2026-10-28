@@ -1,0 +1,18 @@
+# Pandect
+
+> Pandect is a free website for people studying for the LSAT. It has LSAT-style Logical Reasoning and Reading Comprehension practice questions (written in the style of the LSAT; they are not official LSAT questions), drills by question type, timed 35-minute sections, and progress tracking by question type.
+
+Practicing needs a free account (email and password). Everything except the home and About pages is behind sign-in.
+
+## What you get
+
+- Drills by question type: Flaw, Strengthen, Necessary Assumption and the other Logical Reasoning types, plus Reading Comprehension, each in its own set, with an explanation after every answer.
+- Timed sections: Logical Reasoning or Reading Comprehension, 35 minutes, like a section on test day.
+- Progress: accuracy by question type, and the missed questions, ready to redo.
+
+## Pages
+
+- [Home](https://pandectprep.pages.dev/): what Pandect is, how it works, and common questions.
+- [About](https://pandectprep.pages.dev/about): the LSAT's sections at a glance and how the question bank is built.
+
+LSAT is a registered trademark of the Law School Admission Council, which is not affiliated with Pandect.

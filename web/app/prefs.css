@@ -23,7 +23,7 @@ html:root[data-passage-font="serif"] { --font-family-passage: Georgia, "Times Ne
 html:root[data-passage-font="atkinson"] { --font-family-passage: "Atkinson Hyperlegible", system-ui, sans-serif; }
 .passage, .passage-sample { font-family: var(--font-family-passage, inherit); }
 
-/* High contrast: pure black and white, darker or brighter accents, no graph-paper grid. */
+/* High contrast: pure black and white, darker or brighter accents. */
 html:root[data-theme="light"][data-contrast="high"] {
   --color-background: #ffffff; --color-surface: #ffffff; --color-surface-muted: #ebebeb; --color-border: #000000;
   --color-text: #000000; --color-text-muted: #1a1a1a; --color-primary: #00502a; --color-on-primary: #ffffff;
@@ -34,7 +34,6 @@ html:root[data-theme="dark"][data-contrast="high"] {
   --color-text: #ffffff; --color-text-muted: #e6e6e6; --color-primary: #7dffb2; --color-on-primary: #000000;
   --color-accent: #ffd400; --color-on-accent: #000000; --color-success: #7dffb2; --color-danger: #ffa3a3;
 }
-html[data-contrast="high"] body { background-image: none; }
 html[data-contrast="high"] :is(.panel, .passage, .question, .choice, .row, .stat) { border-width: 2px; }
 
 /* Reading tint: the page color and two shades of it, set by lib/prefs.ts (light theme only; high contrast keeps white) */
