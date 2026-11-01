@@ -93,10 +93,6 @@ await step("drill answers", async () => {
   expectStatus("questionId of the wrong type", await call("/api/answer", me.token, { questionId: 7, chosen: "A" }), 400);
   expectStatus("a non-UUID question id", await call("/api/answer", me.token, { questionId: "../answers/x", chosen: "A" }), 404);
   expectStatus("an unknown question id", await call("/api/answer", me.token, { questionId: crypto.randomUUID(), chosen: "A" }), 404);
-
-  const { data: other } = await me.db.from("questions").select("id, tests!inner(bank)").eq("tests.bank", "other").limit(1).maybeSingle();
-  if (!other) throw new Error("no other-bank question visible to the user");
-  expectStatus("an other-bank question id", await call("/api/answer", me.token, { questionId: other.id, chosen: "A" }), 404);
 });
 
 await step("question batches", async () => {

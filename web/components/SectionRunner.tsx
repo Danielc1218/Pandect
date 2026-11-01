@@ -17,17 +17,17 @@ import { ShortcutsHelp } from "./ShortcutsHelp";
 export type SectionQuestion = { id: string; number: number; stimulus: string | null; prompt: string; options: Record<string, string>; passage: number | null };
 
 export function SectionRunner({
-  sessionId, bank, title, subtitle, startedAt, pausedAt, pausedSeconds, questions, passages, saved, exitHref,
+  sessionId, title, subtitle, startedAt, pausedAt, pausedSeconds, questions, passages, saved, exitHref,
 }: {
   sessionId: string; title: string; subtitle: string; startedAt: string; pausedAt: string | null; pausedSeconds: number; exitHref: string;
-  questions: SectionQuestion[]; passages: string[]; saved: Record<string, string>; bank: "generated" | "other";
+  questions: SectionQuestion[]; passages: string[]; saved: Record<string, string>;
 }) {
   const [index, setIndex] = useState(() => Math.max(0, questions.findIndex((q) => !saved[q.id])));
   const [answers, setAnswers] = useState(saved);
   const [eliminated, setEliminated] = useState<Record<string, string[]>>({});
   const [flagged, setFlagged] = useState<string[]>([]);
   const [left, setLeft] = useState<number | null>(null);
-  const [orders] = useState(() => Object.fromEntries(questions.map((question) => [question.id, choiceOrder(question.options, sessionId + question.id, bank)])));
+  const [orders] = useState(() => Object.fromEntries(questions.map((question) => [question.id, choiceOrder(question.options, sessionId + question.id)])));
   const [pending, start] = useTransition();
   const [saving, startSave] = useTransition(); // an answer on its way to the database
   const q = questions[index];

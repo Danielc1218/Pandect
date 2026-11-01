@@ -92,15 +92,6 @@ test("two seals of the same value use different IVs", async () => {
   assert.notEqual((await seal(key, 1, "answer", "x")).iv, (await seal(key, 1, "answer", "x")).iv);
 });
 
-test("cdnGet refuses the other bank before any fetch", async () => {
-  const realFetch = globalThis.fetch;
-  globalThis.fetch = () => { throw new Error("fetch must not be called"); };
-  try {
-    await assert.rejects(cdnGet("/bank/q/x.json", { key: await newKey(), purpose: "question", bank: "other" }),
-      { message: "the other bank never reads Cloudflare" });
-  } finally { globalThis.fetch = realFetch; }
-});
-
 test("cdnGet opens a sealed file, and a 404 is null", async () => {
   const realFetch = globalThis.fetch;
   const key = await newKey();
@@ -108,11 +99,11 @@ test("cdnGet opens a sealed file, and a 404 is null", async () => {
   let url, headers;
   globalThis.fetch = async (u, init) => { url = String(u); headers = init?.headers; return url.includes("missing") ? new Response("", { status: 404 }) : Response.json(body); };
   try {
-    assert.deepEqual(await cdnGet("/bank/types/lr/x.json", { key, purpose: "question", bank: "generated" }), { a: 1 });
+    assert.deepEqual(await cdnGet("/bank/types/lr/x.json", { key, purpose: "question" }), { a: 1 });
     assert.ok(url.endsWith("/bank/types/lr/x.json"));
-    await assert.rejects(cdnGet("/bank/types/lr/y.json", { key, purpose: "question", bank: "generated" })); // sealed for another path
+    await assert.rejects(cdnGet("/bank/types/lr/y.json", { key, purpose: "question" })); // sealed for another path
     assert.equal(headers, undefined);
-    assert.equal(await cdnGet("/bank/q/missing.json", { key, purpose: "question", bank: "generated" }), null);
+    assert.equal(await cdnGet("/bank/q/missing.json", { key, purpose: "question" }), null);
   } finally { globalThis.fetch = realFetch; }
 });
 
@@ -120,13 +111,13 @@ test("cdnGet throws on other failures", async () => {
   const realFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response("", { status: 500 });
   try {
-    await assert.rejects(cdnGet("/bank/q/x.json", { key: await newKey(), purpose: "question", bank: "generated" }));
+    await assert.rejects(cdnGet("/bank/q/x.json", { key: await newKey(), purpose: "question" }));
   } finally { globalThis.fetch = realFetch; }
 });
 
 test("cdnGet throws on a 200 that is not a bank file", async () => {
   const realFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response("<!doctype html>", { headers: { "content-type": "text/html" } });
-  try { await assert.rejects(cdnGet("/bank/q/x.json", { key: await newKey(), purpose: "question", bank: "generated" }), { message: "/bank/q/x.json: not a bank file" }); }
+  try { await assert.rejects(cdnGet("/bank/q/x.json", { key: await newKey(), purpose: "question" }), { message: "/bank/q/x.json: not a bank file" }); }
   finally { globalThis.fetch = realFetch; }
 });

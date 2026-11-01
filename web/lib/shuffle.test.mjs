@@ -6,17 +6,15 @@ import { choiceOrder, originalLetter, relabel, shownLetter } from "./shuffle.ts"
 
 const reversed = ["E", "D", "C", "B", "A"];
 
-test("choice orders are seeded, reversible, and leave the other bank alone", () => {
+test("choice orders are seeded and reversible", () => {
   const options = Object.fromEntries("ABCDE".split("").map((letter) => [letter, letter]));
-  const order = choiceOrder(options, "a sitting and question", "generated");
-  assert.deepEqual(order, choiceOrder(options, "a sitting and question", "generated"));
+  const order = choiceOrder(options, "a sitting and question");
+  assert.deepEqual(order, choiceOrder(options, "a sitting and question"));
   assert.deepEqual([...order].sort(), "ABCDE".split(""));
-  assert.deepEqual(choiceOrder(options, "any seed", "other"), "ABCDE".split(""));
   for (const letter of "ABCDE") assert.equal(originalLetter(order, shownLetter(order, letter)), letter);
-  const sparse = choiceOrder({ A: "one", C: "three" }, "any seed", "other");
-  assert.deepEqual(sparse, ["A", "C"]);
-  assert.equal(shownLetter(sparse, "C"), "C");
-  assert.equal(originalLetter(sparse, "C"), "C");
+  const sparse = choiceOrder({ A: "one", C: "three" }, "any seed");
+  assert.deepEqual([...sparse].sort(), ["A", "C"]);
+  assert.equal(originalLetter(sparse, shownLetter(sparse, "C")), "C");
 });
 
 test("explanation labels change once while articles, passages and logic symbols stay put", () => {

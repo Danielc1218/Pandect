@@ -1,9 +1,7 @@
 import Link from "next/link";
-import { BANK_NAME } from "@/lib/bank";
 import { MascotCard, MascotPeek, type MascotAnimation } from "@/components/Mascot";
 import { Start } from "@/components/StartButton";
 import { FAQ, SITE_DESCRIPTION, SITE_URL } from "@/lib/site";
-
 
 export const metadata = { description: SITE_DESCRIPTION, alternates: { canonical: "/" } };
 
@@ -22,7 +20,7 @@ const JSON_LD = {
     { "@type": "Organization", "@id": `${SITE_URL}/#organization`, name: "Pandect", url: `${SITE_URL}/`, logo: `${SITE_URL}/mascot/brand/peek.png` },
     {
       "@type": "LearningResource", name: "Pandect LSAT practice", url: `${SITE_URL}/`, learningResourceType: "Practice questions",
-      description: `${"LSAT-style"} Logical Reasoning and Reading Comprehension practice questions, sorted by question type.`,
+      description: "LSAT-style Logical Reasoning and Reading Comprehension practice questions, sorted by question type.",
       teaches: ["Logical Reasoning", "Reading Comprehension"], provider: { "@id": `${SITE_URL}/#organization` },
     },
     { "@type": "FAQPage", mainEntity: FAQ.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) },

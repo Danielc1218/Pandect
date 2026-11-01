@@ -146,8 +146,8 @@ export const ops = {
 
   /** Starts a fixed section; returns the new session's id. */
   startSection: async (ctx: Ctx, testId: unknown, sectionNumber: unknown) => {
-    // Only a section of this bank with ready questions, and in the generated bank only from a complete test.
-    if (!canStartSection(await ctx.bank.allSections(), ctx.bank.name, String(testId), Number(sectionNumber))) throw new Error("That section is not available.");
+    // Only a section of this bank with ready questions, from a complete test.
+    if (!canStartSection(await ctx.bank.allSections(), String(testId), Number(sectionNumber))) throw new Error("That section is not available.");
     const { data, error } = await ctx.db.from("test_sessions").insert({ test_id: String(testId), section_number: Number(sectionNumber) }).select("id").single();
     if (error) throw new Error(error.message);
     return data.id as string;

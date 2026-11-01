@@ -4,7 +4,6 @@ import { SubmitButton } from "@/components/SubmitButton";
 import { Tabs } from "@/components/Tabs";
 import { Mascot } from "@/components/Mascot";
 import { startRandomSection } from "@/lib/actions";
-import { BANK_NAME } from "@/lib/bank";
 import { formatDay, grade, pct, testNumber } from "@/lib/data";
 import { isCompleteTest } from "@/lib/practiceTests";
 import { op } from "@/lib/run";
@@ -101,8 +100,8 @@ async function RandomSections() {
 export default async function Practice({ searchParams }: PageProps<"/practice">) {
   const find = String((await searchParams).q ?? "").trim();
   const { tests, sections, sessions } = await op("practice");
-  // The generated bank lists only whole practice tests; the rest of its questions are in drills and random sections.
-  const listed = BANK_NAME === "generated" ? tests.filter((t) => isCompleteTest(sections.filter((s) => s.test_id === t.id))) : tests;
+  // Only whole practice tests are listed; the rest of the questions are in drills and random sections.
+  const listed = tests.filter((t) => isCompleteTest(sections.filter((s) => s.test_id === t.id)));
   const rows: Row[] = listed
     .map((t) => {
       const mine = (sessions ?? []).filter((s) => s.test_id === t.id);
@@ -114,17 +113,17 @@ export default async function Practice({ searchParams }: PageProps<"/practice">)
       };
     })
     .sort((a, b) => testNumber(b.id) - testNumber(a.id))
-    // "90" finds test 90, "2019" that year's tests, and words match the name.
+    // "3" finds test 3, and words match the name.
     .filter((t) => !find || find.split(/\s+/).every((w) => `${t.name} ${t.year ?? ""} ${testNumber(t.id)}`.toLowerCase().split(/\s+/).includes(w.toLowerCase()) || t.name.toLowerCase().includes(w.toLowerCase())));
   const started = rows.filter((t) => t.started && t.done < t.sections);
   const completed = rows.filter((t) => t.done >= t.sections);
   const list = (
     <section>
       <div className="mascot-heading"><h1>Practice tests</h1><Mascot animation="run" /></div>
-      <p>Take timed sections, like on test day, then review what you missed in the results.{" Pick a test below, or start a random section further down."}</p>
+      <p>Take timed sections, like on test day, then review what you missed in the results. Pick a test below, or start a random section further down.</p>
       <form className="field" role="search">
         <label htmlFor="find-test">Find a test</label>
-        <input id="find-test" name="q" type="search" enterKeyHint="search" defaultValue={find} placeholder={"A number like 3"} />
+        <input id="find-test" name="q" type="search" enterKeyHint="search" defaultValue={find} placeholder="A number like 3" />
       </form>
       {find && <p className="muted">{rows.length} {rows.length === 1 ? "test matches" : "tests match"} “{find}”. <Link href="/practice">Show all</Link></p>}
       <Tabs labels={[`All (${rows.length})`, `In progress (${started.length})`, `Completed (${completed.length})`]} label="Filter practice tests">
@@ -134,5 +133,5 @@ export default async function Practice({ searchParams }: PageProps<"/practice">)
       </Tabs>
     </section>
   );
-  return BANK_NAME === "generated" ? <>{list}<RandomSections /></> : list;
+  return <>{list}<RandomSections /></>;
 }

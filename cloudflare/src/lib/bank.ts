@@ -5,8 +5,7 @@ import type { QuestionRow } from "@/lib/questions";
 import { op } from "./run";
 import { api } from "./supabase";
 
-export type BankName = "other" | "generated";
-// Only the generated bank is ever on Cloudflare.
+export type BankName = "generated";
 export const BANK_NAME: BankName = "generated";
 
 export const typeCounts = () => op("typeCounts");

@@ -12,10 +12,9 @@ export function isCompleteTest(sections: SectionCount[]) {
 }
 
 /**
- * Whether a fixed section can be started (and so offered): it has ready questions, and in the generated bank its
- * test is complete. The old one-section generated tests (GEN-LR, GEN-RC) are empty now, so their results offer no retake.
+ * Whether a fixed section can be started (and so offered): it has ready questions and its test is complete. The old one-section generated tests (GEN-LR, GEN-RC) are empty now, so their results offer no retake.
  */
-export function canStartSection(sections: (SectionCount & { test_id: string })[], bank: string, testId: string, sectionNumber: number) {
+export function canStartSection(sections: (SectionCount & { test_id: string })[], testId: string, sectionNumber: number) {
   const mine = sections.filter((s) => s.test_id === testId);
-  return mine.some((s) => s.section_number === sectionNumber) && (bank !== "generated" || isCompleteTest(mine));
+  return mine.some((s) => s.section_number === sectionNumber) && isCompleteTest(mine);
 }

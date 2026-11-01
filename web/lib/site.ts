@@ -1,11 +1,8 @@
 // What the site says about itself: titles, the FAQ (Home, About, and Home's JSON-LD), the address search engines use.
-import { BANK_NAME } from "@/lib/bank";
-
-
 // The Cloudflare site; the Vercel backup points its canonical links here too.
 export const SITE_URL = "https://pandectprep.pages.dev";
 export const SITE_TITLE = "Pandect: LSAT practice by question type";
-export const SITE_DESCRIPTION = `Free ${"LSAT-style"} Logical Reasoning and Reading Comprehension practice: drill one question type at a time, take timed 35-minute sections, and see which types you miss.`;
+export const SITE_DESCRIPTION = "Free LSAT-style Logical Reasoning and Reading Comprehension practice: drill one question type at a time, take timed 35-minute sections, and see which types you miss.";
 
 /** A page's full title, as web/app/layout.tsx's template makes it; Home has none of its own. */
 export const pageTitle = (title?: string) => (title ? `${title} · Pandect` : SITE_TITLE);

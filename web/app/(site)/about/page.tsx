@@ -1,7 +1,5 @@
 import { Mascot } from "@/components/Mascot";
 import { Start } from "@/components/StartButton";
-import { BANK_NAME } from "@/lib/bank";
-
 
 export const metadata = {
   title: "About",
@@ -36,7 +34,7 @@ export default function About() {
       <section>
         <h2>How the question bank is built</h2>
         <div className="steps">
-          <div className="step"><div className="num">1</div><h3>{"Write practice questions"}</h3><p className="muted">{"Each question is written to follow the pattern of one LSAT question type."}</p></div>
+          <div className="step"><div className="num">1</div><h3>Write practice questions</h3><p className="muted">Each question is written to follow the pattern of one LSAT question type.</p></div>
           <div className="step"><div className="num">2</div><h3>Label each question</h3><p className="muted">Every question is labeled by type, so you can practice one kind of reasoning at a time.</p></div>
           <div className="step"><div className="num">3</div><h3>Track your answers</h3><p className="muted">Your answers build an accuracy record per type, which shows what to practice next.</p></div>
         </div>

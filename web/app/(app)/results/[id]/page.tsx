@@ -6,7 +6,6 @@ import { PassageText } from "@/components/PassageText";
 import { SubmitButton } from "@/components/SubmitButton";
 import { Tabs } from "@/components/Tabs";
 import { startSection } from "@/lib/actions";
-import { BANK_NAME } from "@/lib/bank";
 import { drillHref, formatDay, grade, pct } from "@/lib/data";
 import { canStartSection } from "@/lib/practiceTests";
 import { sanitize } from "@/lib/prefs";
@@ -30,7 +29,7 @@ type Text = Awaited<ReturnType<typeof sessionQuestions>>["questions"][number];
 
 /** A missed question as a row that opens to the question itself, the marked answers and the reasoning. */
 function ReviewRow({ q, text, passages, chosen, sessionId }: { q: Key; text?: Text; passages: string[]; chosen: string | null; sessionId: string }) {
-  const order = text && choiceOrder(text.options, sessionId + q.id, BANK_NAME);
+  const order = text && choiceOrder(text.options, sessionId + q.id);
   const shown = (letter: string) => order ? shownLetter(order, letter) : letter;
   return (
     <details className="review">
@@ -127,7 +126,7 @@ export default async function Results({ params }: PageProps<"/results/[id]">) {
       <section>
         <div className="actions">
           <Link className="btn primary" href={home}>{session.kind === "random" ? "Start another section" : `Back to ${label.title}`}</Link>
-          {session.kind === "fixed" && session.test_id && canStartSection(sections, BANK_NAME, session.test_id, session.section_number ?? 0) && (
+          {session.kind === "fixed" && session.test_id && canStartSection(sections, session.test_id, session.section_number ?? 0) && (
             <form action={startSection}>
               <input type="hidden" name="test_id" value={session.test_id} />
               <input type="hidden" name="section_number" value={session.section_number ?? ""} />

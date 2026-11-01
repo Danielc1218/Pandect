@@ -1,9 +1,8 @@
 const LETTERS = ["A", "B", "C", "D", "E"];
 
 /** Original choice letters, in the order their text should be shown. */
-export function choiceOrder(options: Record<string, string>, seed: string, bank: "generated" | "other"): string[] {
+export function choiceOrder(options: Record<string, string>, seed: string): string[] {
   const order = LETTERS.filter((letter) => options[letter]);
-  if (bank !== "generated") return order;
   let hash = 2166136261;
   for (let i = 0; i < seed.length; i++) hash = Math.imul(hash ^ seed.charCodeAt(i), 16777619);
   const random = () => {

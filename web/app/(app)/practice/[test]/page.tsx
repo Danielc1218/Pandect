@@ -3,7 +3,7 @@ import { sectionMinutes } from "@/lib/timing";
 import { notFound } from "next/navigation";
 import { SubmitButton } from "@/components/SubmitButton";
 import { startSection } from "@/lib/actions";
-import { allTests, BANK_NAME } from "@/lib/bank";
+import { allTests } from "@/lib/bank";
 import { formatDay, grade, pct } from "@/lib/data";
 import { canStartSection } from "@/lib/practiceTests";
 import { op } from "@/lib/run";
@@ -33,7 +33,7 @@ export default async function TestPage({ params }: PageProps<"/practice/[test]">
             const running = open(s.section_number);
             const done = last(s.section_number);
             // An incomplete generated test (reachable by its address) lists its sections but offers none to start.
-            const startable = canStartSection(sections, BANK_NAME, testId, s.section_number);
+            const startable = canStartSection(sections, testId, s.section_number);
             const info = (
               <>
                 <div className="grow">

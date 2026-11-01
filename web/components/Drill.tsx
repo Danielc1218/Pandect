@@ -13,16 +13,15 @@ import { usePrefs } from "./Prefs";
 import { ShortcutsHelp } from "./ShortcutsHelp";
 import { Mascot } from "./Mascot";
 
-/** `sourceHref` is the practice test the question comes from, when the bank has fixed tests. */
-export type DrillQuestion = { id: string; stimulus: string | null; prompt: string; options: Record<string, string>; source: string; sourceHref?: string };
+export type DrillQuestion = { id: string; stimulus: string | null; prompt: string; options: Record<string, string>; source: string };
 
 /**
  * One drill question. `children` is the type's question list, shown in a popup; `nextHref` is the next unanswered
  * question, if any; `prevHref` and `skipHref` are its neighbors in the list.
  */
-export function Drill({ question, bank, type, number, answered, total, listHref, nextHref, prevHref, skipHref, before, children }: {
+export function Drill({ question, type, number, answered, total, listHref, nextHref, prevHref, skipHref, before, children }: {
   question: DrillQuestion; type: string; number: number; answered: number; total: number; listHref: string; nextHref?: string;
-  prevHref?: string; skipHref?: string; before?: Status; children: ReactNode; bank: "generated" | "other";
+  prevHref?: string; skipHref?: string; before?: Status; children: ReactNode;
 }) {
   const router = useRouter();
   const list = useRef<HTMLDialogElement>(null);
@@ -31,7 +30,7 @@ export function Drill({ question, bank, type, number, answered, total, listHref,
   const [selected, setSelected] = useState<string | null>(null);
   const [eliminated, setEliminated] = useState<string[]>([]);
   const [result, setResult] = useState<{ correct: boolean; correctAnswer: string; explanation: string | null } | null>(null);
-  const [order] = useState(() => choiceOrder(question.options, String(Math.random()), bank));
+  const [order] = useState(() => choiceOrder(question.options, String(Math.random())));
   const [pending, start] = useTransition();
   // A stopwatch for this question, stopped by the answer; hidden with the timer setting.
   const { hideTimer } = usePrefs();
@@ -84,7 +83,7 @@ export function Drill({ question, bank, type, number, answered, total, listHref,
     <div className="question" aria-busy={pending}>
       <div className="meta"><span className="tag">{type}</span>
         {/* a question opened again says how it went last time, until it is answered anew */}
-        {before && !result && <span className={`tag ${before}`}>{before === "solved" ? "Solved before" : "Missed before"}</span>}<span className="muted">Question {number} of {total} · {question.sourceHref ? <Link href={question.sourceHref}>{question.source}</Link> : question.source}</span>
+        {before && !result && <span className={`tag ${before}`}>{before === "solved" ? "Solved before" : "Missed before"}</span>}<span className="muted">Question {number} of {total} · {question.source}</span>
         {!hideTimer && <span className="stopwatch" role="timer" aria-label={`Time on this question ${clock}`} title={result ? "Time you took" : "Time on this question"}>{clock}</span>}
       </div>
       <div className="progress" role="img" aria-label={`${answered} of ${total} answered`} title={`${answered} of ${total} answered`}><span style={{ width: `${Math.round((100 * answered) / total)}%` }} /></div>

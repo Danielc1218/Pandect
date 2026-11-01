@@ -100,10 +100,8 @@ export const openEntries = async <T>(key: CryptoKey, ids: string[], purpose: Pur
 
 /**
  * One bank file from the CDN as stored (still sealed). No auth header: the files are public ciphertext. Null on 404.
- * The other bank must never reach Cloudflare, so that is refused before any fetch.
  */
-export const cdnRaw = async (path: string, bank?: string): Promise<unknown> => {
-  if ((bank ?? globalThis.process?.env?.QUESTION_BANK) === "other") throw new Error("the other bank never reads Cloudflare");
+export const cdnRaw = async (path: string): Promise<unknown> => {
   const res = await fetch(cdnBase() + path);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`${path}: ${res.status}`);
@@ -112,7 +110,7 @@ export const cdnRaw = async (path: string, bank?: string): Promise<unknown> => {
 };
 
 /** Fetch and decrypt one whole sealed file (a type list), sealed under its path. Null on 404. */
-export const cdnGet = async <T>(path: string, init: { key: CryptoKey; purpose: Purpose; bank?: string }): Promise<T | null> => {
-  const sealed = (await cdnRaw(path, init.bank)) as Sealed | null;
+export const cdnGet = async <T>(path: string, init: { key: CryptoKey; purpose: Purpose }): Promise<T | null> => {
+  const sealed = (await cdnRaw(path)) as Sealed | null;
   return sealed && open<T>(init.key, sealed, init.purpose, path);
 };

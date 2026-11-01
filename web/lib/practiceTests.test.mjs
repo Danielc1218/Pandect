@@ -21,17 +21,14 @@ test("anything short of that is not complete", () => {
   assert.equal(isCompleteTest([lr(1), rc(), lr(3), lr(4)]), false); // an extra section
 });
 
-test("a section can be started only if it has questions, and in the generated bank only from a complete test", () => {
+test("a section can be started only if it has questions and only from a complete test", () => {
   const of = (test_id, sections) => sections.map((s) => ({ ...s, test_id }));
   const sections = [
     ...of("GEN-PT-01", [lr(1), rc(), lr(3)]),
     ...of("GEN-PT-15", [lr(1), rc(), lr(3, 21)]),
-    ...of("OT-1", [lr(1), lr(2, 26)]),
   ];
-  assert.equal(canStartSection(sections, "generated", "GEN-PT-01", 2), true);
-  assert.equal(canStartSection(sections, "generated", "GEN-PT-01", 4), false); // no such section
-  assert.equal(canStartSection(sections, "generated", "GEN-PT-15", 1), false); // incomplete test
-  assert.equal(canStartSection(sections, "generated", "GEN-LR", 1), false);    // the old one-section tests are empty now
-  assert.equal(canStartSection(sections, "other", "OT-1", 2), true);     // other-bank tests need no particular shape
-  assert.equal(canStartSection(sections, "other", "OT-1", 3), false);
+  assert.equal(canStartSection(sections, "GEN-PT-01", 2), true);
+  assert.equal(canStartSection(sections, "GEN-PT-01", 4), false); // no such section
+  assert.equal(canStartSection(sections, "GEN-PT-15", 1), false); // incomplete test
+  assert.equal(canStartSection(sections, "GEN-LR", 1), false);    // the old one-section tests are empty now
 });
